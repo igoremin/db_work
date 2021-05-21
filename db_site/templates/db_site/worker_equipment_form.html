@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ worker.name }}
+{% endblock %}
+
+{% block content %}
+    <h3>Сотрудник : <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a></h3>
+    <h4>Добавление оборудования</h4>
+
+    <form action="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}" method="post">
+        {% csrf_token %}
+
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="row pb-2 form_div" id="simple_object">
+                <div class="col">
+                    <label for="{{ form.simple_object.id_for_label }}">{{ form.simple_object.label_tag }}</label>
+                    {{ form.simple_object.errors }}
+                    {{ form.simple_object }}
+                </div>
+                <div class="col col-lg-2">
+                    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label_tag }}</label>
+                    {{ form.amount.errors }}
+                    {{ form.amount }}
+                </div>
+            </div>
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+
+        {% endfor %}
+
+        <div id="create_div"></div>
+
+        <p id="create_div_btn">
+            <button type="button" onclick="addSimpleObjectAria();" class="btn btn-primary mt-3">Добавить объект</button>
+        </p>
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+
+{#        {{ form.as_p }}#}
+{#        <button type="submit" class="btn btn-outline-primary">Сохранить</button>#}
+{#        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">#}
+    </form>
+
+{% endblock %}

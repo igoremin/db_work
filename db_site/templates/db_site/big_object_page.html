@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load mptt_tags %}
+
+{% block content %}
+    {% if user.is_staff %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_update_url' lab=current_lab.slug slug=big_object.slug %}" role="button">Редактировать объект</a>
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_update_components_url' lab=current_lab.slug slug=big_object.slug %}" role="button">Редактировать компоненты</a>
+
+        <!--------------------- Блок списания количества ----------------------->
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#object_copy">
+            Копировать
+        </button>
+
+        <!-- Модальное окно -->
+        <div class="modal fade" id="object_copy" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Копировать объект : {{ big_object.name }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ big_object.get_absolute_url }}" method="post">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            {% if copy_form.errors %}
+                                <div class="alert-danger">
+                                    {{ copy_form.errors }}
+                                </div>
+                            {% endif %}
+                            {{ copy_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-outline-primary">Копировать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-------------------------------------------------------------------->
+
+    {% endif %}
+
+    <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_history_url' lab=current_lab.slug slug=big_object.slug %}" role="button">История</a>
+
+    <!--------------------- Блок добавления категории для файлов ----------------------->
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#new_files_category">
+        Добавить категорию для файлов
+    </button>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="new_files_category" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Новая категория</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ big_object.get_absolute_url }}" method="post">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {% if file_categories_form.errors %}
+                            <div class="alert-danger">
+                                {{ file_categories_form.errors }}
+                            </div>
+                        {% endif %}
+                        {{ file_categories_form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-outline-primary">Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-------------------------------------------------------------------->
+
+    <button class="btn btn-outline-secondary mb-3" onclick="createFile()" role="button">Сформировать файл</button>
+
+
+    <h1>{{ big_object.name }}</h1>
+
+    <div class="row">
+        <div class="col mb-3">
+
+            <ul>
+                {% if big_object.inventory_number %}
+                    <li>Инв. номер : {{ big_object.inventory_number }}</li>
+                {% endif %}
+                {% if big_object.system_number %}
+                    <li>Номер системы : {{ big_object.system_number }}</li>
+                {% endif %}
+                {% if big_object.controller %}
+                    <li>Контроллер : {{ big_object.controller }}</li>
+                {% endif %}
+                {% if big_object.detector %}
+                    <li>Детектор : {{ big_object.detector }}</li>
+                {% endif %}
+                {% if big_object.interface %}
+                    <li>Интерфейс : {{ big_object.interface }}</li>
+                {% endif %}
+                {% if big_object.report %}
+                    <li>Отчет : {{ big_object.report }}</li>
+                {% endif %}
+                {% if big_object.year %}
+                    <li>Год : {{ big_object.year }}</li>
+                {% endif %}
+
+                {% if big_object.text %}
+                    <li>Описание : {{ big_object.text|linebreaksbr }}</li>
+                {% endif %}
+
+            </ul>
+
+            <h3>Статус : {{ status }}</h3>
+            <h3>Стоимость : {{ big_object.price_text }}</h3>
+            {% if big_object.parent %}
+                <h3>Родитель : <a href="{{ big_object.parent.get_absolute_url }}">{{ big_object.parent.name }}</a></h3>
+            {% endif %}
+            {% if all_children %}
+                <h3> Дерево :</h3>
+                {% for child in all_children %}
+                    <p class="not_margin ml-3">{{ child }}</p>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+        <div class="col">
+            {% for category in file_categories %}
+                <div class="row">
+                    <div class="col text-center">
+                        <h5 id="id__{{ category.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ category.name }}</h5>
+                    </div>
+                    <div class="col">
+                        <a class="btn btn-outline-primary" href="{% url 'big_object_update_category_files_url' lab=current_lab.slug slug=big_object.slug pk=category.pk %}">Редактировать</a>
+                    </div>
+                </div>
+                <div class="row" id="files_id__{{ category.id }}" style="display: none">
+                    <div class="col-md-12">
+                        <h5>{{ category.text }}</h5>
+                    </div>
+                    {% if category.images.all %}
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            Изображения
+                        </div>
+                        <div class="col-md-12 text-left">
+                            {% for image in category.images.all %}
+                                <a data-fancybox="gallery" href="{{image.image_big.url }}">
+                                    <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="15%">
+                                </a>
+                            {% endfor %}
+                            <hr>
+                        </div>
+                    {% endif %}
+                    {% if category.files.all %}
+                        <div class="col-md-12">
+                            Файлы
+                        </div>
+                        {% for file in category.files.all %}
+                            <div class="mt-2 col-md-12">
+                                <a href="{{ file.file.url }}" download>{{ file.filename }}</a>
+                            </div>
+                        {% endfor %}
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    {#    {% if big_object.status != 'RD' %}#}
+    <h3 class="btn btn-outline-secondary" onclick="showTableOnBigObjectPage(this);" id="components">Список компонентов</h3>
+    <div id="components_table" style="display: none">
+
+        {% if components %}
+            <h4>{{ big_object.name }}</h4>
+            <table  class="table table-hover table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <th scope="col">#</th>
+                    <th scope="col" style="width: 30%">Название</th>
+                    <th scope="col" style="width: 15%">Инв. номер</th>
+                    <th scope="col">
+                        {% if big_object.status == 'IW' %}
+                            Используется
+                        {% elif big_object.status == 'NW'%}
+                            Требуется
+                        {% elif big_object.status == 'RD'%}
+                            Использовалось
+                        {% elif big_object.status == 'WO'%}
+                            Использовалось
+                        {% endif %}
+                    </th>
+                    {% if big_object.status not in 'RD WO' %}
+                        <th scope="col">Свободно</th>
+                    {% endif %}
+                    <th scope="col">Сумма</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for component in components %}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }}{% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a>
+                        </td>
+                        <td>
+                            {% if component.simple_object.inventory_number %}
+                                {{ component.simple_object.inventory_number }}
+                            {% endif %}
+                        </td>
+                        <td>{{ component.amount }}</td>
+                        {% if big_object.status not in 'RD WO' %}
+                            <td {% if component.simple_object.amount_free < 0 and big_object.status == 'IW'%}
+                                style="background: #dc3545"
+                            {% elif component.simple_object.amount_free < component.amount and big_object.status == 'NW'%}
+                                style="background: #dc3545"
+                            {% endif %}>{{ component.simple_object.amount_free }}</td>
+                        {% endif %}
+                        <td>{{ component.total_price_text }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% for components in all_components %}
+            {% if components %}
+                <h4><a href="{{ components.first.big_object.get_absolute_url }}">{{ components.first.big_object }}</a></h4>
+                <table  class="table table-hover table-bordered">
+                    <thead>
+                    <tr class="text-center">
+                        <th scope="col">#</th>
+                        <th scope="col" style="width: 30%">Название</th>
+                        <th scope="col" style="width: 15%">Инв. номер</th>
+                        <th scope="col">
+                            {% if components.first.big_object.status == 'IW' %}
+                                Используется
+                            {% elif components.first.big_object.status == 'NW'%}
+                                Требуется
+                            {% elif components.first.big_object.status == 'RD'%}
+                                Использовалось
+                            {% elif components.first.big_object.status == 'WO'%}
+                                Использовалось
+                            {% endif %}
+                        </th>
+                        {% if components.first.big_object.status not in 'RD WO' %}
+                            <th scope="col">Свободно</th>
+                        {% endif %}
+                        <th scope="col">Сумма</th>
+                    </tr>
+                    </thead>
+
+                {% for component in components %}
+                    <tbody>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }} {% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a></td>
+                            <td>
+                                {% if component.simple_object.inventory_number %}
+                                    {{ component.simple_object.inventory_number }}
+                                {% endif %}
+                            </td>
+                            <td>{{ component.amount }}</td>
+                            {% if component.big_object.status not in 'RD WO' %}
+                                <td {% if component.simple_object.amount_free < 0 and component.big_object.status == 'IW'%}
+                                    style="background: #dc3545"
+                                {% elif component.simple_object.amount_free < component.amount and component.big_object.status == 'NW'%}
+                                    style="background: #dc3545"
+                                {% endif %}>{{ component.simple_object.amount_free }}</td>
+                            {% endif %}
+                            <td>{{ component.total_price_text }}</td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+                </table>
+            {% endif %}
+        {% endfor %}
+
+    </div>
+
+    <hr>
+
+    <h3 class="btn btn-outline-secondary" onclick="showTableOnBigObjectPage(this);" id="base_components">Список базовых компонентов</h3>
+    <table id="base_components_table" class="table table-hover table-bordered" style="display: none">
+        <thead>
+        <tr class="text-center">
+            <th scope="col">#</th>
+            <th scope="col">Название</th>
+            <th scope="col">Инв. номер</th>
+{#            <th scope="col">#}
+{#                {% if big_object.status == 'IW' %}#}
+{#                    Используется#}
+{#                {% elif big_object.status == 'NW'%}#}
+{#                    Требуется#}
+{#                {% elif big_object.status == 'RD'%}#}
+{#                    Использовалось#}
+{#                {% elif big_object.status == 'WO'%}#}
+{#                    Использовалось#}
+{#                {% endif %}#}
+{#            </th>#}
+{#            {% if big_object.status not in 'RD WO' %}#}
+{#                <th scope="col">Свободно</th>#}
+{#            {% endif %}#}
+{#            <th scope="col">Сумма</th>#}
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for component in base_components %}
+            <tr>
+                <td></td>
+                <td>
+                    <a href="{{ component.get_absolute_url }}">{{ component.name }}</a></td>
+                <td>{{ component.inventory_number }}</td>
+{#                <td>{{ component.amount }}</td>#}
+{#                {% if big_object.status not in 'RD WO' %}#}
+{#                    <td {% if component.simple_object.amount_free < 0 and big_object.status == 'IW'%}#}
+{#                        style="background: #dc3545"#}
+{#                    {% elif component.simple_object.amount_free < component.amount and big_object.status == 'NW'%}#}
+{#                        style="background: #dc3545"#}
+{#                    {% endif %}>{{ component.simple_object.amount_free }}</td>#}
+{#                {% endif %}#}
+{#                <td>{{ component.total_price_text }}</td>#}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{#    {% endif %}#}
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+    <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+{% endblock %}

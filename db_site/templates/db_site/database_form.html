@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block titile %}
+    Добавление нового файла
+{% endblock %}
+
+{% block content %}
+    <div class="mt-5">
+        <h3>Пример файла</h3>
+
+        <ul>
+            Строки содержат данные в следующем порядке :
+            <li>Инвентарный номер</li>
+            <li>Код справочника</li>
+            <li>Название</li>
+            <li>Категория</li>
+            <li>Количество</li>
+            <li>Сумма</li>
+        </ul>
+
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>ОС0000007658</td>
+                    <td>ОС0000007658</td>
+                    <td>Адаптер  быстроразъемный</td>
+                    <td>материалы</td>
+                    <td>1,00</td>
+                    <td>6 381,40</td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td>ОС0000007658</td>
+                    <td>ОС0000007658</td>
+                    <td>Адаптер  быстроразъемный</td>
+                    <td>материалы</td>
+                    <td>1,00</td>
+                    <td>6 381,40</td>
+                </tr>
+                <tr>
+                    <th scope="row">3</th>
+                    <td>ОС0000007658</td>
+                    <td>ОС0000007658</td>
+                    <td>Адаптер  быстроразъемный</td>
+                    <td>материалы</td>
+                    <td>1,00</td>
+                    <td>6 381,40</td>
+                </tr>
+                <tr>
+                    <th scope="row">4</th>
+                    <td>ОС0000007658</td>
+                    <td>ОС0000007658</td>
+                    <td>Адаптер  быстроразъемный</td>
+                    <td>материалы</td>
+                    <td>1,00</td>
+                    <td>6 381,40</td>
+                </tr>
+                <tr>
+                    <th scope="row">5</th>
+                    <td>ОС0000007658</td>
+                    <td>ОС0000007658</td>
+                    <td>Адаптер  быстроразъемный</td>
+                    <td>материалы</td>
+                    <td>1,00</td>
+                    <td>6 381,40</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <hr>
+
+    <form id="load_new_db_form" method="post" action="{% url 'load_new_database_url' lab=current_lab.slug %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div id="loader">
+        </div>
+
+        {{ form.as_p }}
+
+{#        <div class="form-check">#}
+{#            <input type="checkbox" class="form-check-input" id="id_check">#}
+{#            <label class="form-check-label mb-3" for="id_check">Создать простые объекты на основе данного файла</label>#}
+{#        </div>#}
+
+        <button type="submit" class="btn btn-outline-primary" name="load_new_db">Сохранить</button>
+        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}

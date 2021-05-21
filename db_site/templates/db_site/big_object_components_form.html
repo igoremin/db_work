@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{#    <div id="form_example">#}
+{##}
+{#        <div class="col">#}
+{##}
+{#            <label for="id_form-0-simple_object"><label for="id_form-0-simple_object">Простой объект:</label></label>#}
+{#            <div class="dropdown bootstrap-select form-control">#}
+{#                <select name="form-0-simple_object" class="form-control selectpicker" data-live-search="true" id="id_form-0-simple_object" tabindex="-98">#}
+{#                </select>#}
+{#                <button type="button" class="btn dropdown-toggle btn-light" data-toggle="dropdown" role="combobox" aria-owns="bs-select-1" aria-haspopup="listbox" aria-expanded="false" data-id="id_form-0-simple_object" title="Кабель UTP-5E (465168416841)"><div class="filter-option"><div class="filter-option-inner"><div class="filter-option-inner-inner">Кабель UTP-5E (465168416841)</div></div> </div></button><div class="dropdown-menu "><div class="bs-searchbox"><input type="search" class="form-control" autocomplete="off" role="combobox" aria-label="Search" aria-controls="bs-select-1" aria-autocomplete="list"></div><div class="inner show" role="listbox" id="bs-select-1" tabindex="-1"><ul class="dropdown-menu inner show" role="presentation"></ul></div></div></div>#}
+{#        </div>#}
+{#        <div class="col col-lg-2">#}
+{#            <label for="id_form-0-amount"><label for="id_form-0-amount">Количество:</label></label>#}
+{##}
+{#            <input type="number" name="form-0-amount" value="1" class="form-control" placeholder="Количество" min="0" id="id_form-0-amount">#}
+{#        </div>#}
+{##}
+{#    </div>#}
+
+    <form action="{% url 'big_object_update_components_url' lab=current_lab.slug slug=big_object.slug %}" method="POST">
+        {% csrf_token %}
+
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="row pb-2 form_div" id="simple_object">
+                <div class="col">
+                    <label for="{{ form.simple_object.id_for_label }}">{{ form.simple_object.label_tag }}</label>
+                    {{ form.simple_object.errors }}
+                    {{ form.simple_object }}
+                </div>
+                <div class="col col-lg-2">
+                    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label_tag }}</label>
+                    {{ form.amount.errors }}
+                    {{ form.amount }}
+                </div>
+            </div>
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+
+        {% endfor %}
+
+        <div id="create_div"></div>
+
+        <p id="create_div_btn">
+            <button type="button" onclick="addSimpleObjectAria();" class="btn btn-primary mt-3">Добавить объект</button>
+        </p>
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+
+    </form>
+
+
+{% endblock %}
+

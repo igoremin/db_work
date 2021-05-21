@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    {% if form.status %}
+        <h3>Редактирование</h3>
+    {% else %}
+        <h3>Создание оборудования</h3>
+    {% endif %}
+    <form action="{% if form.status %}
+        {% url 'big_object_update_url' lab=current_lab.slug slug=slug %}
+    {% else %}
+        {% url 'big_object_add_url' lab=current_lab.slug %}
+    {% endif %}" method="POST">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert-danger">
+                {{ form.errors }}
+            </div>
+        {% endif %}
+
+        <div class="pb-2">
+            {{ form.parent.errors }}
+            {{ form.parent.label_tag }}
+            {{ form.parent }}
+        </div>
+
+        <div class="pb-2">
+            {{ form.name.errors }}
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="pb-2">
+            {{ form.inventory_number.errors }}
+            {{ form.inventory_number.label_tag }}
+            {{ form.inventory_number }}
+        </div>
+        <div class="pb-2">
+            {{ form.category.errors }}
+            {{ form.category.label_tag }}
+            {{ form.category }}
+        </div>
+        <div class="pb-2">
+            {{ form.text.errors }}
+            {{ form.text.label_tag }}
+            {{ form.text }}
+        </div>
+        {% if form.status %}
+            <div class="pb-2">
+                {{ form.status.errors }}
+                {{ form.status.label_tag }}
+                {{ form.status }}
+            </div>
+            <div class="pb-2">
+                {{ form.system_number.errors }}
+                {{ form.system_number.label_tag }}
+                {{ form.system_number }}
+            </div>
+            <div class="pb-2">
+                {{ form.controller.errors }}
+                {{ form.controller.label_tag }}
+                {{ form.controller }}
+            </div>
+            <div class="pb-2">
+                {{ form.detector.errors }}
+                {{ form.detector.label_tag }}
+                {{ form.detector }}
+            </div>
+            <div class="pb-2">
+                {{ form.interface.errors }}
+                {{ form.interface.label_tag }}
+                {{ form.interface }}
+            </div>
+            <div class="pb-2">
+                {{ form.report.errors }}
+                {{ form.report.label_tag }}
+                {{ form.report }}
+            </div>
+            <div class="pb-2">
+                {{ form.year.errors }}
+                {{ form.year.label_tag }}
+                {{ form.year }}
+            </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+
+    </form>
+
+{% endblock %}

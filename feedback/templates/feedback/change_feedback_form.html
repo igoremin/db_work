@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Редактировать отзыв
+{% endblock %}
+
+{% block content %}
+    <h3>{{ feedback.name }} ({{ feedback.get_status_display }})</h3>
+    <p class="mb-3">Дата : {{ feedback.date }}</p>
+    <p class="mb-3">Пользователь : <a href="{{ feedback.user.get_absolute_url }}">{{ feedback.user }}</a></p>
+    <p>{{ feedback.text|linebreaks }}</p>
+
+    <form action="{% url 'change_feedback_form_url' pk=feedback.pk %}" method="post">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">
+
+    </form>
+
+{% endblock %}

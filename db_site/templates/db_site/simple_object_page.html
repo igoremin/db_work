@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if user.is_staff %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_update_form_url' lab=current_lab.slug slug=object.slug %}" role="button">Редактировать</a>
+        {#    <a class="btn btn-outline-secondary mb-3" href="#" role="button">Списать количество</a>#}
+
+        <!--------------------- Блок списания количества ----------------------->
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#object_write_off">
+            Списать количество
+        </button>
+
+        <!-- Модальное окно -->
+        <div class="modal fade" id="object_write_off" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Списать определенное количество</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ object.get_absolute_url }}" method="post">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            {% if write_off_form.errors %}
+                                <div class="alert-danger">
+                                    {{ write_off_form.errors }}
+                                </div>
+                            {% endif %}
+                            {{ write_off_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-outline-primary">Списать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-------------------------------------------------------------------->
+
+        <!--------------------- Блок удаления объекта ----------------------->
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-outline-danger mb-3" data-toggle="modal" data-target="#object_delete">
+            Удалить
+        </button>
+
+        <!-- Модальное окно -->
+        <div class="modal fade" id="object_delete" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Удаление простого объекта</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Вы действительно хотите удалить объект {{ object.name }} ?
+                    </div>
+                    <div class="modal-footer">
+                        <form action="{% url 'simple_object_delete_form_url' lab=object.lab.slug slug=object.slug %}"
+                              method="post">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert-danger">
+                                    {{ form.errors }}
+                                </div>
+                            {% endif %}
+                            <input type="hidden" name="object_slug" value="{{ object.slug }}">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-outline-primary">Да, удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-------------------------------------------------------------------->
+
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_history_url' lab=current_lab.slug slug=object.slug %}" role="button">История</a>
+    {% endif %}
+
+    <h1>{{ object.name }}</h1>
+    <ul>
+        <li>Базовый объект : <a href="{{ object.base_object.get_absolute_url }}">{{ object.base_object.name }}</a></li>
+        <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
+        <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
+        <li>В работе : {{ object.amount_in_work }}</li>
+        <li>{% if object.amount_free < 0 %}Не хватает{% else %}Свободно{% endif %} : {{ object.amount_free }}</li>
+        <li>Стоимость : {{ object.price_text }}</li>
+        <li>Сумма : {{ object.total_price_text }}</li>
+        <li>Лаборатория : {{ object.lab.name }}</li>
+        <li>Дата создания : {{ object.date_add }}</li>
+        {% if object.place %}
+            <li>Место расположения : {{ object.place }}</li>
+        {% endif %}
+        {% if object.worker_objects_list.all %}
+            <li>Сотрудники :
+                {% for object in object.worker_objects_list.all %}
+                    <a href="{{ object.profile.get_absolute_url }}">{{ object.profile.name }}</a>
+                    ( {{ object.amount }}
+                    {% if object.simple_object.measure %}
+                        {{ object.simple_object.measure }}
+                    {% endif %}
+                    )
+                {% endfor %}
+            </li>
+{#            <li>Сотрудник : <a href="{{ object.worker.get_absolute_url }}">{{ object.worker.name }}</a></li>#}
+        {% endif %}
+        {% if object.status %}
+            <li>Статус : {{ object.get_status_display }}</li>
+        {% endif %}
+        {% if object.category %}
+            <li>Категория : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
+        {% endif %}
+        {% if object.text %}
+            <li>Описание : {{ object.text }}</li>
+        {% endif %}
+
+    </ul>
+
+
+    {% if big_objects_list %}
+        <h3>Данный объект используется в следующих устройствах :</h3>
+
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Инв. номер</th>
+                <th scope="col">Статус</th>
+                <th scope="col">Количество</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for big_object in big_objects_list %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ big_object.big_object.get_absolute_url }}">{{ big_object.big_object.name }}</a>
+                    </td>
+                    <td>{{ big_object.big_object.inventory_number }}</td>
+                    <td>{{ big_object.big_object.get_status_display }}</td>
+                    <td>{{ big_object.amount }}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+    {% endif %}
+
+
+
+{% endblock %}

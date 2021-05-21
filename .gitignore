@@ -1,0 +1,12 @@
+*.pyc
+*~
+__pycache__
+v_server
+db.sqlite3
+/media
+db_site/migrations/
+feedback/migrations/
+/static
+.DS_Store 
+.idea
+.directory

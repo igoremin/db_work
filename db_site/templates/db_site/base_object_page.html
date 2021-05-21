@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{{ object.name }}</h1>
+    <ul>
+        <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
+        <li>Код справочника : {{ object.directory_code }}</li>
+        <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
+        <li>Сумма : {{ object.total_price_text }}</li>
+        <li>Лаборатория : {{ object.lab.name }}</li>
+        {% if object.place %}
+            <li>Место расположения : {{ object.place }}</li>
+        {% endif %}
+        {% if object.worker %}
+            <li>Сотрудник : <a href="{{ object.worker.get_absolute_url }}">{{ object.worker.name }}</a></li>
+        {% endif %}
+        {% if object.status %}
+            <li>Статус : {{ object.status }}</li>
+        {% endif %}
+        {% if object.category %}
+            <li>Раздел : {{ object.category.name }}</li>
+        {% endif %}
+        {% if object.text %}
+            <li>Описание : {{ object.text }}</li>
+        {% endif %}
+    </ul>
+
+    {% if simple_objects %}
+        <h3>Данный базовый объект состоит из :</h3>
+
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Инв. номер</th>
+                <th scope="col">Количество</th>
+                <th scope="col">Свободно</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for simple_object in simple_objects %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}</a>
+                    </td>
+                    <td>{{ simple_object.inventory_number }}</td>
+                    <td>{{ simple_object.amount }}</td>
+                    <td>{{ simple_object.amount_free }}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+    {% endif %}
+
+{% endblock %}

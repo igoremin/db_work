@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="{% static 'db_site/favicon/LogoADL.gif' %}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+          integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    {#    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">#}
+    <link rel="stylesheet" href="{% static 'db_site/style/db_site_style.css' %}">
+    <title>
+        {% block title %}
+            База данных
+        {% endblock %}
+    </title>
+</head>
+<body>
+<div class="container mb-5" style="max-width: 1500px">
+    {#        {% block top_nav %}#}
+    {##}
+    {#        {% endblock %}#}
+
+    <header class="header">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark top_menu">
+            <a class="navbar-brand" href="{% url 'home_page_url' %}">Главная</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Переключатель навигации">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                {#                {% if user.is_staff %}#}
+                <ul class="navbar-nav mr-auto">
+                    {% if user.is_superuser or user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/">Admin</a>
+                        </li>
+                    {% endif %}
+
+                    {% if user.is_authenticated%}
+                        {% if current_lab != 'none' %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Разделы
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                                    {% for cat in user_cat_list_base %}
+                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                                    {% endfor %}
+                                    {#                                    <a class="dropdown-item" href="{% url 'simple_objects_url' lab=current_lab.slug %}">Весь список</a>#}
+                                    {#                                    <a class="dropdown-item" href="{% url 'write_off_list_url' lab=current_lab.slug %}">Списано</a>#}
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Категории
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                                    {% for cat in user_cat_list_simple %}
+                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                                    {% endfor %}
+                                    <a class="dropdown-item" href="{% url 'simple_objects_url' lab=current_lab.slug %}">Весь список</a>
+                                    <a class="dropdown-item" href="{% url 'write_off_list_url' lab=current_lab.slug %}">Списано</a>
+                                </div>
+                            </li>
+                            {% if big_objects_cat %}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Составное оборудование
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                                        {% for cat in big_objects_cat %}
+                                            <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                                        {% endfor %}
+                                        {#                                        <a class="dropdown-item" href="{% url 'simple_objects_url' lab=current_lab.slug %}">Весь список</a>#}
+                                        {#                                        <a class="dropdown-item" href="{% url 'write_off_list_url' lab=current_lab.slug %}">Списано</a>#}
+                                    </div>
+                                </li>
+                            {% endif %}
+                            {% if user.is_staff %}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Сотрудники
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="usersDropdown">
+                                        {% for worker in workers %}
+                                            <a class="dropdown-item" href='{{ worker.get_absolute_url }}'>{{ worker.name }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        <li class="nav-item"><a class="nav-link" href="{{ user_info.get_absolute_url }}">{{ user_info.name }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Выйти</a></li>
+
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Авторизоваться</a></li>
+                    {% endif %}
+
+                </ul>
+
+                {% if user.is_superuser or user.is_authenticated %}
+                    {% if user_cat_list != 'none' %}
+                        <form class="form-inline my-2 my-lg-0" method="post" action="{% url 'search_url' lab=current_lab.slug %}">
+                            {% csrf_token %}
+                            {{ search_form.q }}
+                            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+
+            </div>
+        </nav>
+    </header>
+
+    {% if current_lab != 'none' %}
+        <nav aria-label="breadcrumb" class="pt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">Лаборатория : <a href="{{ current_lab.get_absolute_url }}">{{ current_lab.name }}</a></li>
+            </ol>
+        </nav>
+    {% endif %}
+
+    <div class="main h-100">
+        {% block main %}
+
+        {% endblock %}
+
+        {% block content %}
+
+        {% endblock %}
+
+        {% block login %}
+
+        {% endblock %}
+    </div>
+
+</div>
+
+    <!--footer starts from here-->
+    <footer class="footer container navbar-dark bg-dark" style="max-width: 1500px">
+        <div class="row text-center">
+            {% if user.is_authenticated %}
+                <div class="col">
+                    <a class="nav-link" href="{% url 'feedback_form_url' %}">Обратная связь</a>
+                </div>
+
+                <div class="col">
+                    <a class="nav-link" href="{% url 'feedback_list_url' %}">Все отзывы</a>
+                </div>
+            {% endif %}
+            {% if user.is_staff and user_cat_list != 'none' %}
+                <div class="col">
+                    <a class="nav-link" href="{% url 'load_new_database_url' lab=current_lab.slug %}">Добавить новый файл с данными</a>
+                </div>
+            {% endif %}
+            {% if user.is_superuser and user_cat_list != 'none' %}
+                <!-- Button trigger modal -->
+                <div class="col" data-toggle="modal" data-target="#objects_delete">
+                    <a class="nav-link" style="cursor: pointer">Удалить</a>
+                </div>
+
+                <!-- Модальное окно -->
+                <div class="modal fade" id="objects_delete" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Удаление данных для лаборатории</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Вы действительно хотите удалить все кроме составных объектов для данной лаборатории?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                                <a role="button" class="btn btn-outline-danger" href="{% url 'delete_all_data_for_lab_url' lab=current_lab.slug %}">Да</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+{#                <div class="col">#}
+{#                    <a class="nav-link" href="{% url 'delete_all_data_for_lab_url' lab=current_lab.slug %}">Удалить все простые объекты у данной лаборатории</a>#}
+{#                </div>#}
+            {% endif %}
+        </div>
+    </footer>
+
+
+
+
+
+
+{#    <script#}
+{#            src="https://code.jquery.com/jquery-3.4.1.js"#}
+{#            integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="#}
+{#            crossorigin="anonymous">#}
+{#    </script>#}
+
+{#    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>#}
+
+<script src="{% static 'db_site/scripts/jquery-3.4.1.js' %}"></script>
+<script src="{% static 'db_site/scripts/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'db_site/scripts/db_site_scripts.js' %}"></script>
+{#<script src="{% static '' %}"></script>#}
+
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+
+</body>
+</html>

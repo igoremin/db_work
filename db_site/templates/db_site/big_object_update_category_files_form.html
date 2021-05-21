@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Обновление
+{% endblock %}
+
+{% block content %}
+    <h1><a href="{{ big_object.get_absolute_url }}">{{ big_object.name }}</a></h1>
+    <h3>Категория : {{ category.name }}</h3>
+    {% if category.text %}
+        <h5>Описание : {{ category.text }}</h5>
+    {% endif %}
+    {% if images %}
+        <h3>Изображения : </h3>
+        <div class="row">
+            {% for image in images %}
+                <div class="col-md-2">
+                    <a data-fancybox="gallery" href="{{image.image_big.url }}">
+                        <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="100%">
+                    </a>
+                    <br>
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-outline-danger mt-2" data-toggle="modal" data-target="#delete_image_{{ image.pk }}">
+                        Удалить
+                    </button>
+                </div>
+
+
+                <!--------------------- Блок удаления изображений ----------------------->
+
+                <!-- Модальное окно -->
+                <div class="modal fade" id="delete_image_{{ image.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Удаление изображения {{ image.filename }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form action="{% url 'big_object_delete_image_url' lab=current_lab.slug slug=big_object.slug pk=image.pk  %}" method="post">
+                                <div class="modal-body">
+                                    {% csrf_token %}
+                                    <h5>Вы действительно хотите удалить изображение {{ image.filename }}</h5>
+                                    <input type="hidden" name="image_pk" value="{{ image.pk }}">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+                                    <button type="submit" class="btn btn-outline-danger">Удалить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-------------------------------------------------------------------->
+            {% endfor %}
+        </div>
+
+        <hr>
+    {% endif %}
+
+
+    <h3>Добавление новых изображений</h3>
+
+    <div class="row">
+        <div class="col-md-3">
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ add_new_images_form.as_p }}
+
+                <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+{#                <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">#}
+            </form>
+        </div>
+    </div>
+
+    <hr>
+
+    {% if files %}
+        <h3>Файлы</h3>
+        <div class="row">
+            {% for file in files %}
+                <div class="col-md-2">
+                    <h5>{{ file.filename }}</h5>
+                    <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_file_{{ file.pk }}">
+                        Удалить
+                    </button>
+                </div>
+
+                <!--------------------- Блок удаления изображений ----------------------->
+
+                <!-- Модальное окно -->
+                <div class="modal fade" id="delete_file_{{ file.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Удаление файла {{ file.filename }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form action="{% url 'big_object_delete_file_url' lab=current_lab.slug slug=big_object.slug pk=file.pk  %}" method="post">
+                                <div class="modal-body">
+                                    {% csrf_token %}
+                                    <h5>Вы действительно хотите удалить файл {{ file.filename }}</h5>
+                                    <input type="hidden" name="file_pk" value="{{ file.pk }}">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+                                    <button type="submit" class="btn btn-outline-danger">Удалить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-------------------------------------------------------------------->
+
+            {% endfor %}
+
+        </div>
+        <hr>
+    {% endif %}
+
+    <h3>Добавление новых файлов</h3>
+
+    <div class="row">
+        <div class="col-md-3">
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ add_new_files_form.as_p }}
+
+                <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+{#                <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">#}
+            </form>
+        </div>
+    </div>
+
+    <hr>
+
+    <a class="btn btn-outline-secondary" href="{{ big_object.get_absolute_url }}" role="button">Назад</a>
+
+{#    <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">#}
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+    <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+{% endblock %}

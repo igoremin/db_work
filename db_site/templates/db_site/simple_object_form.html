@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+    {% if status == 'add' %}
+        Добавление новой позиции
+    {% elif status == 'update'%}
+        Редактирование
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+    {% if status == 'add' %}
+        <h3>Добавление новой позиции</h3>
+    {% elif status == 'update'%}
+        <h3>Редактирование</h3>
+    {% endif %}
+    <form action="{% if status == 'add' %}
+                        {% url 'simple_object_add_form_url' lab=current_lab.slug%}
+                    {% elif status == 'update' %}
+                        {% url 'simple_object_update_form_url' lab=current_lab.slug slug=slug%}
+                    {% endif %}"
+    method="post">
+        {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert-danger">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}

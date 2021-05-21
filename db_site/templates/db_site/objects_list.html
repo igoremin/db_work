@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+    {% if category != 'all' and user.is_superuser%}
+{#        <a class="btn btn-outline-dark mb-3" href="#" role="button">Редактировать объекты</a>#}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a>
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'category_update_form_url' lab=current_lab.slug slug=cat_slug %}" role="button">Редактировать категорию</a>
+{#        <a class="btn btn-outline-danger mb-3" href="#" role="button">Удалить категорию</a>#}
+    {% endif %}
+
+    {% if type == 'category_page' %}
+        {% if base_objects %}
+            <h2>Базовые объекты</h2>
+            <hr>
+        {% elif simple_objects%}
+            <h2>Простые объекты</h2>
+            <hr>
+        {% endif %}
+        <h3>{{ category.name }}</h3>
+        <p>{{ category.text }}</p>
+        {% if simple_objects %}
+            <p>Количество позиций : {{ simple_objects_count }}</p>
+        {% elif big_objects %}
+            <p>Количество позиций : {{ big_objects_count }}</p>
+        {% elif base_objects %}
+            <p>Количество позиций : {{ base_objects_count }}</p>
+        {% endif %}
+
+    {% endif %}
+
+    {% if big_objects %}
+        <h3>{% if category == 'all' %} Сложные объекты
+            <input id="big_objects_button" value="Показать" class="btn btn-outline-secondary" type="button" onclick="showTable();">
+            {% endif %}
+        </h3>
+
+
+        <table class="table table-hover table-bordered" id="big_objects_table" {% if category == 'all' %}
+               style="display: none"
+        {% endif %}>
+            <thead>
+            <tr class="text-center">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Номер системы</th>
+                <th scope="col">Контроллер</th>
+                <th scope="col">Детектор</th>
+                <th scope="col">Интерфейс</th>
+                <th scope="col">Отчет</th>
+                <th scope="col">Год</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for big_object in big_objects %}
+                <tr>
+                    <td></td>
+                    <td><a href="{{ big_object.get_absolute_url }}">{{ big_object.name }}</a></td>
+                    <td>{{ big_object.system_number|linebreaksbr }}</td>
+                    <td>{{ big_object.controller }}</td>
+                    <td>{{ big_object.detector|linebreaksbr }}</td>
+                    <td>{{ big_object.interface|linebreaksbr }}</td>
+                    <td>{{ big_object.report }}</td>
+                    <td>{{ big_object.year }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+    {% endif %}
+
+    {% if simple_objects %}
+
+        {% if category == 'all' %}
+            <h3 class="mb-3">Простые объекты</h3>
+            <p>Количество позиций : {{ simple_objects_count }}</p>
+        {% endif %}
+
+
+        {% if is_paginator %}
+
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if prev_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">Начало</a>
+                        </li>
+                    {% endif %}
+
+                    {% for n in page_object.paginator.page_range %}
+
+                        {% if page_object.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                            </li>
+                        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if next_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% endif %}
+
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr class="text-center">
+                    <th scope="col">#</th>
+                    <th scope="col" style="width: 30%">Название</th>
+                    <th scope="col" style="width: 15%">Инв. номер</th>
+                    <th scope="col" style="width: 15%">Код справочника</th>
+                    <th scope="col">Всего</th>
+                    <th scope="col">Свободно</th>
+                    <th scope="col">Стоимость</th>
+                    <th scope="col">Сумма</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for simple_object in page_object.object_list %}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}{% if simple_object.measure %}, {{ simple_object.measure }}{% endif %}</a>
+                        </td>
+                        <td>
+                            {% if simple_object.inventory_number %}
+                                {{ simple_object.inventory_number }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if simple_object.directory_code %}
+                                {{ simple_object.directory_code }}
+                            {% endif %}
+                        </td>
+                        <td>{{ simple_object.amount }}</td>
+                        <td {% if simple_object.amount_free < 0 %}style="background: #dc3545" {% endif %} >{{ simple_object.amount_free }}</td>
+                        <td>{{ simple_object.price_text }}</td>
+                        <td>{{ simple_object.total_price_text }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+        {% if is_paginator %}
+
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if prev_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">Начало</a>
+                        </li>
+                    {% endif %}
+
+                    {% for n in page_object.paginator.page_range %}
+
+                        {% if page_object.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                            </li>
+                        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if next_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% endif %}
+
+    {% endif %}
+
+    {% if base_objects %}
+        {% if is_paginator %}
+
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if prev_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">Начало</a>
+                        </li>
+                    {% endif %}
+
+                    {% for n in page_object.paginator.page_range %}
+
+                        {% if page_object.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                            </li>
+                        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if next_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% endif %}
+
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col">#</th>
+                <th scope="col" style="width: 30%">Название</th>
+                <th scope="col" style="width: 15%">Инв. номер</th>
+                <th scope="col" style="width: 15%">Код справочника</th>
+                <th scope="col">Всего</th>
+                <th scope="col">Сумма</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for base_object in page_object.object_list %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ base_object.get_absolute_url }}">{{ base_object.name }}{% if base_object.measure %}, {{ base_object.measure }}{% endif %}</a>
+                    </td>
+                    <td>
+                        {% if base_object.inventory_number %}
+                            {{ base_object.inventory_number }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if base_object.directory_code %}
+                            {{ base_object.directory_code }}
+                        {% endif %}
+                    </td>
+                    <td>{{ base_object.amount }}</td>
+                    <td>{{ base_object.total_price_text }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+        {% if is_paginator %}
+
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if prev_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">Начало</a>
+                        </li>
+                    {% endif %}
+
+                    {% for n in page_object.paginator.page_range %}
+
+                        {% if page_object.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                            </li>
+                        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if next_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% endif %}
+    {% endif %}
+
+{% endblock %}

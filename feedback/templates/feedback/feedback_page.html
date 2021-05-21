@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Отзыв
+{% endblock %}
+
+{% block content %}
+    <h3>{{ feedback.name }} ({{ feedback.get_status_display }})</h3>
+    <p class="mb-3">Дата : {{ feedback.date }}</p>
+    <p class="mb-3">Пользователь : <a href="{{ feedback.user.get_absolute_url }}">{{ feedback.user }}</a></p>
+    <p>{{ feedback.text|linebreaks }}</p>
+
+    {% if user.is_superuser %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'change_feedback_form_url' pk=feedback.pk %}" role="button">Ответить</a>
+    {% endif %}
+
+    <hr>
+
+    {% if feedback.answer %}
+        <h3>Ответ</h3>
+        {{ feedback.answer|linebreaks }}
+    {% endif %}
+
+
+
+{% endblock %}

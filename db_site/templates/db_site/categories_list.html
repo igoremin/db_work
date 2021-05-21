@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if user.is_superuser %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=lab %}" role="button">Добавить простой объект</a>
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'category_add_form_url' lab=lab %}" role="button">Добавить категорию</a>
+    {% endif %}
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Категории</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for category in categories %}
+                <tr>
+                    <td></td>
+                    <td><a href="{{ category.get_absolute_url }}">{{ category.name}}</a></td>
+{#                    <td>#}
+{#                        <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>#}
+{#                    </td>#}
+{#                    <td>{{ category.inventory_number }}</td>#}
+                </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td><a href="{% url 'simple_objects_url' lab=lab %}">Весь список</a></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><a href="{% url 'write_off_list_url' lab=lab %}">Списано</a></td>
+            </tr>
+        </tbody>
+
+    </table>
+
+{% endblock %}

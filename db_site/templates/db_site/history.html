@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    История
+{% endblock %}
+
+{% block content %}
+
+    <h3>История изменений для объекта : <a href="{{ object.get_absolute_url }}">{{ object.name }}</a></h3>
+
+    <table class="table table-hover table-bordered mt-3">
+        <thead>
+        <tr class="text-center">
+            <th scope="col">#</th>
+            {% for name in row_names %}
+                <th scope="col">{{ name }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for object in history %}
+            <tr>
+                <td></td>
+                {% for col in object %}
+                    <td scope="col">{{ col }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+{% endblock %}

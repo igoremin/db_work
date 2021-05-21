@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Обратная свзяь
+{% endblock %}
+
+{% block content %}
+    <h3 class="mb-3 mt-3">Обратная свзяь</h3>
+    <form action="{% url 'feedback_form_url' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-outline-primary">Отправить</button>
+        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}
