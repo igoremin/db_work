@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <h3>Редактирование сборочных единиц для <a href="{{ big_object.get_absolute_url }}">{{ big_object }}</a></h3>
+
+    {% if children %}
+        <h4>{{ big_object.name }} состоит из следующих сборочных единиц:</h4>
+        {% for child in children %}
+            <div class="row">
+                <div class="col-6">
+                    <h5 class="ml-5"><a href="{{ child.base.get_absolute_url }}">{{ child.base }}</a></h5>
+                </div>
+                <div class="col-6">
+                    <form action="{% url 'big_object_delete_part_url' lab=current_lab.slug slug=big_object.slug pk=child.pk %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="object_pk" value="{{ child.pk }}">
+                        <button type="submit" class="btn btn-outline-danger">Удалить связь</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form action="{% url 'big_object_update_parts_url' lab=current_lab.slug slug=big_object.slug %}" method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-outline-primary">Добавить</button>
+        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">
+
+    </form>
+
+
+{% endblock %}
+

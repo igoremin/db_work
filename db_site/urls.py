@@ -4,7 +4,8 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     simple_object_delete_form, big_object_add, big_object_update_components, big_object_update, search, worker_page,\
     big_object_history, simple_object_history, simple_objects_write_off_list, big_object_update_files_category,\
     big_object_delete_image, big_object_delete_file, load_new_db, base_object_page, worker_update_page,\
-    worker_equipment_form, delete_all_data_for_lab
+    worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
+    base_big_object_page
 
 
 urlpatterns = [
@@ -20,12 +21,17 @@ urlpatterns = [
     path('<str:lab>/objects/<str:slug>/history/', simple_object_history, name='simple_object_history_url'),
     path('<str:lab>/objects/<str:slug>/update/', simple_object_update_form, name='simple_object_update_form_url'),
     path('<str:lab>/objects/<str:slug>/delete/', simple_object_delete_form, name='simple_object_delete_form_url'),
+    path('<str:lab>/base_big_objects/<str:slug>/', base_big_object_page, name='base_big_object_page_url'),
     path('<str:lab>/big_objects/create/', big_object_add, name='big_object_add_url'),
-    path('<str:lab>/big_objects/<str:slug>/', big_object_page, name='big_object_page_url'),
+    path('<str:lab>/big_objects/<str:slug>/id=<str:pk>/', big_object_page, name='big_object_page_url'),
     path('<str:lab>/big_objects/<str:slug>/update/', big_object_update, name='big_object_update_url'),
     path('<str:lab>/big_objects/<str:slug>/history/', big_object_history, name='big_object_history_url'),
     path('<str:lab>/big_objects/<str:slug>/update_components/', big_object_update_components,
          name='big_object_update_components_url'),
+    path('<str:lab>/big_objects/<str:slug>/update_parts/', big_object_update_parts,
+         name='big_object_update_parts_url'),
+    path('<str:lab>/big_objects/<str:slug>/delete_part/<int:pk>/', big_object_delete_part,
+         name='big_object_delete_part_url'),
     path('<str:lab>/big_objects/<str:slug>/update_files/<int:pk>/', big_object_update_files_category,
          name='big_object_update_category_files_url'),
     path('<str:lab>/big_objects/<str:slug>/image/<int:pk>/delete/',

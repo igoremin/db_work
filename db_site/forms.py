@@ -1,6 +1,6 @@
 from django import forms
 from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategoryForBigObject,\
-    ImageForBigObject, FileForBigObject, DataBaseDoc, WorkerEquipment
+    ImageForBigObject, FileForBigObject, DataBaseDoc, WorkerEquipment, BaseBigObject
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -98,60 +98,96 @@ class SimpleObjectWriteOffForm(forms.Form):
             )
 
 
-class BigObjectCreateForm(forms.ModelForm):
+# class BigObjectCreateForm(forms.ModelForm):
+#     class Meta:
+#         model = BaseBigObject
+#         fields = ['name', 'category', 'inventory_number', 'text']
+#
+#         widgets = {
+#             # 'parent': forms.Select(attrs={'class': 'form-control'}),
+#             'name': forms.TextInput(attrs={'class': 'form-control'}),
+#             'category': forms.Select(attrs={'class': 'form-control'}),
+#             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
+#             'text': forms.Textarea(
+#                 attrs={
+#                     'class': 'form-control',
+#                     'rows': 2,
+#                 }),
+#         }
+#
+#     def __init__(self, *args, **kwargs):
+#         lab = kwargs.pop('lab')
+#         self.categories = Category.objects.filter(lab__slug=lab, cat_type='BG')
+#         super(BigObjectCreateForm, self).__init__(*args, **kwargs)
+#         self.fields['category'].queryset = self.categories
+
+
+class BaseBigObjectForm(forms.ModelForm):
+    top_level = forms.CharField(
+        label='Объект верхнего уровня',
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                'class': 'form-check-input',
+            }
+        )
+    )
+
     class Meta:
-        model = BigObject
-        fields = ['parent', 'name', 'category', 'inventory_number', 'text']
+        model = BaseBigObject
+        fields = ['name', 'category', 'inventory_number', 'kod', 'text', 'ready']
 
         widgets = {
-            'parent': forms.Select(attrs={'class': 'form-control'}),
+            # 'parent': forms.Select(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'text': forms.Textarea(
-                attrs={
-                    'class': 'form-control',
-                    'rows': 2,
-                }),
-        }
-
-    def __init__(self, *args, **kwargs):
-        lab = kwargs.pop('lab')
-        self.categories = Category.objects.filter(lab__slug=lab, cat_type='BG')
-        super(BigObjectCreateForm, self).__init__(*args, **kwargs)
-        self.fields['category'].queryset = self.categories
-
-
-class BigObjectUpdateForm(forms.ModelForm):
-    class Meta:
-        model = BigObject
-        fields = ['parent', 'name', 'category', 'inventory_number', 'status', 'text', 'system_number', 'controller',
-                  'detector', 'interface', 'report', 'year']
-
-        widgets = {
-            'parent': forms.Select(attrs={'class': 'form-control'}),
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
-            'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'status': forms.Select(attrs={'class': 'form-control'}),
+            'kod': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'status': forms.Select(attrs={'class': 'form-control'}),
             'text': forms.Textarea(
                 attrs={
                     'class': 'form-control',
                     'rows': 4,
                 }),
-            'system_number': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'controller': forms.TextInput(attrs={'class': 'form-control'}),
-            'detector': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'interface': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'report': forms.TextInput(attrs={'class': 'form-control'}),
-            'year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'ready': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            # 'system_number': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # 'controller': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'detector': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # 'interface': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # 'report': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'year': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         lab = kwargs.pop('lab')
         self.categories = Category.objects.filter(lab__slug=lab, cat_type='BG')
-        super(BigObjectUpdateForm, self).__init__(*args, **kwargs)
+        super(BaseBigObjectForm, self).__init__(*args, **kwargs)
         self.fields['category'].queryset = self.categories
+
+
+class BigObjectForm(forms.ModelForm):
+    class Meta:
+        model = BigObject
+        fields = ['name', 'status', 'system_number', 'controller', 'detector', 'interface', 'report', 'year']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'system_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'controller': forms.TextInput(attrs={'class': 'form-control'}),
+            'detector': forms.TextInput(attrs={'class': 'form-control'}),
+            'interface': forms.TextInput(attrs={'class': 'form-control'}),
+            'report': forms.TextInput(attrs={'class': 'form-control'}),
+            'year': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Год',
+                    'type': 'number',
+                    'step': 1,
+                    'min': 1900,
+                    'max': 2100,
+                })
+        }
 
 
 class SimpleObjectForBigObjectForm(forms.ModelForm):
@@ -179,6 +215,40 @@ class SimpleObjectForBigObjectForm(forms.ModelForm):
         self.simple_objects = SimpleObject.objects.filter(lab__slug=lab)
         super(SimpleObjectForBigObjectForm, self).__init__(*args, **kwargs)
         self.fields['simple_object'].queryset = self.simple_objects
+
+
+class PartForBigObjectForm(forms.Form):
+    all_parts = None
+    part = forms.ModelChoiceField(
+        required=True,
+        label='Выберите сборочную единицу',
+        queryset=all_parts,
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+            }
+        )
+    )
+
+    def __init__(self, *args, **kwargs):
+        lab = kwargs.pop('lab')
+        self.all_parts = BigObject.objects.filter(
+            base__lab__slug=lab, parent=None
+        ).exclude(base__category__name='Камеры').order_by('full_name')
+        super(PartForBigObjectForm, self).__init__(*args, **kwargs)
+        self.fields['part'].queryset = self.all_parts
+    # class Meta:
+    #     model = BigObject
+    #     fields = ['parent', ]
+    #
+    #     widgets = {
+    #         'parent': forms.Select(attrs={'class': 'form-control'}),
+    #     }
+    #
+    #     labels = {
+    #         'parent': 'Выберите сборочную еденицу'
+    #     }
 
 
 class CopyBigObject(forms.Form):

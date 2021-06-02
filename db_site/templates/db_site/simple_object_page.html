@@ -131,8 +131,7 @@
             <tr class="text-center">
                 <th scope="col">#</th>
                 <th scope="col">Название</th>
-                <th scope="col">Инв. номер</th>
-                <th scope="col">Статус</th>
+                <th scope="col">Код</th>
                 <th scope="col">Количество</th>
             </tr>
             </thead>
@@ -142,10 +141,22 @@
                 <tr>
                     <td></td>
                     <td>
-                        <a href="{{ big_object.big_object.get_absolute_url }}">{{ big_object.big_object.name }}</a>
+                        <a href="
+                                {% if big_object.part.top_level %}
+                                    {{ big_object.part.get_absolute_url }}
+                                {% else %}
+                                    {{ big_object.part.base.get_absolute_url }}
+                                {% endif %}
+                                ">
+
+                            {% if big_object.part.name %}
+                                {{ big_object.part.name }}
+                            {% else %}
+                                {{ big_object.part }}
+                            {% endif %}
+                        </a>
                     </td>
-                    <td>{{ big_object.big_object.inventory_number }}</td>
-                    <td>{{ big_object.big_object.get_status_display }}</td>
+                    <td>{{ big_object.part.base.kod }}</td>
                     <td>{{ big_object.amount }}</td>
 
                 </tr>

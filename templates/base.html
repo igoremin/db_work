@@ -117,6 +117,13 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">Лаборатория : <a href="{{ current_lab.get_absolute_url }}">{{ current_lab.name }}</a></li>
             </ol>
+            {% if user.is_superuser %}
+                <ol class="breadcrumb">
+                    <li><a class="btn btn-outline-secondary" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a></li>
+                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a></li>
+                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'category_add_form_url' lab=current_lab.slug %}" role="button">Добавить категорию</a></li>
+                </ol>
+            {% endif %}
         </nav>
     {% endif %}
 

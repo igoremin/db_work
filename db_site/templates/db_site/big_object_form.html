@@ -7,7 +7,7 @@
     {% else %}
         <h3>Создание оборудования</h3>
     {% endif %}
-    <form action="{% if form.status %}
+    <form action="{% if status == 'update' %}
         {% url 'big_object_update_url' lab=current_lab.slug slug=slug %}
     {% else %}
         {% url 'big_object_add_url' lab=current_lab.slug %}
@@ -36,6 +36,11 @@
             {{ form.inventory_number }}
         </div>
         <div class="pb-2">
+            {{ form.kod.errors }}
+            {{ form.kod.label_tag }}
+            {{ form.kod }}
+        </div>
+        <div class="pb-2">
             {{ form.category.errors }}
             {{ form.category.label_tag }}
             {{ form.category }}
@@ -45,6 +50,19 @@
             {{ form.text.label_tag }}
             {{ form.text }}
         </div>
+        <div class="pb-2 form-check">
+            {{ form.ready.errors }}
+            {{ form.ready }}
+            {{ form.ready.label_tag }}
+        </div>
+        {% if status == 'create_new' %}
+            <div class="pb-2 form-check">
+                {{ form.top_level.errors }}
+                {{ form.top_level }}
+                {{ form.top_level.label_tag }}
+            </div>
+        {% endif %}
+
         {% if form.status %}
             <div class="pb-2">
                 {{ form.status.errors }}

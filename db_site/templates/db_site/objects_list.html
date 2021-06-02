@@ -5,8 +5,8 @@
 
     {% if category != 'all' and user.is_superuser%}
 {#        <a class="btn btn-outline-dark mb-3" href="#" role="button">Редактировать объекты</a>#}
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a>
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>
+{#        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a>#}
+{#        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>#}
         <a class="btn btn-outline-secondary mb-3" href="{% url 'category_update_form_url' lab=current_lab.slug slug=cat_slug %}" role="button">Редактировать категорию</a>
 {#        <a class="btn btn-outline-danger mb-3" href="#" role="button">Удалить категорию</a>#}
     {% endif %}
@@ -45,27 +45,33 @@
             <tr class="text-center">
                 <th scope="col">#</th>
                 <th scope="col">Название</th>
-                <th scope="col">Номер системы</th>
-                <th scope="col">Контроллер</th>
-                <th scope="col">Детектор</th>
-                <th scope="col">Интерфейс</th>
-                <th scope="col">Отчет</th>
-                <th scope="col">Год</th>
+                <th scope="col">Категория</th>
+                <th scope="col">РЮКС</th>
             </tr>
             </thead>
 
             <tbody>
             {% for big_object in big_objects %}
-                <tr>
-                    <td></td>
-                    <td><a href="{{ big_object.get_absolute_url }}">{{ big_object.name }}</a></td>
-                    <td>{{ big_object.system_number|linebreaksbr }}</td>
-                    <td>{{ big_object.controller }}</td>
-                    <td>{{ big_object.detector|linebreaksbr }}</td>
-                    <td>{{ big_object.interface|linebreaksbr }}</td>
-                    <td>{{ big_object.report }}</td>
-                    <td>{{ big_object.year }}</td>
-                </tr>
+            <tr>
+                <td></td>
+                <td>
+                    {% if big_object.top_level == True %}
+                        <a href="{{ big_object.get_absolute_url }}">
+                    {% else %}
+                        <a href="{{ big_object.base.get_absolute_url }}">
+                    {% endif %}
+
+                    {% if big_object.name %}
+                        {{ big_object.name }}
+                    {% else %}
+                        {{ big_object.base.name }}
+                    {% endif %}
+                    </a>
+                </td>
+                <td><a href="{{ big_object.base.category.get_absolute_url }}">{{ big_object.base.category.name }}</a></td>
+                <td>{% if big_object.base.kod %}{{ big_object.base.kod }}{% endif %}</td>
+            </tr>
+
             {% endfor %}
             </tbody>
 

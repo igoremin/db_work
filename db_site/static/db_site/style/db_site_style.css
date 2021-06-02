@@ -42,6 +42,15 @@ p.not_margin {
     margin-bottom: 0;
 }
 
+a.not_margin {
+    margin-bottom: 0;
+}
+
+
+p.small_p {
+    font-size: 0.8rem;
+}
+
 #loader{
 	display:none;
     position: fixed;

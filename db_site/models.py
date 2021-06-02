@@ -8,7 +8,7 @@ from slugify import slugify
 from django.utils.translation import gettext_lazy as _
 from django.db import IntegrityError
 from simple_history.models import HistoricalRecords
-from mptt.models import MPTTModel, TreeForeignKey
+from mptt.models import MPTTModel, TreeForeignKey, TreeManyToManyField
 from PIL import Image
 import os
 
@@ -18,10 +18,12 @@ def get_all_children(big_object, all_children=None):
         all_children = list()
     children = big_object.get_children()
     for child in children:
-        print(child.name)
+        print(child.base.name)
         all_children.append(child)
         if child.get_children():
             get_all_children(child)
+
+    return all_children
 
 
 def gen_slug(title, all_slugs, lab=None):
@@ -357,13 +359,7 @@ class SimpleObject(models.Model):
             pass
 
         if update_big_objects_price:
-            """Обновляем цену у всех комплектующих и больших объектов где присутствует данный простой объект"""
-            for component in BigObjectList.objects.filter(simple_object=self):
-                """Обновление всех компонентов"""
-                component.save()
-            for big_object in BigObject.objects.filter(bigobjectlist__simple_object=self):
-                """Обновление всех больших объектов"""
-                big_object.save()
+            self.update_big_objects_price()
 
         """Проверка на количество простых объектов входящих в состав базового.
         Если базовый объект состоит из одного простого, то их количество должно совпадать
@@ -403,15 +399,40 @@ class SimpleObject(models.Model):
             self.price_text = '0,00'
             self.total_price_text = '0,00'
 
-    def update_amount(self):
+    def update_amount(self, update_big_objects_price=False):
         """Обновлние количества"""
-        amount = 0
+        amount_in_work = 0
+
         self.amount = round(self.amount, 3)
-        big_objects_list = BigObjectList.objects.filter(simple_object=self, big_object__status='IW')
+
+        # big_objects_list = BigObjectList.objects.filter(simple_object=self, big_object__status='IW')
+        big_objects_list = BigObjectList.objects.filter(simple_object=self)
         for obj in big_objects_list:
-            amount += obj.amount
-        self.amount_in_work = amount
-        self.amount_free = self.amount - self.amount_in_work
+
+            all_parts = BigObject.objects.filter(base__simple_components=obj, status='IW')
+            for _ in all_parts:
+                amount_in_work += obj.amount
+
+        self.amount_in_work = amount_in_work
+        self.amount_free = round(self.amount - self.amount_in_work, 2)
+
+        print(self.amount, self.amount_in_work, self.amount_free)
+
+        SimpleObject.objects.filter(pk=self.pk).update(
+            amount_free=self.amount_free, amount_in_work=self.amount_in_work, amount=self.amount
+        )
+
+        if update_big_objects_price:
+            print('UPDATE BIG OBJECTS PRICE')
+            self.update_big_objects_price()
+
+    def update_big_objects_price(self):
+        """Обновляем цену у всех комплектующих и больших объектов где присутствует данный простой объект"""
+        for component in BigObjectList.objects.filter(simple_object=self):
+            """Обновление всех компонентов"""
+            component.save()
+        for top_object in BigObject.objects.filter(status__in=['IW', 'NW'], top_level=True):
+            top_object.update_price()
 
     def delete(self, *args, **kwargs):
         all_big_objects = BigObject.objects.filter(bigobjectlist__simple_object=self)
@@ -422,15 +443,7 @@ class SimpleObject(models.Model):
         super().delete(*args, **kwargs)
 
 
-class BigObject(MPTTModel):
-    class ChoicesStatus(models.TextChoices):
-        NOT_IN_WORK = 'NW', _('Не в работе')
-        IN_WORK = 'IW', _('В работе')
-        READY = 'RD', _('Готово')
-        WRITTEN_OF = 'WO', _('Списано')
-
-    parent = TreeForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE,
-                            verbose_name='Родитель')
+class BaseBigObject(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
     text = models.TextField(verbose_name='Описание', blank=True)
@@ -438,6 +451,106 @@ class BigObject(MPTTModel):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Категория', blank=True, null=True)
     inventory_number = models.CharField(verbose_name='Инвентаризационный номер', unique=True, blank=True, null=True,
                                         max_length=100)
+    kod = models.CharField(verbose_name='РЮКС', unique=True, blank=True, null=True, max_length=100)
+    number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
+    ready = models.BooleanField(verbose_name='Объект готов, запретить редактирование', default=False)
+
+    class Meta:
+        verbose_name = 'Основа сложного объекта'
+        verbose_name_plural = 'Основы сложных объектов'
+        ordering = ['name']
+
+    def __str__(self):
+        if self.kod:
+            return '{}, {}'.format(self.name, self.kod)
+        else:
+            return self.name
+
+    def save(self, *args, **kwargs):
+        print('---BASE BIG OBJECT SAVE---')
+        try:
+            top_level = kwargs.pop('top_level')
+        except KeyError:
+            top_level = False
+
+        create_big_object = False
+        if self.pk is not None:
+            old_self = BaseBigObject.objects.get(pk=self.pk)
+
+            if old_self.name != self.name:
+                self.create_slug()
+
+            if old_self.inventory_number != self.inventory_number:
+                self.inventory_number = self.inventory_number.upper()
+        else:
+            create_big_object = True
+            self.create_slug()
+            if self.inventory_number:
+                self.inventory_number = self.inventory_number.upper()
+
+        super().save(*args, **kwargs)
+
+        if create_big_object:
+            BigObject(
+                base=self,
+                top_level=top_level
+            ).save()
+
+    def create_slug(self):
+        all_slugs = BaseBigObject.objects.all().values_list('slug', flat=True)
+        self.slug = gen_slug(lab=self.lab.slug, title=self.name, all_slugs=all_slugs)
+
+    def get_absolute_url(self):
+        return reverse('base_big_object_page_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
+
+    def get_unique_parts(self, include_self=None):
+        """Находим сложный объект без родителей, который ссылается на данный базовый объект.
+           Таким образом получаем основной экземпляр сложного объекта и находим всех его детей"""
+        if include_self is None:
+            include_self = True
+        # all_parts = BigObject.objects.filter(base=self, full_name=self.name)
+        all_parts = BigObject.objects.filter(base=self, parent=None)
+        if all_parts:
+            part = all_parts[0]
+            return part.get_descendants(include_self=include_self)
+        return None
+
+    def get_top_level_big_objects(self):
+        results = []
+        components = set(self.components.all())
+        all_top_level_objects = BigObject.objects.filter(top_level=True)
+        for top_object in all_top_level_objects:
+            all_children = set(top_object.get_all_children())
+            if all_children.isdisjoint(components) is False:
+                results.append(top_object)
+
+        return results
+
+    def get_base_big_object_parents(self):
+        results = set()
+        components = set(self.components.all())
+        for component in components:
+            if component.parent:
+                if component.parent.base not in results:
+                    results.add(component.parent.base)
+
+        return results
+
+
+class BigObject(MPTTModel):
+    class ChoicesStatus(models.TextChoices):
+        NOT_IN_WORK = 'NW', _('Не в работе')
+        IN_WORK = 'IW', _('В работе')
+        READY = 'RD', _('Готово')
+        WRITTEN_OF = 'WO', _('Списано')
+    base = models.ForeignKey(to=BaseBigObject, on_delete=models.CASCADE, related_name='components',
+                             related_query_name='component', verbose_name='Базовый объект',
+                             blank=True, null=True)
+    parent = TreeForeignKey('self', blank=True, null=True, related_name='children', verbose_name='Родитель',
+                            on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, verbose_name='Название', blank=True, null=True)
+    full_name = models.CharField(max_length=300, verbose_name='Полное название', blank=True, null=True)
+    top_level = models.BooleanField(verbose_name='Объект верхнего уровня', default=False)
     status = models.CharField(
         max_length=2,
         choices=ChoicesStatus.choices,
@@ -445,14 +558,14 @@ class BigObject(MPTTModel):
         verbose_name='Статус'
     )
     price = models.FloatField(verbose_name='Стоимость', default=0)
-    price_text = models.CharField(verbose_name='Сумма с пробелами', max_length=100, blank=True)
-    number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
+    price_text = models.CharField(verbose_name='Стоимость с пробелами', max_length=100, blank=True)
     system_number = models.CharField(max_length=400, verbose_name='Номер системы', blank=True, null=True)
     controller = models.CharField(max_length=100, verbose_name='Контроллер', blank=True, null=True)
     detector = models.CharField(max_length=400, verbose_name='Детектор', blank=True, null=True)
     interface = models.CharField(max_length=400, verbose_name='Интерфейс', blank=True, null=True)
     report = models.CharField(max_length=100, verbose_name='Отчет', blank=True, null=True)
     year = models.IntegerField(verbose_name='Год', blank=True, null=True)
+    number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
     history = HistoricalRecords(
         verbose_name='История',
         excluded_fields=['slug', 'text', 'lab', 'price', 'number_of_elements',
@@ -463,54 +576,77 @@ class BigObject(MPTTModel):
     class Meta:
         verbose_name = 'Сложный объект'
         verbose_name_plural = 'Сложные объекты'
-        ordering = ['name']
+        ordering = ['full_name', 'name']
 
     class MPTTMeta:
-        order_insertion_by = ['name']
+        order_insertion_by = ['full_name', 'name']
 
     def __str__(self):
-        full_path = [self.name]
+        if self.name:
+            if self.base.kod:
+                full_path = ['{}, {}'.format(self.name, self.base.kod)]
+            else:
+                full_path = [self.name]
+        else:
+            if self.base.kod:
+                full_path = ['{}, {}'.format(self.base.name, self.base.kod)]
+            else:
+                full_path = [self.base.name]
+
         k = self.parent
         while k is not None:
-            full_path.append(k.name)
+            # full_path.append(k.base.name)
+            full_path.append('---')
+
             k = k.parent
-        return ' -> '.join(full_path[::-1])
-        # if self.lab is None:
-        #     return self.name
-        # else:
-        #     return f'{self.name} : {self.lab.name}'
+        # return ' -> '.join(full_path[::-1])
+        return ''.join(full_path[::-1])
 
     def get_all_children(self):
-        get_all_children(self)
+        all_children = list()
+
+        def search(parent):
+            # print('PARENT : ', parent)
+            # print('CHILDREN : ', parent.get_children())
+            for child in parent.get_children():
+                all_children.append(child)
+                if child.get_children():
+                    search(child)
+        search(self)
+        return all_children
 
     def save(self, *args, **kwargs):
         print('---BIG OBJECT SAVE---')
+        full_path = [self.base.name]
+        k = self.parent
+        while k is not None:
+            full_path.append(k.base.name)
+            k = k.parent
+        self.full_name = ' -> '.join(full_path[::-1])
+
         if self.pk is not None:
             old_self = BigObject.objects.get(pk=self.pk)
 
-            if old_self.name != self.name:
-                self.create_slug()
-                # self.slug = gen_slug(lab=self.lab.slug, title=self.name)
-                # AllSlugs(slug=self.slug, lab=self.lab, cat_type='BG').save()
-                # for old_slug in AllSlugs.objects.filter(slug=old_self.slug):
-                #     old_slug.delete()
+            if self.status != old_self.status:
+                all_children = self.get_descendants(include_self=True)
+                all_children.update(status=self.status)
+                for child in all_children:
+                    child.update_simple_objects(old_self=old_self)
 
-            if old_self.inventory_number != self.inventory_number:
-                self.inventory_number = self.inventory_number.upper()
-
-            if self.status == 'IW':
-                """Если объект в работе, тогда обновляем цену"""
-                self.update_price()
-            elif self.status in ['NW']:
-                """Если статус не рабочий тогда зануляем стоимость"""
-                self.price = 0
-                self.price_text = '0,00'
+            # if self.status == 'IW' and old_self.status != 'IW':
+            #     """Если объект в работе, тогда обновляем цену"""
+            #     self.update_price()
+            #
+            # elif self.status in ['NW']:
+            #     """Если статус не рабочий тогда зануляем стоимость"""
+            #     self.price = 0
+            #     self.price_text = '0,00'
 
             """Проверка изменений полей для записи истории изменений.
             Если какое-либо из полей изменилось то сохраняем объект с записями в истории,
             иначе пропускаем запись истории"""
-            obj = [self.name, self.status, self.inventory_number, self.price_text]
-            old_obj = [old_self.name, old_self.status, old_self.inventory_number, old_self.price_text]
+            obj = [self.base.name, self.status, self.base.inventory_number, self.price_text]
+            old_obj = [old_self.base.name, old_self.status, old_self.base.inventory_number, old_self.price_text]
             if obj == old_obj:
                 self.skip_history_when_saving = True
 
@@ -519,62 +655,102 @@ class BigObject(MPTTModel):
                 del self.skip_history_when_saving
             except:
                 pass
-            self.update_simple_objects(old_self=old_self)  # Обновление простых объектов входящих в состав сложного
+            # self.update_simple_objects(old_self=old_self)  # Обновление простых объектов входящих в состав сложного
 
         else:
-            self.create_slug()
-            # self.slug = gen_slug(lab=self.lab.slug, title=self.name)
-            # AllSlugs(slug=self.slug, lab=self.lab, cat_type='BG').save()
-            if self.inventory_number:
-                self.inventory_number = self.inventory_number.upper()
-
             if self.status in ['WO', 'NW']:
                 """Если статус не рабочий тогда зануляем стоимость"""
                 self.price = 0
                 self.price_text = '0,00'
             super().save(*args, **kwargs)
 
-    def get_absolute_url(self):
-        return reverse('big_object_page_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
+            # BigObject.objects.rebuild()
 
-    def create_slug(self):
-        all_slugs = BigObject.objects.all().values_list('slug', flat=True)
-        self.slug = gen_slug(lab=self.lab.slug, title=self.name, all_slugs=all_slugs)
+    def get_absolute_url(self):
+        return reverse(
+            'big_object_page_url', kwargs={
+                'slug': self.base.slug, 'lab': self.base.lab.slug, 'pk': self.pk
+            }
+        )
+
+    def copy_object_and_children(self, new_name=None):
+        first_children = self.get_children()
+        new_top_part = self
+        new_top_part.pk = None
+        new_top_part.status = 'NW'
+        # new_top_part.top_level = False
+        if new_name:
+            new_top_part.name = new_name
+        new_top_part.save()
+
+        def search_all_parts(first_part):
+            for child in first_children:
+                def create_new_part(p, new_parent):
+                    p_children = p.get_children()
+
+                    p_new = p
+                    p_new.pk = None
+                    p_new.parent = new_parent
+                    p_new.status = 'NW'
+                    p_new.top_level = False
+                    p_new.save()
+
+                    for i in p_children:
+                        create_new_part(i, p_new)
+
+                create_new_part(child, first_part)
+
+        search_all_parts(new_top_part)
+
+        BigObject.objects.rebuild()
+
+        return new_top_part
+
+    def copy_children(self):
+        pass
 
     def update_price(self, simple_objects_list=None):
-        print('---UPDATE BIG OBJECT PRICE---', self)
+        print('UPDATE BIG OBJECT PRICE', self)
+        children = self.get_children()
         if simple_objects_list is None:
-            simple_objects_list = BigObjectList.objects.filter(big_object=self)
+            simple_objects_list = BigObjectList.objects.filter(big_object=self.base)
         total_price = 0
         for simple_object in simple_objects_list:
             total_price += simple_object.total_price
+        for child in self.get_descendants(include_self=False)[::-1]:
+            child.update_price()
+            if child in children:
+                total_price += child.price
         self.price = total_price
         if self.price == 0:
             self.price_text = '0,00'
         else:
             self.price_text = gen_text_price(self.price)
+        BigObject.objects.filter(pk=self.pk).update(price=self.price, price_text=self.price_text)
         # self.save()
 
     def update_simple_objects(self, old_self=None):
+        print(self, self.status)
+        print('--------------')
         if self.status == 'IW':
             """Если статус рабочий, тогда обновляем количество свободных простых объектов"""
             # self.update_price()
-            all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=self)
+            all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=self.base)
             for simple_object in all_simple_objects:
-                simple_object.save()
+                simple_object.update_amount()
 
         elif self.status in ['WO', 'NW', 'RD']:
             """Если старый статус был в работе а новый нет, тогда зануляем цену и обновляем свободные простые объекты"""
             self.price = 0
             self.price_text = '0,00'
-            all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=self)
+            all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=self.base)
             for simple_object in all_simple_objects:
                 if self.status == 'RD' and old_self.status == 'IW':
                     """Если статус изменился с рабочего на готовый, тогда вычитаем количество использованных
                     простых объектов в этой камере из общего числа этих объектов"""
-                    amount = BigObjectList.objects.get(big_object=self, simple_object=simple_object).amount
+                    amount = BigObjectList.objects.get(big_object=self.base, simple_object=simple_object).amount
                     simple_object.amount -= amount
-                simple_object.save()
+                simple_object.update_amount()
             if self.status == 'RD' and old_self.status == 'IW':
                 """После сохранения всех простых объектов списываем их если статус
                 сложного объекта изменился на готовый и количество простых объектов == 0"""
@@ -587,7 +763,9 @@ class BigObject(MPTTModel):
 
 
 class FileAndImageCategoryForBigObject(models.Model):
-    big_object = models.ForeignKey(BigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект')
+    big_object = models.ForeignKey(
+        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект'
+    )
     name = models.CharField(max_length=150, verbose_name='Название категории')
     text = models.TextField(max_length=2000, verbose_name='Описание', blank=True)
     slug = models.SlugField(max_length=250, blank=True, null=True, verbose_name='Название на латинице')
@@ -610,7 +788,9 @@ class FileAndImageCategoryForBigObject(models.Model):
 
 
 class ImageForBigObject(models.Model):
-    big_object = models.ForeignKey(BigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект')
+    big_object = models.ForeignKey(
+        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект'
+    )
     image = models.ImageField(verbose_name='Изображение', upload_to=generate_path)
     image_big = models.ImageField(blank=True, upload_to=generate_path,
                                   verbose_name='Фото без сжатия, создается само при сохранеии')
@@ -670,7 +850,9 @@ class ImageForBigObject(models.Model):
 
 
 class FileForBigObject(models.Model):
-    big_object = models.ForeignKey(BigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект')
+    big_object = models.ForeignKey(
+        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект'
+    )
     file = models.FileField(upload_to=generate_path_for_files, verbose_name='Файл')
     category = models.ForeignKey(
         FileAndImageCategoryForBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Категория',
@@ -703,7 +885,8 @@ class BigObjectList(models.Model):
     amount = models.FloatField(verbose_name='Количество', default=0)
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
     total_price_text = models.CharField(verbose_name='Сумма с пробелами', max_length=100, blank=True)
-    big_object = models.ForeignKey(to=BigObject, verbose_name='Сложный объект', on_delete=models.CASCADE, blank=True)
+    big_object = models.ForeignKey(to=BaseBigObject, verbose_name='Сложный объект', on_delete=models.CASCADE,
+                                   blank=True, related_name='simple_components')
     history = HistoricalRecords(verbose_name='История')  # История изменений
 
     class Meta:
@@ -718,6 +901,20 @@ class BigObjectList(models.Model):
         print('---SAVE BIG OBJECT LIST---')
         self.update_total_price()
         super().save(*args, **kwargs)
+
+    def search_all_top_level_objects_with_simple_object(self):
+        result = []
+        for big_object in BigObject.objects.filter(top_level=True, status='IW'):
+            for child in big_object.get_descendants(include_self=True):
+                component = child.base.simple_components.filter(simple_object=self.simple_object)
+                if component:
+                    print(big_object)
+                    result.append(big_object)
+                    break
+        if len(result) > 0:
+            return result
+        else:
+            return False
 
     def update_total_price(self):
         self.total_price = self.amount * self.simple_object.price
@@ -748,30 +945,6 @@ class WorkerEquipment(models.Model):
     def save(self, *args, **kwargs):
         print('---SAVE WORKER EQUIPMENT LIST---')
         super().save(*args, **kwargs)
-
-
-# class AllSlugs(models.Model):
-#     class ChoicesObjectType(models.TextChoices):
-#         BASE_OBJECT = 'BO', _('Базовый объект')
-#         SIMPLE_OBJECT = 'SO', _('Простой объект')
-#         BIG_OBJECT = 'BG', _('Составной объект')
-#         CATEGORY = 'CT', _('Категория')
-#         LABORATORY = 'LB', _('Лаборатория')
-#     slug = models.SlugField(max_length=200, unique=True, blank=True, verbose_name='URL')
-#     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, verbose_name='Лаборатория', blank=True, null=True)
-#     cat_type = models.CharField(
-#         max_length=2,
-#         choices=ChoicesObjectType.choices,
-#         default=ChoicesObjectType.SIMPLE_OBJECT,
-#         verbose_name='Тип категории'
-#     )
-#
-#     class Meta:
-#         verbose_name = 'Список Url_ов'
-#         verbose_name_plural = 'Списки Url_ов'
-#
-#     def __str__(self):
-#         return self.slug
 
 
 class DataBaseDoc(models.Model):

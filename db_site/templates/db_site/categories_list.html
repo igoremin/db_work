@@ -2,12 +2,6 @@
 
 {% block content %}
 
-    {% if user.is_superuser %}
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=lab %}" role="button">Добавить простой объект</a>
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'category_add_form_url' lab=lab %}" role="button">Добавить категорию</a>
-    {% endif %}
-
     <table class="table table-hover">
         <thead>
             <tr>
