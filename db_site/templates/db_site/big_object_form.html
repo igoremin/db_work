@@ -50,16 +50,17 @@
             {{ form.text.label_tag }}
             {{ form.text }}
         </div>
-        <div class="pb-2 form-check">
-            {{ form.ready.errors }}
-            {{ form.ready }}
-            {{ form.ready.label_tag }}
-        </div>
         {% if status == 'create_new' %}
             <div class="pb-2 form-check">
                 {{ form.top_level.errors }}
                 {{ form.top_level }}
                 {{ form.top_level.label_tag }}
+            </div>
+        {% else %}
+            <div class="pb-2 form-check">
+                {{ form.ready.errors }}
+                {{ form.ready }}
+                {{ form.ready.label_tag }}
             </div>
         {% endif %}
 
