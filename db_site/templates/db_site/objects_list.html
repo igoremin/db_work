@@ -13,10 +13,10 @@
 
     {% if type == 'category_page' %}
         {% if base_objects %}
-            <h2>Базовые объекты</h2>
+            <h2>Базовые единицы</h2>
             <hr>
         {% elif simple_objects%}
-            <h2>Простые объекты</h2>
+            <h2>Простые единицы</h2>
             <hr>
         {% endif %}
         <h3>{{ category.name }}</h3>
@@ -32,7 +32,7 @@
     {% endif %}
 
     {% if big_objects %}
-        <h3>{% if category == 'all' %} Сложные объекты
+        <h3>{% if category == 'all' %} Составное оборудование
             <input id="big_objects_button" value="Показать" class="btn btn-outline-secondary" type="button" onclick="showTable();">
             {% endif %}
         </h3>
@@ -69,7 +69,7 @@
                     </a>
                 </td>
                 <td><a href="{{ big_object.base.category.get_absolute_url }}">{{ big_object.base.category.name }}</a></td>
-                <td>{% if big_object.base.kod %}{{ big_object.base.kod }}{% endif %}</td>
+                <td>{% if big_object.base.kod %}{{ big_object.get_full_kod }}{% endif %}</td>
             </tr>
 
             {% endfor %}
@@ -82,7 +82,7 @@
     {% if simple_objects %}
 
         {% if category == 'all' %}
-            <h3 class="mb-3">Простые объекты</h3>
+            <h3 class="mb-3">Простые единицы</h3>
             <p>Количество позиций : {{ simple_objects_count }}</p>
         {% endif %}
 
