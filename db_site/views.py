@@ -13,6 +13,7 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
     BigObjectForm
 from .scripts import create_new_file
+from .models import get_base_components
 
 
 def custom_proc_user_categories_list(request):
@@ -158,7 +159,6 @@ def category_page(request, lab, slug):
             base_objects = BaseObject.objects.filter(category__slug=slug, lab__slug=lab)
             simple_objects = SimpleObject.objects.filter(category__slug=slug, lab__slug=lab)
             big_objects = BigObject.objects.filter(base__category__slug=slug, base__lab__slug=lab, parent=None)
-            print(big_objects)
 
             if simple_objects:
                 page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
@@ -272,7 +272,7 @@ def simple_object_page(request, lab, slug):
             # Список составляющих сложных объектов в которых присутствуют простые объекты
             big_objects_list = BigObjectList.objects.filter(simple_object__slug=slug)
             for obj in big_objects_list:
-                for big_object in BigObject.objects.filter(base=obj.big_object, top_level=True, status='IW'):
+                for big_object in BigObject.objects.filter(base=obj.big_object, status='IW'):
                     for child in big_object.get_descendants(include_self=True):
                         component = child.base.simple_components.filter(simple_object__slug=slug)
                         if component:
@@ -331,6 +331,11 @@ def simple_object_add_form(request, lab):
     """Добавление нового простого объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
+        if request.method == 'GET' and request.is_ajax():
+            """Поиск простых объектов по введенным буквам"""
+            q = request.GET.dict()['q']
+            find_simple_objects = SimpleObject.objects.filter(name_lower__icontains=q).values_list('name', flat=True)
+            return JsonResponse({"rez": str(list(find_simple_objects))}, status=200)
         if request.method == 'GET':
             form = SimpleObjectForm(lab=lab)
             context = {
@@ -341,7 +346,6 @@ def simple_object_add_form(request, lab):
         else:
             form = SimpleObjectForm(request.POST, lab=lab)
             if form.is_valid():
-                print('SIMPLE OBJECT CREATE FORM VALID')
                 new_simple_object = form.save(commit=False)
                 new_simple_object.lab = get_object_or_404(LabName, slug=lab)
                 form.save()
@@ -416,8 +420,7 @@ def base_big_object_page(request, lab, slug):
             file_categories_form = FileAndImageCategoryForBigObjectForm()
             components = BigObjectList.objects.filter(big_object__slug=slug)
             all_parts = base_big_object.get_unique_parts(include_self=False)
-            print('ALL PARTS : ', all_parts)
-
+            base_components = get_base_components(all_parts=all_parts)
             top_level_objects = base_big_object.get_top_level_big_objects()
 
             parents = base_big_object.get_base_big_object_parents()
@@ -434,6 +437,7 @@ def base_big_object_page(request, lab, slug):
                 'copy_form': big_object_copy,
                 'parents': parents,
                 'all_parts': all_parts,
+                'base_components': base_components,
                 'components': components,
                 'samples': samples,
 
@@ -467,19 +471,17 @@ def big_object_page(request, lab, slug, pk):
 
         big_object = get_object_or_404(BigObject, pk=int(pk))
 
-        components = BigObjectList.objects.filter(big_object__slug=slug)
-
-        all_parts = big_object.get_descendants(include_self=False)
-
-        file_categories = FileAndImageCategoryForBigObject.objects.filter(big_object=base_big_object)
         if request.method == 'GET':
             if request.user.is_superuser or user.lab.slug == lab:
+                components = BigObjectList.objects.filter(big_object__slug=slug)
+
+                all_parts = big_object.get_descendants(include_self=False)
+
+                base_components = get_base_components(all_parts=all_parts)
+
+                file_categories = FileAndImageCategoryForBigObject.objects.filter(big_object=base_big_object)
                 file_categories_form = FileAndImageCategoryForBigObjectForm()
                 change_form = BigObjectForm(instance=big_object)
-
-                base_components = set()
-                for component in components:
-                    base_components.add(component.simple_object.base_object)
 
                 big_object_copy = CopyBigObject()
 
@@ -521,8 +523,14 @@ def big_object_page(request, lab, slug, pk):
                 form = CopyBigObject(request.POST)
                 if form.is_valid():
                     data = form.clean()
-                    new_big_object = big_object.copy_object_and_children(new_name=data['name'])
+                    if data['kod_end']:
+                        new_big_object = big_object.copy_object_and_children(
+                            new_name=data['name'], kod_end=data['kod_end']
+                        )
+                    else:
+                        new_big_object = big_object.copy_object_and_children(new_name=data['name'])
                     return redirect(big_object_page, lab=lab, slug=slug, pk=new_big_object.pk)
+                    # return redirect(big_object_page, lab=lab, slug=slug, pk=big_object.pk)
 
             elif form_type == 'files':
                 print('CREATE NEW FILE CATEGORY')
@@ -693,7 +701,6 @@ def big_object_update_components(request, lab, slug):
                                 old_component.amount = clean_data['amount']
                                 old_component.simple_object = clean_data['simple_object']
                                 old_component.save()    # Обновление компонента для объекта
-                                print('SIMPLE OBJECT UPDATE AMOUNT')
                                 simple_object.update_amount(update_big_objects_price=True)
                     except KeyError:
                         big_object.number_of_elements -= 1
@@ -712,14 +719,6 @@ def big_object_update_components(request, lab, slug):
                             print('NEW COMPONENT SAVE')
                             new_component.save()
                             new_component.simple_object.update_amount()
-                            # Если данный простой объект используется в составе какого-либо слоного объекта
-                            # верхнего уровня то обновляем количество свободных
-                            # top_objects = new_component.search_all_top_level_objects_with_simple_object()
-                            # if top_objects:
-                            #     new_component.simple_object.update_amount()
-                                # for obj in top_objects:
-                                #     obj.
-                print('BIG OBJECT SAVE')
                 big_object.save()       # Обновление стоимости объекта и количества составляющих
                 return redirect(base_big_object_page, lab=lab, slug=slug)
             else:
@@ -791,9 +790,6 @@ def big_object_update_parts(request, lab, slug):
 
                 # Обновление стоимости сложных объектов с учетом новых сборочных едениц
                 for big_object in BigObject.objects.filter(base=base_big_object):
-                    print('---------------------------')
-                    print(big_object)
-                    print('---------------------------')
                     big_object.update_price()
 
             else:
@@ -851,7 +847,6 @@ def big_object_update_files_category(request, lab, slug, pk):
                 form = AddNewImagesForm(request.POST, request.FILES)
                 images = request.FILES.getlist('image')
                 if form.is_valid():
-                    print('VALID')
                     for image in images:
                         new_image = ImageForBigObject(
                             big_object=big_object,
@@ -925,7 +920,6 @@ def search(request, lab):
                     'base_result': base_results,
                     'q': q
                 }
-                print(base_results)
                 return render(request, 'db_site/search_result.html', context=context)
     else:
         return HttpResponseNotFound("У вас нет доступа к этой странице!")
@@ -1003,9 +997,6 @@ def worker_equipment_form(request, pk, lab):
                 print('VALID')
                 for form in formset:
                     clean_data = form.clean()
-                    print(clean_data)
-
-
                     try:
                         old_component = WorkerEquipment.objects.get(pk=clean_data['id'].id)
                         if clean_data['amount'] == 0:
