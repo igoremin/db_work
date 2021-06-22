@@ -119,8 +119,8 @@
             </ol>
             {% if user.is_superuser %}
                 <ol class="breadcrumb">
-                    <li><a class="btn btn-outline-secondary" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a></li>
-                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a></li>
+                    <li><a class="btn btn-outline-secondary" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Создать простую единицу</a></li>
+                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a></li>
                     <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'category_add_form_url' lab=current_lab.slug %}" role="button">Добавить категорию</a></li>
                 </ol>
             {% endif %}
@@ -148,6 +148,9 @@
         <div class="row text-center">
             {% if user.is_authenticated %}
                 <div class="col">
+                    <a class="nav-link" href="{% url 'doc_page_url' %}">Документация</a>
+                </div>
+                <div class="col">
                     <a class="nav-link" href="{% url 'feedback_form_url' %}">Обратная связь</a>
                 </div>
 
@@ -163,7 +166,7 @@
             {% if user.is_superuser and user_cat_list != 'none' %}
                 <!-- Button trigger modal -->
                 <div class="col" data-toggle="modal" data-target="#objects_delete">
-                    <a class="nav-link" style="cursor: pointer">Удалить</a>
+                    <a class="nav-link" style="cursor: pointer">Удалить все данные</a>
                 </div>
 
                 <!-- Модальное окно -->
