@@ -29,7 +29,7 @@ class SimpleObjectForm(forms.ModelForm):
                     'data-live-search': 'true'
                 }
             ),
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'search_box', 'autocomplete': "off"}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
             'place': forms.TextInput(attrs={'class': 'form-control'}),
@@ -44,7 +44,7 @@ class SimpleObjectForm(forms.ModelForm):
                 'step': 0.001,
                 'min': 0,
             }),
-            'measure': forms.TextInput(attrs={'class': 'form-control'}),
+            'measure': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'text': forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -140,7 +140,7 @@ class BaseBigObjectForm(forms.ModelForm):
         widgets = {
             # 'parent': forms.Select(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'kod': forms.TextInput(attrs={'class': 'form-control'}),
             # 'status': forms.Select(attrs={'class': 'form-control'}),
@@ -168,10 +168,11 @@ class BaseBigObjectForm(forms.ModelForm):
 class BigObjectForm(forms.ModelForm):
     class Meta:
         model = BigObject
-        fields = ['name', 'status', 'system_number', 'controller', 'detector', 'interface', 'report', 'year']
+        fields = ['name', 'kod_end', 'status', 'system_number', 'controller', 'detector', 'interface', 'report', 'year']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'kod_end': forms.TextInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'system_number': forms.TextInput(attrs={'class': 'form-control'}),
             'controller': forms.TextInput(attrs={'class': 'form-control'}),
@@ -260,6 +261,17 @@ class CopyBigObject(forms.Form):
             attrs={
                 'class': 'form-control',
                 'placeholder': 'Название',
+            }
+        )
+    )
+    kod_end = forms.CharField(
+        required=False,
+        max_length=20,
+        label='Окончание кода РЮКС/РШАП для нового экземпляра',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Окончание кода',
             }
         )
     )
