@@ -13,6 +13,21 @@ from PIL import Image
 import os
 
 
+def get_base_components(all_parts):
+    base_components = set()
+
+    for part in all_parts:
+        simple_components = part.base.simple_components.filter(simple_object__base_object__isnull=False)
+        if simple_components:
+            for simple_component in simple_components:
+                base_components.add(simple_component.simple_object.base_object)
+
+    if len(base_components) > 0:
+        return base_components
+    else:
+        return None
+
+
 def get_all_children(big_object, all_children=None):
     if all_children is None:
         all_children = list()
@@ -251,8 +266,20 @@ class SimpleObject(models.Model):
         IN_WORK = 'IW', _('Активный')
         WRITTEN_OF = 'WO', _('Списано')
 
+    class ChoicesMeasure(models.TextChoices):
+        GRAND = 'шт', _('шт')
+        METRE = 'м', _('м')
+        CENTIMETRE = 'см', _('см')
+        KILOMETRE = 'км', _('км')
+        BALLOON = 'бал', _('бал')
+        KILOGRAM = 'кг', _('кг')
+        GRAM = 'гр', _('гр')
+        EMPTY = '---', _('---')
+
     # parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
-    base_object = models.ForeignKey(to=BaseObject, on_delete=models.CASCADE, blank=True, null=True)
+    base_object = models.ForeignKey(
+        to=BaseObject, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Базовая единица'
+    )
     name = models.CharField(max_length=200, verbose_name='Название')
     name_lower = models.CharField(max_length=200, verbose_name='Название в нижнем регистре', blank=True)
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
@@ -263,7 +290,7 @@ class SimpleObject(models.Model):
     directory_code = models.CharField(verbose_name='Код справочника, не уникальный', max_length=100,
                                       blank=True, null=True)
     place = models.CharField(max_length=200, verbose_name='Место расположения', blank=True)
-    price = models.FloatField(verbose_name='Стоимость', default=0)
+    price = models.FloatField(verbose_name='Стоимость одной единицы', default=0)
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
     price_text = models.CharField(verbose_name='Сумма за единицу с пробелами', max_length=100, blank=True)
     total_price_text = models.CharField(verbose_name='Общая сумма с пробелами', max_length=100, blank=True)
@@ -272,7 +299,12 @@ class SimpleObject(models.Model):
     amount_free = models.FloatField(verbose_name='Количество свободных единиц', null=True, blank=True)
     text = models.TextField(blank=True, verbose_name='Описание')
     date_add = models.DateTimeField(default=timezone.now)
-    measure = models.CharField(verbose_name='Единица измерения', max_length=10, blank=True, null=True)
+    measure = models.CharField(
+        verbose_name='Единица измерения',
+        choices=ChoicesMeasure.choices,
+        default=ChoicesMeasure.EMPTY,
+        max_length=3,
+    )
     status = models.CharField(
         max_length=2,
         choices=ChoicesStatus.choices,
@@ -451,7 +483,7 @@ class BaseBigObject(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Категория', blank=True, null=True)
     inventory_number = models.CharField(verbose_name='Инвентаризационный номер', unique=True, blank=True, null=True,
                                         max_length=100)
-    kod = models.CharField(verbose_name='РЮКС', unique=True, blank=True, null=True, max_length=100)
+    kod = models.CharField(verbose_name='РЮКС/РШАП', unique=True, blank=True, null=True, max_length=100)
     number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
     ready = models.BooleanField(verbose_name='Объект готов, запретить редактирование', default=False)
 
@@ -557,6 +589,10 @@ class BigObject(MPTTModel):
         default=ChoicesStatus.NOT_IN_WORK,
         verbose_name='Статус'
     )
+    kod_end = models.CharField(
+        verbose_name='Окончание кода РЮКС/РШАП для конкретного экземпляра',
+        blank=True, null=True, max_length=20
+    )
     price = models.FloatField(verbose_name='Стоимость', default=0)
     price_text = models.CharField(verbose_name='Стоимость с пробелами', max_length=100, blank=True)
     system_number = models.CharField(max_length=400, verbose_name='Номер системы', blank=True, null=True)
@@ -581,15 +617,25 @@ class BigObject(MPTTModel):
     class MPTTMeta:
         order_insertion_by = ['full_name', 'name']
 
+    def get_full_kod(self):
+        if self.base.kod:
+            if self.kod_end:
+                full_kod = '{}-{}'.format(self.base.kod, self.kod_end)
+            else:
+                full_kod = self.base.kod
+            return full_kod
+        else:
+            return ''
+
     def __str__(self):
         if self.name:
             if self.base.kod:
-                full_path = ['{}, {}'.format(self.name, self.base.kod)]
+                full_path = ['{}, {}'.format(self.name, self.get_full_kod())]
             else:
                 full_path = [self.name]
         else:
             if self.base.kod:
-                full_path = ['{}, {}'.format(self.base.name, self.base.kod)]
+                full_path = ['{}, {}'.format(self.base.name, self.get_full_kod())]
             else:
                 full_path = [self.base.name]
 
@@ -606,8 +652,6 @@ class BigObject(MPTTModel):
         all_children = list()
 
         def search(parent):
-            # print('PARENT : ', parent)
-            # print('CHILDREN : ', parent.get_children())
             for child in parent.get_children():
                 all_children.append(child)
                 if child.get_children():
@@ -673,7 +717,7 @@ class BigObject(MPTTModel):
             }
         )
 
-    def copy_object_and_children(self, new_name=None):
+    def copy_object_and_children(self, new_name=None, kod_end=None):
         first_children = self.get_children()
         new_top_part = self
         new_top_part.pk = None
@@ -681,6 +725,8 @@ class BigObject(MPTTModel):
         # new_top_part.top_level = False
         if new_name:
             new_top_part.name = new_name
+        if kod_end:
+            new_top_part.kod_end = kod_end
         new_top_part.save()
 
         def search_all_parts(first_part):
