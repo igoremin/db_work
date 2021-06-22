@@ -13,7 +13,7 @@
             <p class="small_p">Редактирование запрещено</p>
         {% else %}
             <p class="small_p">Редактирование разрешено</p>
-            <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_update_url' lab=current_lab.slug slug=base_big_object.slug %}" role="button">Редактировать объект</a>
+            <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_update_url' lab=current_lab.slug slug=base_big_object.slug %}" role="button">Редактировать</a>
             <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_update_components_url' lab=current_lab.slug slug=base_big_object.slug %}" role="button">Редактировать компоненты</a>
             <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_update_parts_url' lab=current_lab.slug slug=base_big_object.slug %}" role="button">Редактировать сборочные единицы</a>
         {% endif %}
@@ -250,7 +250,6 @@
     </div>
 
     <hr>
-
     <h3 class="btn btn-outline-secondary" onclick="showTableOnBigObjectPage(this);" id="base_components">Список базовых компонентов</h3>
     <table id="base_components_table" class="table table-hover table-bordered" style="display: none">
         <thead>
