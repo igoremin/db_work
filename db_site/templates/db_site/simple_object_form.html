@@ -11,11 +11,13 @@
 
 
 {% block content %}
+
     {% if status == 'add' %}
         <h3>Добавление новой позиции</h3>
     {% elif status == 'update'%}
         <h3>Редактирование</h3>
     {% endif %}
+
     <form action="{% if status == 'add' %}
                         {% url 'simple_object_add_form_url' lab=current_lab.slug%}
                     {% elif status == 'update' %}
@@ -28,8 +30,22 @@
                     {{ form.errors }}
                 </div>
             {% endif %}
+        {% for field in form %}
+            <div class="mb-2">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    {{ field.errors }}
+                {% endif %}
+                {% if field.id_for_label == 'search_box'%}
+                    <div id="search_advice_wrapper"></div>
+                {% endif %}
+            </div>
 
-            {{ form.as_p }}
+        {% endfor %}
+
+
+{#            {{ form.as_p }}#}
             <button type="submit" class="btn btn-primary">Сохранить</button>
             <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
     </form>
