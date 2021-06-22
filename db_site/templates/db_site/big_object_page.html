@@ -8,7 +8,7 @@
     <!--------------------- Блок редактирования ----------------------->
     <!-- Button trigger modal -->
     <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#new_files_category">
-        Редактировать
+        Редактировать экземпляр
     </button>
 
     <!-- Модальное окно -->
@@ -156,7 +156,7 @@
             </ul>
 
             {% if base_big_object.kod %}
-                <h3>Код : {{ base_big_object.kod }}</h3>
+                <h3>Код : {{ base_big_object.kod }}{% if big_object.kod_end %}-{{ big_object.kod_end }}{% endif %}</h3>
             {% endif %}
 
             {% if big_object.parent %}
