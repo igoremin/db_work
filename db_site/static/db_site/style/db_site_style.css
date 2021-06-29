@@ -25,6 +25,10 @@ body {
     /*padding-top: 5rem;*/
 }
 
+mark{
+    background: yellow;
+    color: black;
+}
 
 a {
     color: #12457c;
