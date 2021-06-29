@@ -116,7 +116,7 @@ class LabName(models.Model):
 
     def save(self, *args, **kwargs):
         print('---SAVE POST---')
-        if not self.id:
+        if self.id:
             old_self = LabName.objects.get(pk=self.pk)
             if old_self.name != self.name:
                 self.create_slug()
