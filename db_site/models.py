@@ -102,6 +102,33 @@ def generate_path_for_database(instance, filename):
     return 'database/{0}/{1}'.format(instance.lab.name, filename)
 
 
+class Room(models.Model):
+    number = models.CharField(verbose_name='Номер/название кабинета', max_length=100, unique=True)
+    slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
+
+    class Meta:
+        verbose_name = 'Кабинет'
+        verbose_name_plural = 'Кабинеты'
+        ordering = ['number']
+
+    def __str__(self):
+        return self.number
+
+    def save(self, *args, **kwargs):
+        print('---SAVE ROOM---')
+        if self.id:
+            old_self = Room.objects.get(pk=self.pk)
+            if old_self.number != self.number:
+                self.create_slug()
+        else:
+            self.create_slug()
+        super().save(*args, **kwargs)
+
+    def create_slug(self):
+        all_slugs = BaseObject.objects.all().values_list('slug', flat=True)
+        self.slug = gen_slug(title=self.number, all_slugs=all_slugs)
+
+
 class LabName(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name='Название лаборатории')
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
