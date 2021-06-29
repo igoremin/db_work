@@ -19,7 +19,7 @@ class CategoryForm(forms.ModelForm):
 class SimpleObjectForm(forms.ModelForm):
     class Meta:
         model = SimpleObject
-        fields = ['base_object', 'name', 'inventory_number', 'directory_code', 'place', 'category', 'price',
+        fields = ['base_object', 'name', 'inventory_number', 'directory_code', 'lab', 'place', 'category', 'price',
                   'amount', 'measure', 'status', 'text']
 
         widgets = {
@@ -32,6 +32,7 @@ class SimpleObjectForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'search_box', 'autocomplete': "off"}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
             'place': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'price': forms.NumberInput(attrs={
@@ -54,14 +55,15 @@ class SimpleObjectForm(forms.ModelForm):
         label='Выбор категории',
         queryset=categories_list,
         required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'category_for_lab'}),
     )
 
     def __init__(self, *args, **kwargs):
         lab = kwargs.pop('lab')
         self.category = Category.objects.filter(lab__slug=lab, cat_type='SO')
         super(SimpleObjectForm, self).__init__(*args, **kwargs)
-        self.fields['category'].queryset = self.category
+        # self.fields['category'].queryset = self.category
+        self.fields['category'].queryset = Category.objects.all()
 
 
 class SimpleObjectWriteOffForm(forms.Form):

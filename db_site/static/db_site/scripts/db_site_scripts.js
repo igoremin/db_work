@@ -160,11 +160,45 @@ $(function() {
   $('.selectpicker').selectpicker();
 });
 
+jQuery.fn.toggleOption = function( show ) {
+    jQuery( this ).toggle( show );
+    if( show ) {
+        if( jQuery( this ).parent( 'span.toggleOption' ).length )
+            jQuery( this ).unwrap( );
+    } else {
+        if( jQuery( this ).parent( 'span.toggleOption' ).length == 0 )
+            jQuery( this ).wrap( '<span class="toggleOption" style="display: none;" />' );
+    }
+};
+
+function check_categories_for_lab (lab) {
+    let lab_txt = document.getElementById("select_current_lab").options[lab.val()].text;
+    for (let current_cat = 1; current_cat < document.querySelectorAll("select#category_for_lab option").length; current_cat++) {
+        let current_text = document.querySelectorAll("select#category_for_lab option")[current_cat].text
+        if (current_text.indexOf(lab_txt) === -1) {
+            jQuery(document.querySelectorAll("select#category_for_lab option")[current_cat]).toggleOption(false); // hide option
+        }
+        else {
+            jQuery(document.querySelectorAll("select#category_for_lab option")[current_cat]).toggleOption(true); // show option
+        }
+    }
+}
+
 // $(window).load(function(){
 $(document).ready(function() {
     var suggest_count = 0;
     var input_initial_value = '';
     var suggest_selected = 0;
+
+    if (window.location.href.match('objects/\.+/update') != null) {
+        console.log('123');
+        let lab = $("#select_current_lab")
+        check_categories_for_lab(lab)
+        lab.change(function () {
+            check_categories_for_lab(lab)
+        })
+    }
+
     if (window.location.href.match('objects/add') != null) {
         // читаем ввод с клавиатуры
         $("#search_box").keyup(function(I){
