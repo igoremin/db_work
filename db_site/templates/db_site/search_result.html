@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-    <h3>Поиск : {{ q }}</h3>
+    <h3>Поиск : <span id="search_word">{{ q }}</span></h3>
     {% if results %}
         <h4>Простые объекты</h4>
         <table class="table table-hover table-bordered">
@@ -27,23 +27,23 @@
                 <tr>
                     <td></td>
                     <td>
-                        <a href="{{ simple_object.get_absolute_url }}"
-                                {% if q|lower in simple_object.name|lower%}style="background-color: #f3ffbe" {% endif %}>
+                        <a href="{{ simple_object.get_absolute_url }}">
+{#                                {% if q|lower in simple_object.name|lower%}style="background-color: #f3ffbe" {% endif %}>#}
                             {{ simple_object.name }}
                         </a>
                     </td>
                     <td>
                         {% if simple_object.inventory_number %}
-                            <span {% if q|lower in simple_object.inventory_number|lower%}style="background-color: #f3ffbe" {% endif %}>
+{#                            <span {% if q|lower in simple_object.inventory_number|lower%}style="background-color: #f3ffbe" {% endif %}>#}
                                 {{ simple_object.inventory_number }}
-                            </span>
+{#                            </span>#}
                         {% endif %}
                     </td>
                     <td>
                         {% if simple_object.directory_code %}
-                            <span {% if q|lower in simple_object.directory_code|lower%}style="background-color: #f3ffbe" {% endif %}>
+{#                            <span {% if q|lower in simple_object.directory_code|lower%}style="background-color: #f3ffbe" {% endif %}>#}
                                 {{ simple_object.directory_code }}
-                            </span>
+{#                            </span>#}
                         {% endif %}
                     </td>
                     <td>{{ simple_object.amount }}</td>
@@ -75,23 +75,18 @@
                 <tr>
                     <td></td>
                     <td>
-                        <a href="{{ object.get_absolute_url }}"
-                           {% if q|lower in bject.name|lower%}style="background-color: #f3ffbe" {% endif %}>
+                        <a href="{{ object.get_absolute_url }}">
                             {{ object.name }}
                         </a>
                     </td>
                     <td>
                         {% if object.inventory_number %}
-                            <span {% if q|lower in object.inventory_number|lower%}style="background-color: #f3ffbe" {% endif %}>
                                 {{ object.inventory_number }}
-                            </span>
                         {% endif %}
                     </td>
                     <td>
                         {% if object.directory_code %}
-                            <span {% if q|lower in object.directory_code|lower%}style="background-color: #f3ffbe" {% endif %}>
                                 {{ object.directory_code }}
-                            </span>
                         {% endif %}
                     </td>
                     <td>{{ object.amount }}</td>
