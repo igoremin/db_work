@@ -316,6 +316,8 @@ class SimpleObject(models.Model):
                                         blank=True, null=True)
     directory_code = models.CharField(verbose_name='Код справочника, не уникальный', max_length=100,
                                       blank=True, null=True)
+    room = models.ManyToManyField(Room, related_name='simple_object', related_query_name='simple_objects',
+                                  verbose_name='Кабинет', blank=True)
     place = models.CharField(max_length=200, verbose_name='Место расположения', blank=True)
     price = models.FloatField(verbose_name='Стоимость одной единицы', default=0)
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
