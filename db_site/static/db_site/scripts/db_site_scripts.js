@@ -190,8 +190,14 @@ $(document).ready(function() {
     var input_initial_value = '';
     var suggest_selected = 0;
 
+    if (window.location.href.match('/search/') != null) {
+        let search_word = $("#search_word")[0].innerHTML;
+        console.log(search_word);
+        let instance = new Mark(document.querySelectorAll("table"));
+        instance.mark(search_word);
+    }
+
     if (window.location.href.match('objects/\.+/update') != null) {
-        console.log('123');
         let lab = $("#select_current_lab")
         check_categories_for_lab(lab)
         lab.change(function () {
