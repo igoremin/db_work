@@ -97,6 +97,13 @@
         {% if object.place %}
             <li>Место расположения : {{ object.place }}</li>
         {% endif %}
+        {% if object.room.all %}
+            <li>Кабинет :
+                {% for object in object.room.all %}
+                    {{ object }}
+                {% endfor %}
+            </li>
+        {% endif %}
         {% if object.worker_objects_list.all %}
             <li>Сотрудники :
                 {% for object in object.worker_objects_list.all %}
