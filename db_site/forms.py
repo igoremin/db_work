@@ -19,8 +19,8 @@ class CategoryForm(forms.ModelForm):
 class SimpleObjectForm(forms.ModelForm):
     class Meta:
         model = SimpleObject
-        fields = ['base_object', 'name', 'inventory_number', 'directory_code', 'lab', 'place', 'category', 'price',
-                  'amount', 'measure', 'status', 'text']
+        fields = ['base_object', 'name', 'inventory_number', 'directory_code', 'lab', 'room', 'place', 'category',
+                  'price', 'amount', 'measure', 'status', 'text']
 
         widgets = {
             'base_object': forms.Select(
@@ -33,6 +33,7 @@ class SimpleObjectForm(forms.ModelForm):
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
             'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
+            'room': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'place': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'price': forms.NumberInput(attrs={
