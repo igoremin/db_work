@@ -198,6 +198,28 @@ $(document).ready(function() {
     }
 
     if (window.location.href.match('objects/\.+/update') != null) {
+        $('#id_room').multiselect({
+            buttonText: function(options, select) {
+                if (options.length === 0) {
+                    return 'Не выбран';
+                }
+                else if (options.length > 6) {
+                    return 'Больше шести';
+                }
+                 else {
+                     var labels = [];
+                     options.each(function() {
+                         if ($(this).attr('label') !== undefined) {
+                             labels.push($(this).attr('label'));
+                         }
+                         else {
+                             labels.push($(this).html());
+                         }
+                     });
+                     return labels.join(', ') + '';
+                 }
+            }
+        });
         let lab = $("#select_current_lab")
         check_categories_for_lab(lab)
         lab.change(function () {
