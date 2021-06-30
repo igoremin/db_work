@@ -29,7 +29,8 @@ def custom_proc_user_categories_list(request):
         lab = request.build_absolute_uri().replace('//', '').split('/')[1]
 
         lab_categories_base = Category.objects.filter(lab__slug=lab, cat_type='BO')
-        lab_categories_simple = Category.objects.filter(lab__slug=lab, cat_type='SO')
+        lab_categories_simple_equipment = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='EQ')
+        lab_categories_simple_materials = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='MT')
         lab_categories_big = Category.objects.filter(lab__slug=lab, cat_type='BG')
         # base_categories = Category.objects.filter(lab__slug=lab, )
         search_form = SearchForm()
@@ -39,7 +40,8 @@ def custom_proc_user_categories_list(request):
         rooms = Room.objects.filter(lab__slug=lab)
 
         data = {'user_cat_list_base': lab_categories_base,
-                'user_cat_list_simple': lab_categories_simple,
+                'user_cat_list_simple_equipment': lab_categories_simple_equipment,
+                'user_cat_list_simple_materials': lab_categories_simple_materials,
                 'current_lab': LabName.objects.get(slug=lab),
                 'search_form': search_form,
                 'workers': workers,
@@ -217,24 +219,28 @@ def base_object_page(request, lab, slug):
 
 
 @login_required(login_url='/login/')
-def simple_objects_list(request, lab):
+def simple_objects_list(request, lab, obj_type=None):
     """Список простых объектов. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
-            all_objects = SimpleObject.objects.filter(lab__slug=lab, status__in=['IW', 'NW'])
-            big_objects = BigObject.objects.filter(base__lab__slug=lab, parent=None).order_by(
-                'base__category', 'base__name'
-            )
+            if obj_type:
+                all_objects = SimpleObject.objects.filter(
+                    lab__slug=lab, status__in=['IW', 'NW'], category__obj_type=obj_type
+                )
+                all_name = Category.objects.filter(obj_type=obj_type)[0].get_obj_type_display()
+            else:
+                all_objects = SimpleObject.objects.filter(lab__slug=lab, status__in=['IW', 'NW'])
+                all_name = 'Весь список'
 
             page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                 request=request, objects=all_objects
             )
 
             context = {
-                'big_objects': big_objects,
                 'simple_objects': all_objects,
                 'simple_objects_count': all_objects.count(),
+                'all_name': all_name,
                 'category': 'all',              # Необходимо для определения текущей категории.
                                                 # Если категория общая то нет доступа для ее редактирования
             }
@@ -245,12 +251,15 @@ def simple_objects_list(request, lab):
 
 
 @login_required(login_url='/login/')
-def simple_objects_write_off_list(request, lab):
+def simple_objects_write_off_list(request, lab, obj_type=None):
     """Список списаных простых объектов. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
-            all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO')
+            if obj_type:
+                all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO', category__obj_type=obj_type)
+            else:
+                all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO')
             page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                 request=request, objects=all_objects
             )
