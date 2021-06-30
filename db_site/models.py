@@ -168,10 +168,15 @@ class Room(models.Model):
 
 
 class Category(models.Model):
-    class ChoicesObjectType(models.TextChoices):
+    class ChoicesObjectCat(models.TextChoices):
         BASE_OBJECT = 'BO', _('Базовый объект')
         SIMPLE_OBJECT = 'SO', _('Простой объект')
         BIG_OBJECT = 'BG', _('Составной объект')
+
+    class ChoicesObjectType(models.TextChoices):
+        EQUIPMENT = 'EQ', _('Оборудование')
+        MATERIALS = 'MT', _('Материалы')
+        DEF = 'DF', _('Не выбрано')
 
     name = models.CharField(max_length=200, verbose_name='Название категории')
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
@@ -179,9 +184,15 @@ class Category(models.Model):
     text = models.TextField(blank=True, verbose_name='Описание')
     cat_type = models.CharField(
         max_length=2,
-        choices=ChoicesObjectType.choices,
-        default=ChoicesObjectType.SIMPLE_OBJECT,
+        choices=ChoicesObjectCat.choices,
+        default=ChoicesObjectCat.SIMPLE_OBJECT,
         verbose_name='Тип категории'
+    )
+    obj_type = models.CharField(
+        max_length=2,
+        choices=ChoicesObjectType.choices,
+        default=ChoicesObjectType.DEF,
+        verbose_name='Тип объекта'
     )
 
     class Meta:
