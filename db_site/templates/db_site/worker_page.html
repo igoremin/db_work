@@ -11,7 +11,9 @@
 
     <h3>{{ worker.name }}</h3>
     <ul>
-        <li>Кабинет : {{ worker.room_number }}</li>
+        {% if worker.room_number %}
+            <li>Кабинет : <a href="{{ worker.room_number.get_absolute_url }}">{{ worker.room_number }}</a></li>
+        {% endif %}
         <li>Лаборатория : {{ worker.lab.name }}</li>
     </ul>
 
