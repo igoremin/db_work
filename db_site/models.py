@@ -102,33 +102,6 @@ def generate_path_for_database(instance, filename):
     return 'database/{0}/{1}'.format(instance.lab.name, filename)
 
 
-class Room(models.Model):
-    number = models.CharField(verbose_name='Номер/название кабинета', max_length=100, unique=True)
-    slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
-
-    class Meta:
-        verbose_name = 'Кабинет'
-        verbose_name_plural = 'Кабинеты'
-        ordering = ['number']
-
-    def __str__(self):
-        return self.number
-
-    def save(self, *args, **kwargs):
-        print('---SAVE ROOM---')
-        if self.id:
-            old_self = Room.objects.get(pk=self.pk)
-            if old_self.number != self.number:
-                self.create_slug()
-        else:
-            self.create_slug()
-        super().save(*args, **kwargs)
-
-    def create_slug(self):
-        all_slugs = BaseObject.objects.all().values_list('slug', flat=True)
-        self.slug = gen_slug(title=self.number, all_slugs=all_slugs)
-
-
 class LabName(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name='Название лаборатории')
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
@@ -160,6 +133,38 @@ class LabName(models.Model):
     def create_slug(self):
         all_slugs = LabName.objects.all().values_list('slug', flat=True)
         self.slug = gen_slug(title=self.name, all_slugs=all_slugs)
+
+
+class Room(models.Model):
+    number = models.CharField(verbose_name='Номер/название кабинета', max_length=100, unique=True)
+    lab = models.ForeignKey(LabName, on_delete=models.CASCADE, related_name='room',
+                            verbose_name='Лаборатория', blank=True, null=True)
+    slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
+
+    class Meta:
+        verbose_name = 'Кабинет'
+        verbose_name_plural = 'Кабинеты'
+        ordering = ['number']
+
+    def __str__(self):
+        return self.number
+
+    def save(self, *args, **kwargs):
+        print('---SAVE ROOM---')
+        if self.id:
+            old_self = Room.objects.get(pk=self.pk)
+            if old_self.number != self.number:
+                self.create_slug()
+        else:
+            self.create_slug()
+        super().save(*args, **kwargs)
+
+    def create_slug(self):
+        all_slugs = BaseObject.objects.all().values_list('slug', flat=True)
+        self.slug = gen_slug(title=self.number, all_slugs=all_slugs)
+
+    def get_absolute_url(self):
+        return reverse('room_page_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
 
 
 class Category(models.Model):
@@ -211,7 +216,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name='Имя')
     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, verbose_name='Лаборатория', blank=True, null=True)
-    room_number = models.IntegerField(verbose_name='Номер кабинета', blank=True, null=True)
+    room_number = models.ForeignKey(Room, on_delete=models.PROTECT, verbose_name='Номер кабинета',
+                                    blank=True, null=True)
     number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
 
     def __str__(self):
