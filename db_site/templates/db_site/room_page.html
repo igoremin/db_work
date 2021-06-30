@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Кабинет {{ room.number }}
+{% endblock %}
+
+{% block content %}
+    <h3>{{ room.number }}</h3>
+    <ul>
+        {% if all_workers %}
+            <li>
+                {% if all_workers|length > 1 %}
+                    Сотрудники :
+                {% elif all_workers|length == 1 %}
+                    Сотрудник :
+                {% endif %}
+
+                {% for worker in all_workers %}
+                    <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a> {% if workers.last != worker %}, {% endif %}
+                {% endfor %}
+            </li>
+        {% endif %}
+        <li>
+            Лаборатория : {{ room.lab }}
+        </li>
+    </ul>
+
+    {% if equipment %}
+        <h3>Оборудование :</h3>
+
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 5%">#</th>
+                <th scope="col" style="width: 70%">Название</th>
+                <th scope="col" style="width: 25%">Инв. номер</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for object in equipment %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
+                    </td>
+                    <td>{{ object.inventory_number }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if materials %}
+        <h3>Материалы :</h3>
+
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 5%">#</th>
+                <th scope="col" style="width: 70%">Название</th>
+                <th scope="col" style="width: 25%">Инв. номер</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for object in materials %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
+                    </td>
+                    <td>{{ object.inventory_number }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+{% endblock %}
