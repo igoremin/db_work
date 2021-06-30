@@ -358,15 +358,7 @@ class ChangeProfile(forms.ModelForm):
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'room_number': forms.NumberInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Кабинет',
-                    'type': 'number',
-                    'step': 1,
-                    'min': 1,
-                    'max': 700
-                })
+            'room_number': forms.Select(attrs={'class': 'form-control'})
         }
 
 
