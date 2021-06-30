@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForBigObject,\
-    FileAndImageCategoryForBigObject, FileForBigObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject
+    FileAndImageCategoryForBigObject, FileForBigObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseNotFound, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -22,7 +22,8 @@ def custom_proc_user_categories_list(request):
         'current_lab': 'none',
         'search_form': 'none',
         'user_info': 'none',
-        'big_objects_cat': 'none'
+        'big_objects_cat': 'none',
+        'rooms': 'none'
     }
     try:
         lab = request.build_absolute_uri().replace('//', '').split('/')[1]
@@ -35,6 +36,8 @@ def custom_proc_user_categories_list(request):
         workers = Profile.objects.filter(lab__slug=lab)
         user = Profile.objects.get(user_id=request.user.id)
 
+        rooms = Room.objects.filter(lab__slug=lab)
+
         data = {'user_cat_list_base': lab_categories_base,
                 'user_cat_list_simple': lab_categories_simple,
                 'current_lab': LabName.objects.get(slug=lab),
@@ -42,6 +45,7 @@ def custom_proc_user_categories_list(request):
                 'workers': workers,
                 'user_info': user,
                 'big_objects_cat': lab_categories_big,
+                'rooms': rooms
                 }
         if lab not in LabName.objects.values_list('slug', flat=True):
             data = {
@@ -49,7 +53,8 @@ def custom_proc_user_categories_list(request):
                 'current_lab': 'none',
                 'search_form': 'none',
                 'user_info': 'none',
-                'big_objects_cat': 'none'
+                'big_objects_cat': 'none',
+                'rooms': 'none'
             }
     except Exception:
         pass
@@ -1129,3 +1134,25 @@ def delete_all_data_for_lab(request, lab):
             # big_objects_slug = BigObject.objects.filter(lab__slug=lab).values_list('slug')
             # print(big_objects_slug)
             return redirect(home_page)
+
+
+"""---------------------------------------------------------------------------------------------------------"""
+"""-------------------------------------------------ROOM----------------------------------------------------"""
+
+
+@login_required(login_url='/login/')
+def room_page(request, lab, slug):
+    """Страница кабинета"""
+    user = Profile.objects.get(user_id=request.user.id)
+    if user.lab.slug == lab:
+        room = get_object_or_404(Room, lab__slug=lab, slug=slug)
+        workers = Profile.objects.filter(room_number=room)
+        equipment = SimpleObject.objects.filter(base_object__category__name__exact='Основные', room=room)
+        materials = SimpleObject.objects.filter(base_object__category__name__exact='Материалы', room=room)
+        context = {
+            'room': room,
+            'all_workers': workers,
+            'equipment': equipment,
+            'materials': materials,
+        }
+        return render(request, 'db_site/room_page.html', context=context)
