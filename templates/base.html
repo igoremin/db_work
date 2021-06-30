@@ -88,6 +88,18 @@
                                     </div>
                                 </li>
                             {% endif %}
+                            {% if user.is_superuser %}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Кабинеты
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="roomsDropdown">
+                                        {% for room in rooms %}
+                                            <a class="dropdown-item" href="{{ room.get_absolute_url }}">{{ room }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </li>
+                            {% endif %}
                         {% endif %}
                         <li class="nav-item"><a class="nav-link" href="{{ user_info.get_absolute_url }}">{{ user_info.name }}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Выйти</a></li>
