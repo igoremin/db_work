@@ -94,15 +94,15 @@
         <li>Сумма : {{ object.total_price_text }}</li>
         <li>Лаборатория : {{ object.lab.name }}</li>
         <li>Дата создания : {{ object.date_add }}</li>
-        {% if object.place %}
-            <li>Место расположения : {{ object.place }}</li>
-        {% endif %}
         {% if object.room.all %}
             <li>Кабинет :
                 {% for object in object.room.all %}
-                    {{ object }}
+                    <a href="{{ object.get_absolute_url }}">{{ object }}</a>
                 {% endfor %}
             </li>
+        {% endif %}
+        {% if object.place %}
+            <li>Место расположения : {{ object.place }}</li>
         {% endif %}
         {% if object.worker_objects_list.all %}
             <li>Сотрудники :
