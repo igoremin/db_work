@@ -40,7 +40,7 @@
                         {% if current_lab != 'none' %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Разделы
+                                    2 этаж
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
                                     {% for cat in user_cat_list_base %}
@@ -52,14 +52,26 @@
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Категории
+                                    Оборудование
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                                    {% for cat in user_cat_list_simple %}
+                                    {% for cat in user_cat_list_simple_equipment %}
                                         <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
                                     {% endfor %}
-                                    <a class="dropdown-item" href="{% url 'simple_objects_url' lab=current_lab.slug %}">Весь список</a>
-                                    <a class="dropdown-item" href="{% url 'write_off_list_url' lab=current_lab.slug %}">Списано</a>
+                                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Весь список</a>
+                                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Списано</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Материалы
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                                    {% for cat in user_cat_list_simple_materials %}
+                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                                    {% endfor %}
+                                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Весь список</a>
+                                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Списано</a>
                                 </div>
                             </li>
                             {% if big_objects_cat %}
@@ -127,7 +139,7 @@
     {% if current_lab != 'none' %}
         <nav aria-label="breadcrumb" class="pt-3">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item">Лаборатория : <a href="{{ current_lab.get_absolute_url }}">{{ current_lab.name }}</a></li>
+                <li class="breadcrumb-item">Лаборатория : <a href="{{ current_lab.get_absolute_url }}" id="lab_name">{{ current_lab.name }}</a></li>
             </ol>
             {% if user.is_superuser %}
                 <ol class="breadcrumb">
