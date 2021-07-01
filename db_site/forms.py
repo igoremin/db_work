@@ -1,5 +1,5 @@
 from django import forms
-from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategoryForBigObject,\
+from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategory,\
     ImageForBigObject, FileForBigObject, DataBaseDoc, WorkerEquipment, BaseBigObject
 from django.utils.translation import ugettext_lazy as _
 
@@ -298,7 +298,7 @@ class SearchForm(forms.Form):
 
 class FileAndImageCategoryForBigObjectForm(forms.ModelForm):
     class Meta:
-        model = FileAndImageCategoryForBigObject
+        model = FileAndImageCategory
         fields = ['name', 'text']
 
         widgets = {

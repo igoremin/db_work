@@ -854,26 +854,34 @@ class BigObject(MPTTModel):
         super().delete(*args, **kwargs)
 
 
-class FileAndImageCategoryForBigObject(models.Model):
+class FileAndImageCategory(models.Model):
+    simple_object = models.ForeignKey(
+        SimpleObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Простой объект'
+    )
     big_object = models.ForeignKey(
-        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект'
+        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Сложный объект'
     )
     name = models.CharField(max_length=150, verbose_name='Название категории')
     text = models.TextField(max_length=2000, verbose_name='Описание', blank=True)
     slug = models.SlugField(max_length=250, blank=True, null=True, verbose_name='Название на латинице')
 
     class Meta:
-        verbose_name = 'Категория документов для сложного объекта'
-        verbose_name_plural = 'Категории документов для сложных объектов'
+        verbose_name = 'Категория документов'
+        verbose_name_plural = 'Категории документов'
 
     def __str__(self):
-        return '{} , для {}'.format(self.name, self.big_object.name)
+        if self.simple_object:
+            return '{} , для {}'.format(self.name, self.simple_object.name)
+        elif self.big_object:
+            return '{} , для {}'.format(self.name, self.big_object.name)
+        else:
+            return '{}'.format(self.name)
 
     def save(self, *args, **kwargs):
         if self.pk is None:
             self.slug = gen_slug_for_categories(self.name)
         else:
-            old_self = FileAndImageCategoryForBigObject.objects.get(pk=self.pk)
+            old_self = FileAndImageCategory.objects.get(pk=self.pk)
             if old_self.name != self.name:
                 self.slug = gen_slug_for_categories(self.name)
         super().save(*args, **kwargs)
@@ -887,7 +895,7 @@ class ImageForBigObject(models.Model):
     image_big = models.ImageField(blank=True, upload_to=generate_path,
                                   verbose_name='Фото без сжатия, создается само при сохранеии')
     category = models.ForeignKey(
-        FileAndImageCategoryForBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Категория',
+        FileAndImageCategory, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Категория',
         related_name='images', related_query_name='image'
     )
 
@@ -947,7 +955,7 @@ class FileForBigObject(models.Model):
     )
     file = models.FileField(upload_to=generate_path_for_files, verbose_name='Файл')
     category = models.ForeignKey(
-        FileAndImageCategoryForBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Категория',
+        FileAndImageCategory, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Категория',
         related_name='files', related_query_name='file'
     )
 

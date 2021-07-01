@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForBigObject,\
-    FileAndImageCategoryForBigObject, FileForBigObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room
+    FileAndImageCategory, FileForBigObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseNotFound, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -433,7 +433,7 @@ def base_big_object_page(request, lab, slug):
         base_big_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
 
         if request.method == 'GET':
-            file_categories = FileAndImageCategoryForBigObject.objects.filter(big_object=base_big_object)
+            file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
             file_categories_form = FileAndImageCategoryForBigObjectForm()
             components = BigObjectList.objects.filter(big_object__slug=slug)
             all_parts = base_big_object.get_unique_parts(include_self=False)
@@ -496,7 +496,7 @@ def big_object_page(request, lab, slug, pk):
 
                 base_components = get_base_components(all_parts=all_parts)
 
-                file_categories = FileAndImageCategoryForBigObject.objects.filter(big_object=base_big_object)
+                file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
                 file_categories_form = FileAndImageCategoryForBigObjectForm()
                 change_form = BigObjectForm(instance=big_object)
 
@@ -838,7 +838,7 @@ def big_object_update_files_category(request, lab, slug, pk):
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         big_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
-        category = get_object_or_404(FileAndImageCategoryForBigObject, pk=pk)
+        category = get_object_or_404(FileAndImageCategory, pk=pk)
         if request.method == 'GET':
             all_images = ImageForBigObject.objects.filter(category=category)
             files = FileForBigObject.objects.filter(category=category)

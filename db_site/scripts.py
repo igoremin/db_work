@@ -1,5 +1,5 @@
 def create_new_file(name, base_big_object):
-    from .models import FileAndImageCategoryForBigObject, FileForBigObject
+    from .models import FileAndImageCategory, FileForBigObject
     from db_main.settings import BASE_DIR
     from openpyxl import Workbook
     from openpyxl.styles import NamedStyle, Font, Border, Side, Alignment, colors
@@ -71,7 +71,7 @@ def create_new_file(name, base_big_object):
 
     wb.save(f'{path}/{file_name}')
 
-    category, created = FileAndImageCategoryForBigObject.objects.get_or_create(
+    category, created = FileAndImageCategory.objects.get_or_create(
         big_object_id=base_big_object.id, name='Сформированные файлы'
     )
     new_file = FileForBigObject(
