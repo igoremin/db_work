@@ -392,9 +392,8 @@ def simple_object_update_form(request, lab, slug):
             form = SimpleObjectForm(request.POST, instance=simple_object, lab=lab)
             if form.is_valid():
                 form.save()
-                form_lab = form.clean()['lab']
-                if form_lab.slug != lab:
-                    return redirect(simple_object_page, slug=simple_object.slug, lab=form_lab.slug)
+                if simple_object.lab.slug != lab:
+                    return redirect(simple_object_page, slug=simple_object.slug, lab=simple_object.lab.slug)
                 return redirect(simple_object_page, slug=simple_object.slug, lab=lab)
             context = {
                 'form': form,
