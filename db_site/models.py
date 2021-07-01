@@ -284,6 +284,11 @@ class BaseObject(models.Model):
             if old_self.name != self.name:
                 self.name_lower = self.name.lower()
                 self.create_slug()
+            if old_self.lab != self.lab and self.category.lab != self.lab:
+                new_category, created = Category.objects.get_or_create(
+                    lab=self.lab, name=self.category.name, cat_type='BO'
+                )
+                self.category = new_category
         else:
             self.name_lower = self.name.lower()
             self.create_slug()
