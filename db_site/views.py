@@ -1153,7 +1153,7 @@ def delete_all_data_for_lab(request, lab):
 def room_page(request, lab, slug):
     """Страница кабинета"""
     user = Profile.objects.get(user_id=request.user.id)
-    if user.lab.slug == lab:
+    if user.lab.slug == lab or request.user.is_superuser:
         room = get_object_or_404(Room, lab__slug=lab, slug=slug)
         workers = Profile.objects.filter(room_number=room)
         equipment = SimpleObject.objects.filter(base_object__category__name__exact='Основные', room=room)
