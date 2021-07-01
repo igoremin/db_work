@@ -6,3 +6,6 @@ regex==2021.4.4
 sqlparse==0.4.1
 Unidecode==0.4.21
 django-mptt==0.12.0
+django-simple-history==3.0.0
+Pillow==8.2.0
+openpyxl==3.0.7
