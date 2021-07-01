@@ -77,7 +77,7 @@
                             {% if big_objects_cat %}
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Составное оборудование
+                                        Составное
                                     </a>
                                     <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
                                         {% for cat in big_objects_cat %}
@@ -113,7 +113,7 @@
                                 </li>
                             {% endif %}
                         {% endif %}
-                        <li class="nav-item"><a class="nav-link" href="{{ user_info.get_absolute_url }}">{{ user_info.name }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ user_info.get_absolute_url }}">Профиль</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Выйти</a></li>
 
                     {% else %}
