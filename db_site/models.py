@@ -231,6 +231,9 @@ class Profile(models.Model):
                                     blank=True, null=True)
     number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         if self.lab is None:
             return self.name
