@@ -400,6 +400,9 @@ class SimpleObject(models.Model):
             if old_self.directory_code != self.directory_code:
                 self.directory_code = self.directory_code.upper()
 
+            if old_self.lab != self.lab and self.base_object:
+                self.base_object.lab = self.lab
+
             self.update_amount()
             self.update_price()
 
