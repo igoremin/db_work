@@ -5,7 +5,7 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     big_object_history, simple_object_history, simple_objects_write_off_list, big_object_update_files_category,\
     big_object_delete_image, big_object_delete_file, load_new_db, base_object_page, worker_update_page,\
     worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
-    base_big_object_page, room_page
+    base_big_object_page, room_page, backup
 
 
 urlpatterns = [
@@ -49,5 +49,5 @@ urlpatterns = [
     path('<str:lab>/room/<str:slug>/', room_page, name='room_page_url'),
     path('<str:lab>/database_file/add/', load_new_db, name='load_new_database_url'),
     path('<str:lab>/delete_all_data/', delete_all_data_for_lab, name='delete_all_data_for_lab_url'),
-
+    path('backup/', backup, name='backup_url'),
 ]
