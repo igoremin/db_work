@@ -80,3 +80,44 @@ def create_new_file(name, base_big_object):
         file=f'results_files/{file_name}'
     )
     new_file.save()
+
+
+def data_base_backup():
+    import yadisk
+    from datetime import datetime
+    import os
+    import shutil
+    from django.conf import settings
+
+    proxies = {
+        'http': 'squid.sao.ru:8080',
+        'https': 'squid.sao.ru:8080',
+    }
+
+    try:
+        with open(f'{settings.BASE_DIR}/db_main/files/token.txt', 'r') as token_file:
+            token = token_file.readline().strip()
+
+        y = yadisk.YaDisk(token=token)
+
+        dir_list = list(y.listdir("/", proxies=proxies))
+        names = set()
+        for d in dir_list:
+            names.add(d['name'])
+
+        if 'data_base' not in names:
+            y.mkdir('/data_base', proxies=proxies)
+
+        date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
+        y.mkdir(f'/data_base/{date}', proxies=proxies)
+
+        file_name = 'db_backup'
+        shutil.make_archive(file_name, 'zip', 'media')
+
+        y.upload(path_or_file=f'{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
+
+        os.remove('db_backup.zip')
+    except Exception as err:
+        return {'status': False, 'err': err}
+    else:
+        return {'status': True}
