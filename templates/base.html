@@ -217,6 +217,14 @@
 {#                    <a class="nav-link" href="{% url 'delete_all_data_for_lab_url' lab=current_lab.slug %}">Удалить все простые объекты у данной лаборатории</a>#}
 {#                </div>#}
             {% endif %}
+            {% if user.is_superuser %}
+                <div class="col">
+                    <form method="post" action="{% url 'backup_url' %}" id="make_backup">
+                        {% csrf_token %}
+                        <button class="nav-link btn btn-link" type="submit">Сделать бэкап базы</button>
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </footer>
 
