@@ -12,7 +12,7 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForBigObjectForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
     BigObjectForm
-from .scripts import create_new_file
+from .scripts import create_new_file, data_base_backup
 from .models import get_base_components
 
 
@@ -1122,6 +1122,19 @@ def load_new_db(request, lab):
                 return render(request, 'db_site/database_form.html', context=context)
 
     return HttpResponseNotFound("У вас нет доступа к этой странице!")
+
+
+@login_required(login_url='/login/')
+def backup(request):
+    if request.user.is_superuser:
+        if request.method == 'POST' and request.is_ajax():
+            backup_send = data_base_backup()
+            if backup_send['status'] is True:
+                return JsonResponse({"rez": 'Успешно'}, status=200)
+            else:
+                return JsonResponse({"rez": str(backup_send['err'])}, status=200)
+        else:
+            JsonResponse({}, status=400)
 
 
 """---------------------------------------------------------------------------------------------------------"""
