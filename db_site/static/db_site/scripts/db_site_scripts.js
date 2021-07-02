@@ -87,6 +87,31 @@ $('#load_new_db_form').submit(function(e){
     });
 });
 
+$('#make_backup').submit(function (e){
+    console.log('START BACKUP');
+    e.preventDefault();
+    $form = $(this);
+    let formData = new FormData(this);
+    $('#loader').show();
+    $.ajax({
+        url: this.action,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function (response) {
+            $('#loader').hide();
+            alert(response.rez);
+        },
+        error: function () {
+            $('#loader').hide();
+            alert("Что-то пошло не так, попробуйте снова!");
+        }
+    })
+})
+
+
 
 function createFile() {
     console.log('Create new file');
