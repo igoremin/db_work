@@ -63,7 +63,7 @@ p.small_p {
     width: 100%;
     height: 100%;
     z-index: 9999;
-    background: url('/media/gif/loader_1.gif') 50% 50% no-repeat;
+    background: url('/media/gif/loader_2.gif') 50% 50% no-repeat;
 }
 
 /*live search*/
@@ -116,6 +116,8 @@ footer {
 }
 
 footer a {color: #CCC;}
+footer button {color: #CCC !important;}
+footer button:hover {color: #FFF !important;}
 footer a:hover {color: #FFF}
 
 
