@@ -1,3 +1,4 @@
+#!/home/igor/Python/db_work/v_server/bin/python3
 def create_new_file(name, base_big_object):
     from .models import FileAndImageCategory, FileForBigObject
     from db_main.settings import BASE_DIR
@@ -88,53 +89,80 @@ def data_base_backup():
     import os
     import shutil
     import zipfile
-    from django.conf import settings
+    from pathlib import Path
 
-    proxies = {
-        'http': 'squid.sao.ru:8080',
-        'https': 'squid.sao.ru:8080',
-    }
+    print('START BACKUP')
 
-    # Создаем в каталоге проекта новую папку для записи в нее сформированного zip файла
-    path = os.path.join(settings.BASE_DIR, f'backup')
-    if os.path.isdir(path) is False:
-        os.makedirs(path, mode=0o777)
+    base_dir = Path(__file__).resolve().parent.parent
 
-    try:
-        with open(f'{settings.BASE_DIR}/db_main/files/token.txt', 'r') as token_file:
-            token = token_file.readline().strip()
-
-        y = yadisk.YaDisk(token=token)
-
-        # Проверяем есть ли на диске необходимая папка для записи в нее бэкапа
-        # Если папки нет то создаем ее
-        dir_list = list(y.listdir("/", proxies=proxies))
-        names = set()
-        for d in dir_list:
-            names.add(d['name'])
-
-        if 'data_base' not in names:
-            y.mkdir('/data_base', proxies=proxies)
-
-        # В корневом каталоге создаем новую папку у сказанием текущей даты и времени
-        date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
-        y.mkdir(f'/data_base/{date}', proxies=proxies)
-
-        # Формируем zip файл на основе каталога media
-        file_name = 'db_backup'
-        shutil.make_archive(f'{path}/{file_name}', 'zip', f'{settings.BASE_DIR}/media')
-
-        # Добавлем в созданый zip файл базу данных
-        with zipfile.ZipFile(f'{path}/{file_name}.zip', 'a') as zip_file:
-            zip_file.write(f'{settings.BASE_DIR}/db.sqlite3', arcname='db.sqlite3')
-
-        # Загружаем итоговый zip файл на яндекс диск
-        y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
-
-        # Удаляем папку с zip файлом
-        shutil.rmtree(path)
-    except Exception as err:
-        shutil.rmtree(path, ignore_errors=True)
-        return {'status': False, 'err': err}
+    if os.path.isfile(base_dir / 'db_size.txt'):
+        with open(base_dir / 'db_size.txt', 'r', encoding='utf-8') as old_db_size_file:
+            old_size = int(old_db_size_file.read().strip())
     else:
-        return {'status': True}
+        old_size = 0
+
+    if old_size != os.path.getsize('db.sqlite3'):
+
+        proxies = {
+            'http': 'squid.sao.ru:8080',
+            'https': 'squid.sao.ru:8080',
+        }
+
+        # Создаем в каталоге проекта новую папку для записи в нее сформированного zip файла
+        path = base_dir / 'backup'
+        if os.path.isdir(path) is False:
+            os.makedirs(path, mode=0o777)
+
+        status = {'status': True}
+
+        try:
+            with open(base_dir / 'db_main/files/token.txt', 'r') as token_file:
+                token = token_file.readline().strip()
+
+            y = yadisk.YaDisk(token=token)
+
+            # Проверяем есть ли на диске необходимая папка для записи в нее бэкапа
+            # Если папки нет то создаем ее
+            dir_list = list(y.listdir("/", proxies=proxies))
+            names = set()
+            for d in dir_list:
+                names.add(d['name'])
+
+            if 'data_base' not in names:
+                y.mkdir('/data_base', proxies=proxies)
+
+            # В корневом каталоге создаем новую папку у сказанием текущей даты и времени
+            date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
+            y.mkdir(f'/data_base/{date}', proxies=proxies)
+
+            # Формируем zip файл на основе каталога media
+            file_name = 'db_backup'
+            shutil.make_archive(f'{path}/{file_name}', 'zip', base_dir / 'media')
+
+            # Добавлем в созданый zip файл базу данных
+            with zipfile.ZipFile(f'{path}/{file_name}.zip', 'a') as zip_file:
+                zip_file.write(base_dir / 'db.sqlite3', arcname='db.sqlite3')
+
+            # Загружаем итоговый zip файл на яндекс диск
+            y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
+
+            # Удаляем папку с zip файлом
+            shutil.rmtree(path)
+        except Exception as err:
+            shutil.rmtree(path, ignore_errors=True)
+            status['status'] = False
+            status['err'] = err
+        finally:
+            with open(base_dir / 'db_size.txt', 'w', encoding='utf-8') as old_db_size_file:
+                old_db_size_file.write(str(os.path.getsize('db.sqlite3')))
+
+            if status['status'] is True:
+                return {'status': True}
+            else:
+                return {'status': False, 'err': status['err']}
+    else:
+        return {'status': False, 'err': 'База данных не изменилась, бэкап не сделан.'}
+
+
+if __name__ == '__main__':
+    backup = data_base_backup()
