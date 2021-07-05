@@ -122,7 +122,7 @@ def data_base_backup():
 
         # Формируем zip файл на основе каталога media
         file_name = 'db_backup'
-        shutil.make_archive(f'{path}/{file_name}', 'zip', 'media')
+        shutil.make_archive(f'{path}/{file_name}', 'zip', f'{settings.BASE_DIR}/media')
 
         # Добавлем в созданый zip файл базу данных
         with zipfile.ZipFile(f'{path}/{file_name}.zip', 'a') as zip_file:
