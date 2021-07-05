@@ -95,6 +95,11 @@ def data_base_backup():
         'https': 'squid.sao.ru:8080',
     }
 
+    # Создаем в каталоге проекта новую папку для записи в нее сформированного zip файла
+    path = os.path.join(settings.BASE_DIR, f'backup')
+    if os.path.isdir(path) is False:
+        os.makedirs(path, mode=0o777)
+
     try:
         with open(f'{settings.BASE_DIR}/db_main/files/token.txt', 'r') as token_file:
             token = token_file.readline().strip()
@@ -115,16 +120,12 @@ def data_base_backup():
         date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
         y.mkdir(f'/data_base/{date}', proxies=proxies)
 
-        # Создаем в каталоге проекта новую папку для записи в нее сформированного zip файла
-        path = os.path.join(settings.BASE_DIR, f'backup')
-        if os.path.isdir(path) is False:
-            os.makedirs(path, mode=0o777)
-
         # Формируем zip файл на основе каталога media
         file_name = 'db_backup'
         shutil.make_archive(f'{path}/{file_name}', 'zip', 'media')
 
         # Добавлем в созданый zip файл базу данных
+        print('ADD DB_FILE TO ZIP')
         with zipfile.ZipFile(f'{path}/{file_name}.zip', 'a') as zip_file:
             zip_file.write('db.sqlite3')
 
@@ -134,6 +135,7 @@ def data_base_backup():
         # Удаляем папку с zip файлом
         shutil.rmtree(path)
     except Exception as err:
+        shutil.rmtree(path, ignore_errors=True)
         return {'status': False, 'err': err}
     else:
         return {'status': True}
