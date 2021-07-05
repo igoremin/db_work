@@ -87,6 +87,7 @@ def data_base_backup():
     from datetime import datetime
     import os
     import shutil
+    import zipfile
     from django.conf import settings
 
     proxies = {
@@ -100,6 +101,8 @@ def data_base_backup():
 
         y = yadisk.YaDisk(token=token)
 
+        # Проверяем есть ли на диске необходимая папка для записи в нее бэкапа
+        # Если папки нет то создаем ее
         dir_list = list(y.listdir("/", proxies=proxies))
         names = set()
         for d in dir_list:
@@ -108,18 +111,27 @@ def data_base_backup():
         if 'data_base' not in names:
             y.mkdir('/data_base', proxies=proxies)
 
+        # В корневом каталоге создаем новую папку у сказанием текущей даты и времени
         date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
         y.mkdir(f'/data_base/{date}', proxies=proxies)
 
+        # Создаем в каталоге проекта новую папку для записи в нее сформированного zip файла
         path = os.path.join(settings.BASE_DIR, f'backup')
         if os.path.isdir(path) is False:
             os.makedirs(path, mode=0o777)
 
+        # Формируем zip файл на основе каталога media
         file_name = 'db_backup'
         shutil.make_archive(f'{path}/{file_name}', 'zip', 'media')
 
+        # Добавлем в созданый zip файл базу данных
+        with zipfile.ZipFile(f'{path}/{file_name}.zip', 'a') as zip_file:
+            zip_file.write('db.sqlite3')
+
+        # Загружаем итоговый zip файл на яндекс диск
         y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
 
+        # Удаляем папку с zip файлом
         shutil.rmtree(path)
     except Exception as err:
         return {'status': False, 'err': err}
