@@ -111,12 +111,16 @@ def data_base_backup():
         date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
         y.mkdir(f'/data_base/{date}', proxies=proxies)
 
+        path = os.path.join(settings.BASE_DIR, f'backup')
+        if os.path.isdir(path) is False:
+            os.makedirs(path, mode=0o777)
+
         file_name = 'db_backup'
-        shutil.make_archive(file_name, 'zip', 'media')
+        shutil.make_archive(f'{path}/{file_name}', 'zip', 'media')
 
-        y.upload(path_or_file=f'{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
+        y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
 
-        os.remove('db_backup.zip')
+        shutil.rmtree(path)
     except Exception as err:
         return {'status': False, 'err': err}
     else:
