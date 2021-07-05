@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
+import socket
 import re
 from pathlib import Path
 
@@ -26,7 +27,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!4l1nag2mtq#y6pj9v)=ipfp_t08*lp-c^@p+*9x@3=l+%_3m9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if socket.gethostname() == 'ccd04nt':
+    DEBUG = True
+else:
+    DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 ALLOWED_HOSTS += ['192.168.{}.{}'.format(i, j) for i in range(256) for j in range(256)]
