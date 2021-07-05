@@ -91,11 +91,11 @@ def some_model_save_photo(self, width, height):
 
 
 def generate_path(instance, filename):
-    return '{0}/{1}/images/{2}'.format(instance.big_object.slug, instance.category.slug, filename)
+    return '{0}/images/{1}'.format(instance.big_object.slug, filename)
 
 
 def generate_path_for_files(instance, filename):
-    return '{0}/{1}/files/{2}'.format(instance.big_object.slug, instance.category.slug, filename)
+    return '{0}/files/{1}'.format(instance.big_object.slug, filename)
 
 
 def generate_path_for_database(instance, filename):
