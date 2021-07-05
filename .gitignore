@@ -11,3 +11,4 @@ feedback/migrations/
 .idea
 .directory
 /db_main/files/token.txt
+/db_size.txt
