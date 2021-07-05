@@ -1,4 +1,4 @@
-#!/home/igor/Python/db_work/v_server/bin/python3
+#!/home/yulia/www/db_work/v_server/bin/python3
 def create_new_file(name, base_big_object):
     from .models import FileAndImageCategory, FileForBigObject
     from db_main.settings import BASE_DIR
@@ -101,7 +101,7 @@ def data_base_backup():
     else:
         old_size = 0
 
-    if old_size != os.path.getsize('db.sqlite3'):
+    if old_size != os.path.getsize(base_dir / 'db.sqlite3'):
 
         proxies = {
             'http': 'squid.sao.ru:8080',
@@ -154,7 +154,7 @@ def data_base_backup():
             status['err'] = err
         finally:
             with open(base_dir / 'db_size.txt', 'w', encoding='utf-8') as old_db_size_file:
-                old_db_size_file.write(str(os.path.getsize('db.sqlite3')))
+                old_db_size_file.write(str(os.path.getsize(base_dir / 'db.sqlite3')))
 
             if status['status'] is True:
                 return {'status': True}
