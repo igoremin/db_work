@@ -125,9 +125,8 @@ def data_base_backup():
         shutil.make_archive(f'{path}/{file_name}', 'zip', 'media')
 
         # Добавлем в созданый zip файл базу данных
-        print('ADD DB_FILE TO ZIP')
         with zipfile.ZipFile(f'{path}/{file_name}.zip', 'a') as zip_file:
-            zip_file.write('db.sqlite3')
+            zip_file.write(f'{settings.BASE_DIR}/db.sqlite3', arcname='db.sqlite3')
 
         # Загружаем итоговый zip файл на яндекс диск
         y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
