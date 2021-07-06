@@ -209,6 +209,21 @@ function check_categories_for_lab (lab) {
     }
 }
 
+$(document).ready(function() {
+    if (window.location.href.match('sort=') != null) {
+        let select = document.getElementById('select_sorted');
+        let old_prefix = $('#old_sorted_prefix').val().split('=')[1];
+
+        for (let l = 1; l < select.length; l++) {
+            if (select.options[l].value === old_prefix) {
+                select.options[l].selected = true;
+                break;
+            }
+        }
+
+    }
+})
+
 // $(window).load(function(){
 $(document).ready(function() {
     var suggest_count = 0;
