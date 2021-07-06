@@ -1168,12 +1168,13 @@ def room_page(request, lab, slug):
     if user.lab.slug == lab or request.user.is_superuser:
         room = get_object_or_404(Room, lab__slug=lab, slug=slug)
         workers = Profile.objects.filter(room_number=room)
-        equipment = SimpleObject.objects.filter(base_object__category__name__exact='Основные', room=room)
-        materials = SimpleObject.objects.filter(base_object__category__name__exact='Материалы', room=room)
+        all_base_cat = Category.objects.filter(cat_type='BO').values_list('name', flat=True)
+        data = {}
+        for cat in set(all_base_cat):
+            data[cat] = SimpleObject.objects.filter(base_object__category__name__exact=cat, room=room)
         context = {
             'room': room,
             'all_workers': workers,
-            'equipment': equipment,
-            'materials': materials,
+            'all_data': data,
         }
         return render(request, 'db_site/room_page.html', context=context)
