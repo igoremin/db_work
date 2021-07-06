@@ -25,56 +25,33 @@
         </li>
     </ul>
 
-    {% if equipment %}
-        <h3>Оборудование :</h3>
 
-        <table class="table table-hover table-bordered">
-            <thead>
-            <tr class="text-center">
-                <th scope="col" style="width: 5%">#</th>
-                <th scope="col" style="width: 70%">Название</th>
-                <th scope="col" style="width: 25%">Инв. номер</th>
-            </tr>
-            </thead>
+    {% for cat_name, data in all_data.items %}
+        {% if data %}
+            <h3>{{ cat_name }} :</h3>
 
-            <tbody>
-            {% for object in equipment %}
-                <tr>
-                    <td></td>
-                    <td>
-                        <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
-                    </td>
-                    <td>{{ object.inventory_number }}</td>
+            <table class="table table-hover table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <th scope="col" style="width: 5%">#</th>
+                    <th scope="col" style="width: 70%">Название</th>
+                    <th scope="col" style="width: 25%">Инв. номер</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+                </thead>
 
-    {% if materials %}
-        <h3>Материалы :</h3>
-
-        <table class="table table-hover table-bordered">
-            <thead>
-            <tr class="text-center">
-                <th scope="col" style="width: 5%">#</th>
-                <th scope="col" style="width: 70%">Название</th>
-                <th scope="col" style="width: 25%">Инв. номер</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            {% for object in materials %}
-                <tr>
-                    <td></td>
-                    <td>
-                        <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
-                    </td>
-                    <td>{{ object.inventory_number }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+                <tbody>
+                {% for object in data %}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
+                        </td>
+                        <td>{{ object.inventory_number }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
 
 {% endblock %}
