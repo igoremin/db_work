@@ -10,7 +10,6 @@
         <a class="btn btn-outline-secondary mb-3" href="{% url 'category_update_form_url' lab=current_lab.slug slug=cat_slug %}" role="button">Редактировать категорию</a>
 {#        <a class="btn btn-outline-danger mb-3" href="#" role="button">Удалить категорию</a>#}
     {% endif %}
-
     {% if type == 'category_page' %}
         {% if base_objects %}
             <h2>Базовые единицы</h2>
@@ -30,6 +29,22 @@
         {% endif %}
 
     {% endif %}
+
+    <div>
+        <form method="get">
+            <label for="select_sorted">Сортировать по : </label>
+            <select id="select_sorted" class="form-control" name="sort">
+                <option value="name_lower">название (по возрастанию)</option>
+                <option value="-name_lower">название (по убыванию)</option>
+                <option value="price">стоимость (по возрастанию)</option>
+                <option value="-price">стоимость (по убыванию)</option>
+                <option value="amount">количество (по возрастанию)</option>
+                <option value="-amount">количество (по убыванию)</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary btn-raised mt-1 mb-3">Сортировать</button>
+        </form>
+    </div>
+
 
     {% if big_objects %}
         <h3>{% if category == 'all' %} Составное оборудование
@@ -93,7 +108,7 @@
                 <ul class="pagination pagination-sm mb-0">
                     {% if prev_url %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1">Начало</a>
+                            <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
                         </li>
                     {% endif %}
 
@@ -106,7 +121,7 @@
                         {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
 
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                                <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
                             </li>
 
                         {% endif %}
@@ -114,7 +129,7 @@
 
                     {% if next_url %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                            <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -122,11 +137,11 @@
 
         {% endif %}
 
-        <table class="table table-hover table-bordered">
+        <table class="table table-hover table-bordered" id="simple_objects_table">
             <thead>
                 <tr class="text-center">
                     <th scope="col">#</th>
-                    <th scope="col" style="width: 30%">Название</th>
+                    <th scope="col" style="width: 30%"> Название</th>
                     <th scope="col" style="width: 15%">Инв. номер</th>
                     <th scope="col" style="width: 15%">Код справочника</th>
                     <th scope="col">Всего</th>
@@ -169,7 +184,7 @@
                 <ul class="pagination pagination-sm mb-0">
                     {% if prev_url %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1">Начало</a>
+                            <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
                         </li>
                     {% endif %}
 
@@ -182,7 +197,7 @@
                         {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
 
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                                <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
                             </li>
 
                         {% endif %}
@@ -190,7 +205,7 @@
 
                     {% if next_url %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                            <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -308,5 +323,7 @@
 
         {% endif %}
     {% endif %}
+
+    <input id="old_sorted_prefix" type="hidden" name="old_sorted" value="{{ old_prefix }}">
 
 {% endblock %}
