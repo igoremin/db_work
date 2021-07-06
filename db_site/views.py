@@ -166,8 +166,9 @@ def category_page(request, lab, slug):
             sort = request.GET.getlist('sort')
 
             base_sorted = sort
-            if 'price' in sort[0]:
-                base_sorted = [sort[0].replace('price', 'total_price')]
+            if sort:
+                if 'price' in sort[0]:
+                    base_sorted = [sort[0].replace('price', 'total_price')]
 
             base_objects = BaseObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*base_sorted)
             simple_objects = SimpleObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*sort)
