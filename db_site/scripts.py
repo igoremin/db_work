@@ -83,15 +83,13 @@ def create_new_file(name, base_big_object):
     new_file.save()
 
 
-def data_base_backup():
+def data_base_backup(manual_start=False):
     import yadisk
     from datetime import datetime
     import os
     import shutil
     import zipfile
     from pathlib import Path
-
-    print('START BACKUP')
 
     base_dir = Path(__file__).resolve().parent.parent
 
@@ -101,7 +99,7 @@ def data_base_backup():
     else:
         old_size = 0
 
-    if old_size != os.path.getsize(base_dir / 'db.sqlite3'):
+    if old_size != os.path.getsize(base_dir / 'db.sqlite3') or manual_start is True:
 
         proxies = {
             'http': 'squid.sao.ru:8080',
@@ -114,6 +112,9 @@ def data_base_backup():
             os.makedirs(path, mode=0o777)
 
         status = {'status': True}
+
+        date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
+        file_name = 'db_backup'
 
         try:
             with open(base_dir / 'db_main/files/token.txt', 'r') as token_file:
@@ -132,11 +133,9 @@ def data_base_backup():
                 y.mkdir('/data_base', proxies=proxies)
 
             # В корневом каталоге создаем новую папку у сказанием текущей даты и времени
-            date = datetime.strftime(datetime.now(), "%d.%m.%Y-%H.%M.%S")
             y.mkdir(f'/data_base/{date}', proxies=proxies)
 
             # Формируем zip файл на основе каталога media
-            file_name = 'db_backup'
             shutil.make_archive(f'{path}/{file_name}', 'zip', base_dir / 'media')
 
             # Добавлем в созданый zip файл базу данных
@@ -144,10 +143,12 @@ def data_base_backup():
                 zip_file.write(base_dir / 'db.sqlite3', arcname='db.sqlite3')
 
             # Загружаем итоговый zip файл на яндекс диск
-            y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip', proxies=proxies)
+            y.upload(path_or_file=f'{path}/{file_name}.zip', dst_path=f'/data_base/{date}/{file_name}.zip',
+                     proxies=proxies)
 
             # Удаляем папку с zip файлом
             shutil.rmtree(path)
+            print('DONE')
         except Exception as err:
             shutil.rmtree(path, ignore_errors=True)
             status['status'] = False
