@@ -163,9 +163,17 @@ def category_page(request, lab, slug):
     category = get_object_or_404(Category, slug=slug)
     if request.method == 'GET':
         if request.user.is_superuser or user.lab.slug == lab:
-            base_objects = BaseObject.objects.filter(category__slug=slug, lab__slug=lab)
-            simple_objects = SimpleObject.objects.filter(category__slug=slug, lab__slug=lab)
-            big_objects = BigObject.objects.filter(base__category__slug=slug, base__lab__slug=lab, parent=None)
+            sort = request.GET.getlist('sort')
+
+            base_sorted = sort
+            if 'price' in sort[0]:
+                base_sorted = [sort[0].replace('price', 'total_price')]
+
+            base_objects = BaseObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*base_sorted)
+            simple_objects = SimpleObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*sort)
+            big_objects = BigObject.objects.filter(
+                base__category__slug=slug, base__lab__slug=lab, parent=None
+            )
 
             if simple_objects:
                 page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
@@ -175,6 +183,10 @@ def category_page(request, lab, slug):
                 page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                     request=request, objects=base_objects
                 )
+
+            prefix = ''
+            if sort:
+                prefix = '&sort=' + sort[0]
 
             context = {
                 'base_objects': base_objects,
@@ -186,6 +198,7 @@ def category_page(request, lab, slug):
                 'cat_slug': slug,
                 'category': category,
                 'type': 'category_page',
+                'old_prefix': prefix,
             }
 
             context.update(paginator_dict)
@@ -224,22 +237,28 @@ def simple_objects_list(request, lab, obj_type=None):
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
+            sort = request.GET.getlist('sort')
             if obj_type:
                 all_objects = SimpleObject.objects.filter(
                     lab__slug=lab, status__in=['IW', 'NW'], category__obj_type=obj_type
-                )
+                ).order_by(*sort)
                 all_name = Category.objects.filter(obj_type=obj_type)[0].get_obj_type_display()
             else:
-                all_objects = SimpleObject.objects.filter(lab__slug=lab, status__in=['IW', 'NW'])
+                all_objects = SimpleObject.objects.filter(lab__slug=lab, status__in=['IW', 'NW']).order_by(*sort)
                 all_name = 'Весь список'
 
             page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                 request=request, objects=all_objects
             )
 
+            prefix = ''
+            if sort:
+                prefix = '&sort=' + sort[0]
+
             context = {
                 'simple_objects': all_objects,
                 'simple_objects_count': all_objects.count(),
+                'old_prefix': prefix,
                 'all_name': all_name,
                 'category': 'all',              # Необходимо для определения текущей категории.
                                                 # Если категория общая то нет доступа для ее редактирования
@@ -1128,7 +1147,7 @@ def load_new_db(request, lab):
 def backup(request):
     if request.user.is_superuser:
         if request.method == 'POST' and request.is_ajax():
-            backup_send = data_base_backup()
+            backup_send = data_base_backup(manual_start=True)
             if backup_send['status'] is True:
                 return JsonResponse({"rez": 'Успешно'}, status=200)
             else:
