@@ -222,7 +222,7 @@
                 <ul class="pagination pagination-sm mb-0">
                     {% if prev_url %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1">Начало</a>
+                            <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
                         </li>
                     {% endif %}
 
@@ -235,7 +235,7 @@
                         {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
 
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                                <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
                             </li>
 
                         {% endif %}
@@ -243,7 +243,7 @@
 
                     {% if next_url %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                            <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -294,7 +294,7 @@
                 <ul class="pagination pagination-sm mb-0">
                     {% if prev_url %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1">Начало</a>
+                            <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
                         </li>
                     {% endif %}
 
@@ -307,7 +307,7 @@
                         {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
 
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                                <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
                             </li>
 
                         {% endif %}
@@ -315,7 +315,7 @@
 
                     {% if next_url %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ last_url }}">Конец</a>
+                            <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
                         </li>
                     {% endif %}
                 </ul>
