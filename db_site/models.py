@@ -200,9 +200,9 @@ class Category(models.Model):
         BIG_OBJECT = 'BG', _('Составной объект')
 
     class ChoicesObjectType(models.TextChoices):
+        DEF = 'DF', _('----------')
         EQUIPMENT = 'EQ', _('Оборудование')
         MATERIALS = 'MT', _('Материалы')
-        DEF = 'DF', _('Не выбрано')
 
     name = models.CharField(max_length=200, verbose_name='Название категории')
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
