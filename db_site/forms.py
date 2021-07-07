@@ -1,6 +1,6 @@
 from django import forms
 from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategory,\
-    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject
+    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject, BaseObject
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -17,6 +17,40 @@ class CategoryForm(forms.ModelForm):
             }),
             'obj_type': forms.Select(attrs={'class': 'form-control', 'id': 'obj_type'}),
         }
+
+
+class BaseObjectForm(forms.ModelForm):
+    class Meta:
+        model = BaseObject
+        fields = ['name', 'lab', 'category', 'inventory_number', 'directory_code', 'measure', 'total_price', 'amount']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
+            'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
+            'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'measure': forms.Select(attrs={'class': 'form-control'}),
+            'total_price': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount': forms.TextInput(attrs={
+                'class': 'form-control',
+                'step': 0.001,
+                'min': 0,
+            }),
+        }
+
+    categories_list = None
+    category = forms.ModelChoiceField(
+        label='Выбор категории',
+        queryset=categories_list,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'category_for_lab', 'required': ''}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.category = Category.objects.filter(cat_type='BO')
+        super(BaseObjectForm, self).__init__(*args, **kwargs)
+        self.fields['category'].queryset = self.category
 
 
 class SimpleObjectForm(forms.ModelForm):
@@ -63,11 +97,9 @@ class SimpleObjectForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        lab = kwargs.pop('lab')
-        self.category = Category.objects.filter(lab__slug=lab, cat_type='SO')
+        self.category = Category.objects.filter(cat_type='SO')
         super(SimpleObjectForm, self).__init__(*args, **kwargs)
-        # self.fields['category'].queryset = self.category
-        self.fields['category'].queryset = Category.objects.all()
+        self.fields['category'].queryset = self.category
 
 
 class SimpleObjectWriteOffForm(forms.Form):
