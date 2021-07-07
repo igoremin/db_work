@@ -11,7 +11,7 @@ from django.db.models import Q
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
-    BigObjectForm
+    BigObjectForm, BaseObjectForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components
 
@@ -289,12 +289,12 @@ def category_page(request, lab, slug):
 
 
 """---------------------------------------------------------------------------------------------------------"""
-"""------------------------------------------SIMPLE OBJECTS-------------------------------------------------"""
+"""------------------------------------------BASE OBJECTS-------------------------------------------------"""
 
 
 @login_required(login_url='/login/')
 def base_object_page(request, lab, slug):
-    """Список простых объектов. lab - текущая лаборатория"""
+    """Страница базового объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
@@ -305,6 +305,27 @@ def base_object_page(request, lab, slug):
                 'simple_objects': simple_objects,
             }
             return render(request, 'db_site/base_object_page.html', context=context)
+
+
+@login_required(login_url='/login/')
+def base_object_update_page(request, lab, slug):
+    """Страница базового объекта. lab - текущая лаборатория"""
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser or user.lab.slug == lab:
+        base_object = get_object_or_404(BaseObject, slug=slug)
+        if request.method == 'GET':
+            form = BaseObjectForm(instance=base_object)
+            context = {
+                'form': form,
+                'base_object': base_object
+            }
+            return render(request, 'db_site/base_object_update_form.html', context=context)
+        else:
+            form = BaseObjectForm(request.POST, instance=base_object)
+            if form.is_valid():
+                form.save()
+
+            return redirect(base_object_page, lab=base_object.lab.slug, slug=base_object.slug)
 
 
 """---------------------------------------------------------------------------------------------------------"""
