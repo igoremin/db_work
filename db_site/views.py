@@ -169,6 +169,9 @@ def category_page(request, lab, slug):
             if sort:
                 if 'price' in sort[0]:
                     base_sorted = [sort[0].replace('price', 'total_price')]
+            else:
+                sort = ['name_lower']
+                base_sorted = ['name_lower']
 
             base_objects = BaseObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*base_sorted)
             simple_objects = SimpleObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*sort)
@@ -239,6 +242,8 @@ def simple_objects_list(request, lab, obj_type=None):
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
             sort = request.GET.getlist('sort')
+            if not sort:
+                sort = ['name_lower']
             if obj_type:
                 all_objects = SimpleObject.objects.filter(
                     lab__slug=lab, status__in=['IW', 'NW'], category__obj_type=obj_type
@@ -276,10 +281,15 @@ def simple_objects_write_off_list(request, lab, obj_type=None):
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
+            sort = request.GET.getlist('sort')
+            if not sort:
+                sort = ['name_lower']
             if obj_type:
-                all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO', category__obj_type=obj_type)
+                all_objects = SimpleObject.objects.filter(
+                    lab__slug=lab, status='WO', category__obj_type=obj_type
+                ).order_by(*sort)
             else:
-                all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO')
+                all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO').order_by(*sort)
             page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                 request=request, objects=all_objects
             )
