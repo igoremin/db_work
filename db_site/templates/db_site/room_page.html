@@ -16,7 +16,7 @@
                 {% endif %}
 
                 {% for worker in all_workers %}
-                    <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a> {% if workers.last != worker %}, {% endif %}
+                    <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a> {% if forloop.last == False %}, {% endif %}
                 {% endfor %}
             </li>
         {% endif %}
