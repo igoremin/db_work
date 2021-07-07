@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect
-from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForBigObject,\
-    FileAndImageCategory, FileForBigObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room
+from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
+    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseNotFound, JsonResponse
+from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db.models import Q
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
-    SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForBigObjectForm,\
+    SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
     BigObjectForm
 from .scripts import create_new_file, data_base_backup
@@ -91,6 +91,82 @@ def paginator_module(request, objects):
     }
 
     return page, is_paginator, next_url, prev_url, last_url, paginator_dict
+
+
+def object_update_files_category(request, lab, slug, pk, object_type='big'):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser or user.lab.slug == lab:
+        if object_type == 'simple':
+            target_object = get_object_or_404(SimpleObject, lab__slug=lab, slug=slug)
+        else:
+            target_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
+
+        category = get_object_or_404(FileAndImageCategory, pk=pk)
+
+        if request.method == 'GET':
+            all_images = ImageForObject.objects.filter(category=category)
+            files = FileForObject.objects.filter(category=category)
+            add_new_images_form = AddNewImagesForm()
+            add_new_files_form = AddNewFilesForm()
+            context = {
+                'images': all_images,
+                'files': files,
+                'object': target_object,
+                'add_new_images_form': add_new_images_form,
+                'add_new_files_form': add_new_files_form,
+                'category': category,
+            }
+            return render(request, 'db_site/object_update_category_files_form.html', context=context)
+        else:
+            form_type = 'image'
+            for key, value in request.FILES.items():
+                if key == 'file':
+                    form_type = key
+                    break
+
+            if form_type == 'image':
+                form = AddNewImagesForm(request.POST, request.FILES)
+                images = request.FILES.getlist('image')
+                if form.is_valid():
+                    for image in images:
+                        new_image = ImageForObject(
+                            category=category,
+                            image=image
+                        )
+                        new_image.save()
+            elif form_type == 'file':
+                form = AddNewFilesForm(request.POST, request.FILES)
+                files = request.FILES.getlist('file')
+                if form.is_valid():
+                    for file in files:
+                        new_file = FileForObject(
+                            category=category,
+                            file=file
+                        )
+                        new_file.save()
+            return redirect(object_update_files_category, lab, object_type, slug, pk)
+
+
+def object_delete_image(request, lab, pk):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser or user.lab.slug == lab:
+        image = get_object_or_404(ImageForObject, pk=pk)
+        if request.method == 'POST':
+            form = request.POST
+            if form['image_pk'] == str(image.pk):
+                image.delete()
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+def object_delete_file(request, lab, pk):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser or user.lab.slug == lab:
+        file = get_object_or_404(FileForObject, pk=pk)
+        if request.method == 'POST':
+            form = request.POST
+            if form['file_pk'] == str(file.pk):
+                file.delete()
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 def home_page(request):
@@ -330,23 +406,45 @@ def simple_object_page(request, lab, slug):
                 max_value=simple_object.amount, simple_object=simple_object
             )
 
+            file_categories_form = FileAndImageCategoryForm()
+            file_categories = FileAndImageCategory.objects.filter(simple_object=simple_object)
+
             # simple_object.update_amount()
 
             context = {
                 'write_off_form': write_off_form,
                 'object': simple_object,
                 'big_objects_list': all_parts_list,
+                'file_categories_form': file_categories_form,
+                'file_categories': file_categories,
             }
             return render(request, 'db_site/simple_object_page.html', context=context)
         else:
-            write_off_form = SimpleObjectWriteOffForm(
-                request.POST, max_value=simple_object.amount, simple_object=simple_object
-            )
-            if write_off_form.is_valid():
-                clean_data = write_off_form.clean()
-                simple_object.amount = simple_object.amount - float(clean_data['write_off_amount'])
-                simple_object.save()
+            form_type = 'files'
+            for key, value in request.POST.items():
+                if key == 'write_off_amount':
+                    form_type = 'write_off_amount'
+                    break
+
+            if form_type == 'files':
+                print('CREATE NEW FILE CATEGORY')
+                form = FileAndImageCategoryForm(request.POST)
+                if form.is_valid():
+                    new_category = form.save(commit=False)
+                    new_category.simple_object = simple_object
+                    form.save()
+
+            elif form_type == 'write_off_amount':
+                write_off_form = SimpleObjectWriteOffForm(
+                    request.POST, max_value=simple_object.amount, simple_object=simple_object
+                )
+                if write_off_form.is_valid():
+                    clean_data = write_off_form.clean()
+                    simple_object.amount = simple_object.amount - float(clean_data['write_off_amount'])
+                    simple_object.save()
+
             return redirect(simple_object_page, lab=lab, slug=slug)
+
     return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
 
@@ -463,7 +561,7 @@ def base_big_object_page(request, lab, slug):
 
         if request.method == 'GET':
             file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
-            file_categories_form = FileAndImageCategoryForBigObjectForm()
+            file_categories_form = FileAndImageCategoryForm()
             components = BigObjectList.objects.filter(big_object__slug=slug)
             all_parts = base_big_object.get_unique_parts(include_self=False)
             base_components = get_base_components(all_parts=all_parts)
@@ -500,7 +598,7 @@ def base_big_object_page(request, lab, slug):
             else:
                 return JsonResponse({"rez": True}, status=200)
         else:
-            form = FileAndImageCategoryForBigObjectForm(request.POST)
+            form = FileAndImageCategoryForm(request.POST)
             if form.is_valid():
                 new_category = form.save(commit=False)
                 new_category.big_object = base_big_object
@@ -526,7 +624,7 @@ def big_object_page(request, lab, slug, pk):
                 base_components = get_base_components(all_parts=all_parts)
 
                 file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
-                file_categories_form = FileAndImageCategoryForBigObjectForm()
+                file_categories_form = FileAndImageCategoryForm()
                 change_form = BigObjectForm(instance=big_object)
 
                 big_object_copy = CopyBigObject()
@@ -580,7 +678,7 @@ def big_object_page(request, lab, slug, pk):
 
             elif form_type == 'files':
                 print('CREATE NEW FILE CATEGORY')
-                form = FileAndImageCategoryForBigObjectForm(request.POST)
+                form = FileAndImageCategoryForm(request.POST)
                 if form.is_valid():
                     new_category = form.save(commit=False)
                     new_category.big_object = base_big_object
@@ -861,81 +959,6 @@ def big_object_delete_part(request, lab, slug, pk):
             except:
                 pass
         return redirect(big_object_update_parts, lab, slug)
-
-
-def big_object_update_files_category(request, lab, slug, pk):
-    user = Profile.objects.get(user_id=request.user.id)
-    if request.user.is_superuser or user.lab.slug == lab:
-        big_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
-        category = get_object_or_404(FileAndImageCategory, pk=pk)
-        if request.method == 'GET':
-            all_images = ImageForBigObject.objects.filter(category=category)
-            files = FileForBigObject.objects.filter(category=category)
-            add_new_images_form = AddNewImagesForm()
-            add_new_files_form = AddNewFilesForm()
-            context = {
-                'images': all_images,
-                'files': files,
-                'big_object': big_object,
-                'add_new_images_form': add_new_images_form,
-                'add_new_files_form': add_new_files_form,
-                'category': category,
-            }
-            return render(request, 'db_site/big_object_update_category_files_form.html', context=context)
-        else:
-            form_type = 'image'
-            for key, value in request.FILES.items():
-                if key == 'file':
-                    form_type = key
-                    break
-
-            if form_type == 'image':
-                form = AddNewImagesForm(request.POST, request.FILES)
-                images = request.FILES.getlist('image')
-                if form.is_valid():
-                    for image in images:
-                        new_image = ImageForBigObject(
-                            big_object=big_object,
-                            category=category,
-                            image=image
-                        )
-                        new_image.save()
-            elif form_type == 'file':
-                form = AddNewFilesForm(request.POST, request.FILES)
-                files = request.FILES.getlist('file')
-                if form.is_valid():
-                    for file in files:
-                        new_file = FileForBigObject(
-                            big_object=big_object,
-                            category=category,
-                            file=file
-                        )
-                        new_file.save()
-            return redirect(big_object_update_files_category, lab, slug, pk)
-
-
-def big_object_delete_image(request, lab, slug, pk):
-    user = Profile.objects.get(user_id=request.user.id)
-    if request.user.is_superuser or user.lab.slug == lab:
-        image = get_object_or_404(ImageForBigObject, pk=pk)
-        cat_pk = image.category.pk
-        if request.method == 'POST':
-            form = request.POST
-            if form['image_pk'] == str(image.pk):
-                image.delete()
-            return redirect(big_object_update_files_category, lab=lab, slug=slug, pk=cat_pk)
-
-
-def big_object_delete_file(request, lab, slug, pk):
-    user = Profile.objects.get(user_id=request.user.id)
-    if request.user.is_superuser or user.lab.slug == lab:
-        file = get_object_or_404(FileForBigObject, pk=pk)
-        cat_pk = file.category.pk
-        if request.method == 'POST':
-            form = request.POST
-            if form['file_pk'] == str(file.pk):
-                file.delete()
-            return redirect(big_object_update_files_category, lab=lab, slug=slug, pk=cat_pk)
 
 
 """---------------------------------------------------------------------------------------------------------"""

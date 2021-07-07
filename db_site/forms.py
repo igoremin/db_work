@@ -1,6 +1,6 @@
 from django import forms
 from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategory,\
-    ImageForBigObject, FileForBigObject, DataBaseDoc, WorkerEquipment, BaseBigObject
+    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -296,7 +296,7 @@ class SearchForm(forms.Form):
     )
 
 
-class FileAndImageCategoryForBigObjectForm(forms.ModelForm):
+class FileAndImageCategoryForm(forms.ModelForm):
     class Meta:
         model = FileAndImageCategory
         fields = ['name', 'text']
@@ -313,7 +313,7 @@ class FileAndImageCategoryForBigObjectForm(forms.ModelForm):
 
 class AddNewImagesForm(forms.ModelForm):
     class Meta:
-        model = ImageForBigObject
+        model = ImageForObject
         fields = ['image', ]
 
         widgets = {
@@ -326,7 +326,7 @@ class AddNewImagesForm(forms.ModelForm):
 
 class AddNewFilesForm(forms.ModelForm):
     class Meta:
-        model = FileForBigObject
+        model = FileForObject
         fields = ['file', ]
 
         widgets = {

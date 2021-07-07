@@ -77,7 +77,6 @@ def some_model_thumb_name(instance, filename):
 
 
 def some_model_save_photo(self, width, height):
-    print(self.image.path)
     extension = str(self.image.path).rsplit('.', 1)[1]  # получаем расширение загруженного файла
     filename = str(self.image.path).rsplit(os.sep, 1)[1].rsplit('.', 1)[0]  # получаем имя загруженного файла (без пути к нему и расширения)
     full_path = str(self.image.path).rsplit(os.sep, 1)[0]  # получаем путь к файлу (без имени и расширения)
@@ -91,15 +90,42 @@ def some_model_save_photo(self, width, height):
 
 
 def generate_path(instance, filename):
-    return '{0}/images/{1}'.format(instance.big_object.slug, filename)
+    if instance.category.simple_object:
+        return '{0}/images/{1}'.format(instance.category.simple_object.slug, filename)
+    elif instance.category.big_object:
+        return '{0}/images/{1}'.format(instance.category.big_object.slug, filename)
+    else:
+        return 'images/{0}'.format(filename)
 
 
 def generate_path_for_files(instance, filename):
-    return '{0}/files/{1}'.format(instance.big_object.slug, filename)
+    if instance.category.simple_object:
+        return '{0}/files/{1}'.format(instance.category.simple_object.slug, filename)
+    elif instance.category.big_object:
+        return '{0}/files/{1}'.format(instance.category.big_object.slug, filename)
+    else:
+        return 'files/{0}'.format(filename)
 
 
 def generate_path_for_database(instance, filename):
     return 'database/{0}/{1}'.format(instance.lab.name, filename)
+
+
+def del_path(full_path):
+    try:
+        if len(os.listdir(full_path)) == 0:
+            os.rmdir(full_path)
+    except Exception as err:
+        print(err)
+        pass
+
+    full_path = full_path.rsplit(os.sep, 1)[0]
+    try:
+        if len(os.listdir(full_path)) == 0:
+            os.rmdir(full_path)
+    except Exception as err:
+        print(err)
+        pass
 
 
 class LabName(models.Model):
@@ -898,10 +924,7 @@ class FileAndImageCategory(models.Model):
         super().save(*args, **kwargs)
 
 
-class ImageForBigObject(models.Model):
-    big_object = models.ForeignKey(
-        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект'
-    )
+class ImageForObject(models.Model):
     image = models.ImageField(verbose_name='Изображение', upload_to=generate_path)
     image_big = models.ImageField(blank=True, upload_to=generate_path,
                                   verbose_name='Фото без сжатия, создается само при сохранеии')
@@ -915,7 +938,12 @@ class ImageForBigObject(models.Model):
         verbose_name_plural = 'Изображения для объектов'
 
     def __str__(self):
-        return 'Изображение для ' + str(self.big_object.name)
+        if self.category.simple_object:
+            return 'Изображение для ' + str(self.category.simple_object.name)
+        elif self.category.big_object:
+            return 'Изображение для ' + str(self.category.big_object.name)
+        else:
+            return 'Изображение ' + str(self.image.name)
 
     def filename(self):
         return os.path.basename(self.image.name)
@@ -923,7 +951,7 @@ class ImageForBigObject(models.Model):
     def save(self, *args, **kwargs):
         print('---SAVE PHOTO---')
         if self.pk is not None:
-            old_self = ImageForBigObject.objects.get(pk=self.pk)
+            old_self = ImageForObject.objects.get(pk=self.pk)
             if self.image != old_self.image:
                 if len(self.image.name) > 50:
                     self.image.name = str(self.image.name)[50::]
@@ -955,15 +983,14 @@ class ImageForBigObject(models.Model):
 
     def delete(self, *args, **kwargs):
         print("---УДАЛЕНИЕ---")
+        full_path = str(self.image.path).rsplit(os.sep, 1)[0]
         self.image.delete(False)
         self.image_big.delete(False)
+        del_path(full_path)
         super().delete(*args, **kwargs)
 
 
-class FileForBigObject(models.Model):
-    big_object = models.ForeignKey(
-        BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Объект'
-    )
+class FileForObject(models.Model):
     file = models.FileField(upload_to=generate_path_for_files, verbose_name='Файл')
     category = models.ForeignKey(
         FileAndImageCategory, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Категория',
@@ -975,13 +1002,20 @@ class FileForBigObject(models.Model):
         verbose_name_plural = 'Файлы для объектов'
 
     def __str__(self):
-        return 'Файл для ' + str(self.big_object.name)
+        if self.category.simple_object:
+            return 'Файл для ' + str(self.category.simple_object.name)
+        elif self.category.big_object:
+            return 'Файл для ' + str(self.category.big_object.name)
+        else:
+            return 'Файл ' + str(self.file.name)
 
     def filename(self):
         return os.path.basename(self.file.name)
 
     def delete(self, *args, **kwargs):
+        full_path = str(self.file.path).rsplit(os.sep, 1)[0]
         self.file.delete(save=False)
+        del_path(full_path)
         super().delete(*args, **kwargs)
 
 

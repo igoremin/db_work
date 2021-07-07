@@ -179,7 +179,7 @@
                         <h5 id="id__{{ category.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ category.name }}</h5>
                     </div>
                     <div class="col">
-                        <a class="btn btn-outline-primary" href="{% url 'big_object_update_category_files_url' lab=current_lab.slug slug=base_big_object.slug pk=category.pk %}">Редактировать</a>
+                        <a class="btn btn-outline-primary" href="{% url 'object_update_category_files_url' lab=current_lab.slug slug=base_big_object.slug pk=category.pk object_type='big' %}">Редактировать</a>
                     </div>
                 </div>
                 <div class="row" id="files_id__{{ category.id }}" style="display: none">

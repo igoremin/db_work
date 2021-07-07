@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1><a href="{{ big_object.get_absolute_url }}">{{ big_object.name }}</a></h1>
+    <h1><a href="{{ object.get_absolute_url }}">{{ object.name }}</a></h1>
     <h3>Категория : {{ category.name }}</h3>
     {% if category.text %}
         <h5>Описание : {{ category.text }}</h5>
@@ -38,7 +38,7 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <form action="{% url 'big_object_delete_image_url' lab=current_lab.slug slug=big_object.slug pk=image.pk  %}" method="post">
+                            <form action="{% url 'object_delete_image_url' lab=current_lab.slug pk=image.pk  %}" method="post">
                                 <div class="modal-body">
                                     {% csrf_token %}
                                     <h5>Вы действительно хотите удалить изображение {{ image.filename }}</h5>
@@ -99,7 +99,7 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <form action="{% url 'big_object_delete_file_url' lab=current_lab.slug slug=big_object.slug pk=file.pk  %}" method="post">
+                            <form action="{% url 'object_delete_file_url' lab=current_lab.slug pk=file.pk  %}" method="post">
                                 <div class="modal-body">
                                     {% csrf_token %}
                                     <h5>Вы действительно хотите удалить файл {{ file.filename }}</h5>

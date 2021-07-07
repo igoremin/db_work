@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForBigObject,\
-    FileAndImageCategory, FileForBigObject, DataBaseDoc, BaseObject, BaseBigObject, Room
+from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
+    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, BaseBigObject, Room
 
 
 admin.site.register(LabName)
 admin.site.register(Profile)
-admin.site.register(ImageForBigObject)
-admin.site.register(FileForBigObject)
+admin.site.register(ImageForObject)
+admin.site.register(FileForObject)
 admin.site.register(FileAndImageCategory)
 admin.site.register(DataBaseDoc)
 admin.site.register(Room)

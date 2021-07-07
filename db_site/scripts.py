@@ -1,6 +1,6 @@
 #!/home/yulia/www/db_work/v_server/bin/python3
 def create_new_file(name, base_big_object):
-    from .models import FileAndImageCategory, FileForBigObject
+    from .models import FileAndImageCategory, FileForObject
     from db_main.settings import BASE_DIR
     from openpyxl import Workbook
     from openpyxl.styles import NamedStyle, Font, Border, Side, Alignment, colors
@@ -75,7 +75,7 @@ def create_new_file(name, base_big_object):
     category, created = FileAndImageCategory.objects.get_or_create(
         big_object_id=base_big_object.id, name='Сформированные файлы'
     )
-    new_file = FileForBigObject(
+    new_file = FileForObject(
         big_object_id=base_big_object.id,
         category=category,
         file=f'results_files/{file_name}'

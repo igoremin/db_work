@@ -6,6 +6,43 @@
         <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_update_form_url' lab=current_lab.slug slug=object.slug %}" role="button">Редактировать</a>
         {#    <a class="btn btn-outline-secondary mb-3" href="#" role="button">Списать количество</a>#}
 
+
+        <!--------------------- Блок добавления категории для файлов ----------------------->
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#new_files_category">
+            Добавить категорию для файлов
+        </button>
+
+        <!-- Модальное окно -->
+        <div class="modal fade" id="new_files_category" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Новая категория</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ base_big_object.get_absolute_url }}" method="post">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            {% if file_categories_form.errors %}
+                                <div class="alert-danger">
+                                    {{ file_categories_form.errors }}
+                                </div>
+                            {% endif %}
+                            {{ file_categories_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-outline-primary">Создать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-------------------------------------------------------------------->
+
         <!--------------------- Блок списания количества ----------------------->
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#object_write_off">
@@ -83,52 +120,100 @@
         <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_history_url' lab=current_lab.slug slug=object.slug %}" role="button">История</a>
     {% endif %}
 
-    <h1>{{ object.name }}</h1>
-    <ul>
-        <li>Базовый объект : <a href="{{ object.base_object.get_absolute_url }}">{{ object.base_object.name }}</a></li>
-        <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
-        <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
-        <li>В работе : {{ object.amount_in_work }}</li>
-        <li>{% if object.amount_free < 0 %}Не хватает{% else %}Свободно{% endif %} : {{ object.amount_free }}</li>
-        <li>Стоимость : {{ object.price_text }}</li>
-        <li>Сумма : {{ object.total_price_text }}</li>
-        <li>Лаборатория : {{ object.lab.name }}</li>
-        <li>Дата создания : {{ object.date_add }}</li>
-        {% if object.room.all %}
-            <li>Кабинет :
-                {% for object in object.room.all %}
-                    <a href="{{ object.get_absolute_url }}">{{ object }}</a>
-                {% endfor %}
-            </li>
-        {% endif %}
-        {% if object.place %}
-            <li>Место расположения : {{ object.place }}</li>
-        {% endif %}
-        {% if object.worker_objects_list.all %}
-            <li>Сотрудники :
-                {% for object in object.worker_objects_list.all %}
-                    <a href="{{ object.profile.get_absolute_url }}">{{ object.profile.name }}</a>
-                    ( {{ object.amount }}
-                    {% if object.simple_object.measure %}
-                        {{ object.simple_object.measure }}
+    <div class="row">
+        <div class="col">
+            <h1>{{ object.name }}</h1>
+            <ul>
+                <li>Базовый объект : <a href="{{ object.base_object.get_absolute_url }}">{{ object.base_object.name }}</a></li>
+                <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
+                <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
+                <li>В работе : {{ object.amount_in_work }}</li>
+                <li>{% if object.amount_free < 0 %}Не хватает{% else %}Свободно{% endif %} : {{ object.amount_free }}</li>
+                <li>Стоимость : {{ object.price_text }}</li>
+                <li>Сумма : {{ object.total_price_text }}</li>
+                <li>Лаборатория : {{ object.lab.name }}</li>
+                <li>Дата создания : {{ object.date_add }}</li>
+                {% if object.room.all %}
+                    <li>Кабинет :
+                        {% for object in object.room.all %}
+                            <a href="{{ object.get_absolute_url }}">{{ object }}</a>
+                        {% endfor %}
+                    </li>
+                {% endif %}
+                {% if object.place %}
+                    <li>Место расположения : {{ object.place }}</li>
+                {% endif %}
+                {% if object.worker_objects_list.all %}
+                    <li>Сотрудники :
+                        {% for object in object.worker_objects_list.all %}
+                            <a href="{{ object.profile.get_absolute_url }}">{{ object.profile.name }}</a>
+                            ( {{ object.amount }}
+                            {% if object.simple_object.measure %}
+                                {{ object.simple_object.measure }}
+                            {% endif %}
+                            )
+                        {% endfor %}
+                    </li>
+                {% endif %}
+                {% if object.status %}
+                    <li>Статус : {{ object.get_status_display }}</li>
+                {% endif %}
+                {% if object.category %}
+                    <li>Категория : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
+                {% endif %}
+                {% if object.text %}
+                    <li>Описание : {{ object.text }}</li>
+                {% endif %}
+
+            </ul>
+        </div>
+        <div class="col">
+            {% for category in file_categories %}
+                <div class="row">
+                    <div class="col text-center">
+                        <h5 id="id__{{ category.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ category.name }}</h5>
+                    </div>
+                    <div class="col">
+                        <a class="btn btn-outline-primary" href="{% url 'object_update_category_files_url' lab=current_lab.slug slug=object.slug pk=category.pk object_type='simple' %}">Редактировать</a>
+                    </div>
+                </div>
+                <div class="row" id="files_id__{{ category.id }}" style="display: none">
+                    <div class="col-md-12">
+                        <h5>{{ category.text }}</h5>
+                    </div>
+                    {% if category.images.all %}
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            Изображения
+                        </div>
+                        <div class="col-md-12 text-left">
+                            {% for image in category.images.all %}
+                                <a data-fancybox="gallery" href="{{image.image_big.url }}">
+                                    <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="15%">
+                                </a>
+                            {% endfor %}
+                            <hr>
+                        </div>
                     {% endif %}
-                    )
-                {% endfor %}
-            </li>
-{#            <li>Сотрудник : <a href="{{ object.worker.get_absolute_url }}">{{ object.worker.name }}</a></li>#}
-        {% endif %}
-        {% if object.status %}
-            <li>Статус : {{ object.get_status_display }}</li>
-        {% endif %}
-        {% if object.category %}
-            <li>Категория : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
-        {% endif %}
-        {% if object.text %}
-            <li>Описание : {{ object.text }}</li>
-        {% endif %}
-
-    </ul>
-
+                    {% if category.files.all %}
+                        <div class="col-md-12">
+                            Файлы
+                        </div>
+                        {% for file in category.files.all %}
+                            <div class="mt-2 col-md-12">
+                                <a href="{{ file.file.url }}" download>{{ file.filename }}</a>
+                            </div>
+                        {% endfor %}
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
     {% if big_objects_list %}
         <h3>Данный объект используется в следующих устройствах :</h3>
@@ -174,6 +259,9 @@
 
     {% endif %}
 
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+    <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 {% endblock %}

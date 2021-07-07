@@ -2,8 +2,8 @@ from django.urls import path
 from .views import simple_objects_list, home_page, simple_object_page, categories_list, category_page, big_object_page,\
     category_add_form, category_update_form, simple_object_add_form, simple_object_update_form,\
     simple_object_delete_form, big_object_add, big_object_update_components, big_object_update, search, worker_page,\
-    big_object_history, simple_object_history, simple_objects_write_off_list, big_object_update_files_category,\
-    big_object_delete_image, big_object_delete_file, load_new_db, base_object_page, worker_update_page,\
+    big_object_history, simple_object_history, simple_objects_write_off_list, object_update_files_category,\
+    object_delete_image, object_delete_file, load_new_db, base_object_page, worker_update_page,\
     worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
     base_big_object_page, room_page, backup
 
@@ -35,12 +35,10 @@ urlpatterns = [
          name='big_object_update_parts_url'),
     path('<str:lab>/big_objects/<str:slug>/delete_part/<int:pk>/', big_object_delete_part,
          name='big_object_delete_part_url'),
-    path('<str:lab>/big_objects/<str:slug>/update_files/<int:pk>/', big_object_update_files_category,
-         name='big_object_update_category_files_url'),
-    path('<str:lab>/big_objects/<str:slug>/image/<int:pk>/delete/',
-         big_object_delete_image, name='big_object_delete_image_url'),
-    path('<str:lab>/big_objects/<str:slug>/file/<int:pk>/delete/',
-         big_object_delete_file, name='big_object_delete_file_url'),
+    path('<str:lab>/<str:object_type>/<str:slug>/update_files/<int:pk>/', object_update_files_category,
+         name='object_update_category_files_url'),
+    path('<str:lab>/image/<int:pk>/delete/', object_delete_image, name='object_delete_image_url'),
+    path('<str:lab>/file/<int:pk>/delete/', object_delete_file, name='object_delete_file_url'),
     path('<str:lab>/base_objects/<str:slug>/', base_object_page, name='base_object_page_url'),
     path('<str:lab>/search/', search, name='search_url'),
     path('<str:lab>/worker/<int:pk>/', worker_page, name='worker_page_url'),
