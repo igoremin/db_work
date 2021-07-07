@@ -324,6 +324,12 @@ def base_object_update_page(request, lab, slug):
             form = BaseObjectForm(request.POST, instance=base_object)
             if form.is_valid():
                 form.save()
+                if lab != base_object.lab.slug:
+                    # Изменилась лаборатория. Необходимо найти все простые объекты связанные с данным базовым и
+                    # переметить их в другую лабораторию
+                    simple_objects = SimpleObject.objects.filter(base_object=base_object)
+                    if simple_objects:
+                        simple_objects.update(lab=base_object.lab)
 
             return redirect(base_object_page, lab=base_object.lab.slug, slug=base_object.slug)
 
