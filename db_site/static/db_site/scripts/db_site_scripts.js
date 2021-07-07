@@ -180,6 +180,24 @@ function showTableOnBigObjectPage(button) {
     }
 }
 
+function CatTypeSelectChange(select) {
+    //Функция для отображения и скрытия выбора типа объекта в том случае если это поле не используется
+    let p_obj_type = select.parentElement.nextElementSibling;
+    if (select.value === 'SO') {
+        p_obj_type.style.display = '';
+    }
+    else {
+        p_obj_type.style.display = 'none';
+        let obj_type = p_obj_type.lastChild
+        for (let l = 0; l < obj_type.length; l++) {
+            if (obj_type.options[l].value === 'DF') {
+                obj_type.options[l].selected = true;
+                break;
+            }
+        }
+    }
+}
+
 
 $(function() {
   $('.selectpicker').selectpicker();

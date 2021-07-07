@@ -7,12 +7,15 @@ from django.utils.translation import ugettext_lazy as _
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ['name', 'text', 'cat_type']
+        fields = ['name', 'text', 'cat_type', 'obj_type']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'text': forms.TextInput(attrs={'class': 'form-control'}),
-            'cat_type': forms.Select(attrs={'class': 'form-control'}),
+            'cat_type': forms.Select(attrs={
+                'class': 'form-control', 'id': 'cat_type', 'onchange': 'CatTypeSelectChange (this)'
+            }),
+            'obj_type': forms.Select(attrs={'class': 'form-control', 'id': 'obj_type'}),
         }
 
 
