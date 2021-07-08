@@ -53,7 +53,7 @@ class BaseObjectForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
-            'measure': forms.Select(attrs={'class': 'form-control'}),
+            'measure': forms.TextInput(attrs={'class': 'form-control'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),
             'amount': forms.TextInput(attrs={
                 'class': 'form-control',
