@@ -334,6 +334,40 @@ def base_object_update_page(request, lab, slug):
             return redirect(base_object_page, lab=base_object.lab.slug, slug=base_object.slug)
 
 
+@login_required(login_url='/login/')
+def base_object_create_simple(request, lab, slug):
+    """Страница базового объекта. lab - текущая лаборатория"""
+    if request.user.is_superuser:
+        base_object = get_object_or_404(BaseObject, slug=slug)
+        if request.method == 'POST':
+            if request.POST.dict()['create_new_simple_object'] == 'yes':
+                measure = '---'
+                if base_object.measure:
+                    base_measure = base_object.measure.lower().strip().replace('.', '')
+                    if base_measure in SimpleObject.ChoicesMeasure.values:
+                        measure = base_measure
+                simple_object = SimpleObject(
+                    base_object=base_object,
+                    name=base_object.name,
+                    lab=base_object.lab,
+                    inventory_number=base_object.inventory_number,
+                    directory_code=base_object.directory_code,
+                    measure=measure,
+                    price=round(base_object.total_price / base_object.amount, 2),
+                    amount=base_object.amount,
+                )
+                simple_object.save()
+                form = SimpleObjectForm(instance=simple_object)
+                context = {
+                    'form': form,
+                    'simple_object': simple_object,
+                    'status': 'update',
+                    'slug': simple_object.slug,
+                }
+                return render(request, 'db_site/simple_object_form.html', context=context)
+        return redirect(base_object_page, lab, slug)
+
+
 """---------------------------------------------------------------------------------------------------------"""
 """------------------------------------------SIMPLE OBJECTS-------------------------------------------------"""
 
@@ -506,14 +540,14 @@ def simple_object_add_form(request, lab):
             find_simple_objects = SimpleObject.objects.filter(name_lower__icontains=q).values_list('name', flat=True)
             return JsonResponse({"rez": str(list(find_simple_objects))}, status=200)
         if request.method == 'GET':
-            form = SimpleObjectForm(lab=lab)
+            form = SimpleObjectForm()
             context = {
                 'form': form,
                 'status': 'add',
             }
             return render(request, 'db_site/simple_object_form.html', context=context)
         else:
-            form = SimpleObjectForm(request.POST, lab=lab)
+            form = SimpleObjectForm(request.POST)
             if form.is_valid():
                 new_simple_object = form.save(commit=False)
                 new_simple_object.lab = get_object_or_404(LabName, slug=lab)
@@ -536,7 +570,7 @@ def simple_object_update_form(request, lab, slug):
     if request.user.is_superuser or user.lab.slug == lab:
         simple_object = get_object_or_404(SimpleObject, slug=slug)
         if request.method == 'GET':
-            form = SimpleObjectForm(instance=simple_object, lab=lab)    # Создаем новую форму
+            form = SimpleObjectForm(instance=simple_object)    # Создаем новую форму
             context = {
                 'form': form,
                 'status': 'update',
@@ -544,7 +578,7 @@ def simple_object_update_form(request, lab, slug):
             }
             return render(request, 'db_site/simple_object_form.html', context=context)
         else:
-            form = SimpleObjectForm(request.POST, instance=simple_object, lab=lab)
+            form = SimpleObjectForm(request.POST, instance=simple_object)
             if form.is_valid():
                 form.save()
                 if simple_object.lab.slug != lab:
