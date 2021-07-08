@@ -2,6 +2,11 @@
 
 {% block content %}
     <a class="btn btn-outline-secondary" href="{% url 'base_object_update_page_url' lab=current_lab.slug slug=object.slug %}" role="button">Редактировать</a>
+    <form method="post" action="{% url 'base_object_create_simple_url' lab=current_lab.slug slug=object.slug %}">
+        {% csrf_token %}
+        <input type="hidden" name="create_new_simple_object" value="yes">
+        <button type="submit" class="btn btn-outline-secondary">Создать простой объект на основе данного базового</button>
+    </form>
     <h1>{{ object.name }}</h1>
     <ul>
         <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
