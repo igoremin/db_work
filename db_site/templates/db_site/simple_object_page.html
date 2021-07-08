@@ -136,7 +136,7 @@
                 {% if object.room.all %}
                     <li>Кабинет :
                         {% for object in object.room.all %}
-                            <a href="{{ object.get_absolute_url }}">{{ object }}</a>
+                            <a href="{{ object.get_absolute_url }}">{{ object }} {% if forloop.last == False %}, {% endif %}</a>
                         {% endfor %}
                     </li>
                 {% endif %}
