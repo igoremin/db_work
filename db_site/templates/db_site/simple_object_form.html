@@ -5,7 +5,7 @@
     {% if status == 'add' %}
         Добавление новой позиции
     {% elif status == 'update'%}
-        Редактирование
+        Редактирование {{ simple_object.name }}
     {% endif %}
 {% endblock %}
 
@@ -15,7 +15,7 @@
     {% if status == 'add' %}
         <h3>Добавление новой позиции</h3>
     {% elif status == 'update'%}
-        <h3>Редактирование</h3>
+        <h3>Редактирование <a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}</a></h3>
     {% endif %}
 
     <form action="{% if status == 'add' %}
