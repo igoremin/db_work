@@ -11,7 +11,7 @@ from django.db.models import Q
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
-    BigObjectForm, BaseObjectForm
+    BigObjectForm, BaseObjectForm, CategoryListForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components
 
@@ -300,9 +300,11 @@ def base_object_page(request, lab, slug):
         if request.method == 'GET':
             base_object = get_object_or_404(BaseObject, slug=slug)
             simple_objects = SimpleObject.objects.filter(base_object=base_object)
+            cat_form = CategoryListForm(lab=lab)
             context = {
                 'object': base_object,
                 'simple_objects': simple_objects,
+                'cat_form': cat_form,
             }
             return render(request, 'db_site/base_object_page.html', context=context)
 
@@ -339,8 +341,10 @@ def base_object_create_simple(request, lab, slug):
     """Страница базового объекта. lab - текущая лаборатория"""
     if request.user.is_superuser:
         base_object = get_object_or_404(BaseObject, slug=slug)
+        cat_form = CategoryListForm(request.POST, lab=lab)
         if request.method == 'POST':
-            if request.POST.dict()['create_new_simple_object'] == 'yes':
+            if cat_form.is_valid():
+
                 measure = '---'
                 if base_object.measure:
                     base_measure = base_object.measure.lower().strip().replace('.', '')
@@ -355,7 +359,9 @@ def base_object_create_simple(request, lab, slug):
                     measure=measure,
                     price=round(base_object.total_price / base_object.amount, 2),
                     amount=base_object.amount,
+                    category=cat_form.clean()['categories']
                 )
+
                 simple_object.save()
                 form = SimpleObjectForm(instance=simple_object)
                 context = {
