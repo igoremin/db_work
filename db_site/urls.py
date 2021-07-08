@@ -5,7 +5,7 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     big_object_history, simple_object_history, simple_objects_write_off_list, object_update_files_category,\
     object_delete_image, object_delete_file, load_new_db, base_object_page, worker_update_page,\
     worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
-    base_big_object_page, room_page, backup, base_object_update_page
+    base_big_object_page, room_page, backup, base_object_update_page, base_object_create_simple
 
 
 urlpatterns = [
@@ -41,6 +41,8 @@ urlpatterns = [
     path('<str:lab>/file/<int:pk>/delete/', object_delete_file, name='object_delete_file_url'),
     path('<str:lab>/base_objects/<str:slug>/', base_object_page, name='base_object_page_url'),
     path('<str:lab>/base_objects/<str:slug>/update/', base_object_update_page, name='base_object_update_page_url'),
+    path('<str:lab>/base_objects/<str:slug>/create_simple/', base_object_create_simple,
+         name='base_object_create_simple_url'),
     path('<str:lab>/search/', search, name='search_url'),
     path('<str:lab>/worker/<int:pk>/', worker_page, name='worker_page_url'),
     path('<str:lab>/worker/<int:pk>/update/', worker_update_page, name='worker_update_page_url'),
