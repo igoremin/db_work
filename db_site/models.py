@@ -245,7 +245,7 @@ class Category(models.Model):
         return reverse('category_page_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
 
     def create_slug(self):
-        all_slugs = Category.objects.all().values_list('slug')
+        all_slugs = Category.objects.all().values_list('slug', flat=True)
         self.slug = gen_slug(lab=self.lab.slug, title=self.name, all_slugs=all_slugs)
 
 
@@ -459,7 +459,7 @@ class SimpleObject(models.Model):
 
         if self.category is None:
             category, created = Category.objects.get_or_create(
-                name='Разное',
+                name='Без категории',
                 lab=self.lab,
                 cat_type='SO'
             )
