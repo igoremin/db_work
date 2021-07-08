@@ -256,7 +256,7 @@ $(document).ready(function() {
     }
 
     //Подключение скрипта для множественного выбора кабинета при загрузке страницы редактирования либо дававления нового простого объекта
-    if ((window.location.href.match('objects/\.+/update') != null) || (window.location.href.match('objects/add') != null)) {
+    if ((window.location.href.match('objects/\.+/update') != null) || (window.location.href.match('objects/add') != null) || (window.location.href.match('create_simple') != null)) {
         $('#id_room').multiselect({
             buttonText: function(options, select) {
                 if (options.length === 0) {
@@ -281,7 +281,7 @@ $(document).ready(function() {
         });
     }
     //При редактировании страницы отображаем только те категории которые доступны для выбранной лаботатории
-    if (window.location.href.match('objects/\.+/update') != null) {
+    if (window.location.href.match('objects/\.+/update') != null || (window.location.href.match('create_simple') != null)) {
         let lab = $("#select_current_lab")
         check_categories_for_lab(lab)
         lab.change(function () {
