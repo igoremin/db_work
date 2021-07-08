@@ -550,7 +550,7 @@ class SimpleObject(models.Model):
             top_object.update_price()
 
     def delete(self, *args, **kwargs):
-        all_big_objects = BigObject.objects.filter(bigobjectlist__simple_object=self)
+        all_big_objects = BaseBigObject.objects.filter(simple_components__simple_object=self)
         for big_object in all_big_objects:
             simple_objects_list = BigObjectList.objects.filter(big_object=big_object).exclude(simple_object=self)
             big_object.update_price(simple_objects_list=simple_objects_list)
