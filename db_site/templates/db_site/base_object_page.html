@@ -2,11 +2,37 @@
 
 {% block content %}
     <a class="btn btn-outline-secondary" href="{% url 'base_object_update_page_url' lab=current_lab.slug slug=object.slug %}" role="button">Редактировать</a>
-    <form method="post" action="{% url 'base_object_create_simple_url' lab=current_lab.slug slug=object.slug %}">
-        {% csrf_token %}
-        <input type="hidden" name="create_new_simple_object" value="yes">
-        <button type="submit" class="btn btn-outline-secondary">Создать простой объект на основе данного базового</button>
-    </form>
+
+    <!--------------------- Создание простого объекта ----------------------->
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#simple_object_create">
+        Создать простой объект на основе данного базового
+    </button>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="simple_object_create" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Выбор категории для нового простого объекта</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" action="{% url 'base_object_create_simple_url' lab=current_lab.slug slug=object.slug %}">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {{ cat_form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-outline-secondary">Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-------------------------------------------------------------------->
+
     <h1>{{ object.name }}</h1>
     <ul>
         <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
