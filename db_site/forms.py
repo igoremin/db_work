@@ -19,6 +19,29 @@ class CategoryForm(forms.ModelForm):
         }
 
 
+class CategoryListForm(forms.Form):
+    all_parts = None
+    categories = forms.ModelChoiceField(
+        required=True,
+        label='Выберите категорию',
+        queryset=all_parts,
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+            }
+        )
+    )
+
+    def __init__(self, *args, **kwargs):
+        lab = kwargs.pop('lab')
+        self.all_parts = Category.objects.filter(
+            lab__slug=lab,
+        ).exclude(cat_type='BO')
+        super(CategoryListForm, self).__init__(*args, **kwargs)
+        self.fields['categories'].queryset = self.all_parts
+
+
 class BaseObjectForm(forms.ModelForm):
     class Meta:
         model = BaseObject
