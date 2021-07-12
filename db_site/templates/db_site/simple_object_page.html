@@ -143,13 +143,13 @@
                 {% if object.place %}
                     <li>Место расположения : {{ object.place }}</li>
                 {% endif %}
-                {% if object.worker_objects_list.all %}
+                {% if users %}
                     <li>Сотрудники :
-                        {% for object in object.worker_objects_list.all %}
-                            <a href="{{ object.profile.get_absolute_url }}">{{ object.profile.name }}</a>
-                            ( {{ object.amount }}
-                            {% if object.simple_object.measure %}
-                                {{ object.simple_object.measure }}
+                        {% for user in users %}
+                            <a href="{{ user.profile.get_absolute_url }}">{{ user.profile.name }}</a>
+                            ( {{ user.amount }}
+                            {% if user.simple_object.measure %}
+                                {{ user.simple_object.measure }}
                             {% endif %}
                             )
                         {% endfor %}
