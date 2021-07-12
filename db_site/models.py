@@ -4,6 +4,7 @@ from django.shortcuts import reverse
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.core.exceptions import ObjectDoesNotExist
 from slugify import slugify
 from django.utils.translation import gettext_lazy as _
 from django.db import IntegrityError
@@ -1067,6 +1068,43 @@ class BigObjectList(models.Model):
         # self.save()
 
 
+class Order(models.Model):
+    date = models.DateTimeField(verbose_name='Дата запроса', default=timezone.now)
+    number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
+    confirm = models.BooleanField(verbose_name='Подтверждение', default=False)
+    lab = models.ForeignKey(LabName, on_delete=models.CASCADE, related_name='order', related_query_name='orders',
+                            verbose_name='Лаборатория', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Заявка на выдачу'
+        verbose_name_plural = 'Заявки на выдачу'
+        ordering = ['-date']
+
+    def __str__(self):
+        return f'Заявка : {self.date}'
+
+    def save(self, *args, **kwargs):
+        print('---SAVE ORDER---')
+        if self.pk is not None:
+            old_order = Order.objects.get(pk=self.pk)
+            if old_order.confirm is False and self.confirm is True:
+                self.update_worker_equipment()
+        super().save(*args, **kwargs)
+
+    def update_worker_equipment(self):
+        order_equipments = WorkerEquipment.objects.filter(order=self)
+        for eq in order_equipments:
+            equipment, created = WorkerEquipment.objects.get_or_create(
+                profile=eq.profile, order__isnull=True, simple_object=eq.simple_object
+            )
+            if created:
+                equipment.amount = eq.amount
+            else:
+                equipment.amount += eq.amount
+
+            equipment.save()
+
+
 class WorkerEquipment(models.Model):
     profile = models.ForeignKey(to=Profile, on_delete=models.CASCADE, verbose_name='Профиль', blank=True)
     simple_object = models.ForeignKey(
@@ -1077,7 +1115,8 @@ class WorkerEquipment(models.Model):
         verbose_name='Объект'
     )
     amount = models.FloatField(verbose_name='Количество', default=0)
-    # history = HistoricalRecords(verbose_name='История')  # История изменений
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='equipment',
+                              related_query_name='equipments', verbose_name='Заказ', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Оборудование у сотрудника'
