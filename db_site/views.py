@@ -1,13 +1,14 @@
 from django.shortcuts import render, redirect
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
-    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room
+    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
+    Order
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, F
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
@@ -454,6 +455,7 @@ def simple_object_page(request, lab, slug):
     simple_object = SimpleObject.objects.get(lab__slug=lab, slug=slug)
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET':
+            users = WorkerEquipment.objects.filter(order__isnull=True, simple_object=simple_object)
             all_parts_list = []
             # simple_object.update_amount()
             # Список составляющих сложных объектов в которых присутствуют простые объекты
@@ -481,6 +483,7 @@ def simple_object_page(request, lab, slug):
             context = {
                 'write_off_form': write_off_form,
                 'object': simple_object,
+                'users': users,
                 'big_objects_list': all_parts_list,
                 'file_categories_form': file_categories_form,
                 'file_categories': file_categories,
@@ -1110,8 +1113,17 @@ def worker_update_page(request, pk, lab):
 def worker_equipment_form(request, pk, lab):
     user = get_object_or_404(Profile, pk=pk)
     if request.user.is_superuser or user.user == request.user:
+        new_order = request.GET.get('new_order', default=False)
+        order_number = request.GET.get('order_number', default=False)
         if request.method == 'GET':
-            worker_equipments = WorkerEquipment.objects.filter(profile=user)
+            if new_order == 'true':
+                worker_equipments = WorkerEquipment.objects.filter(profile=user, amount=0)
+            else:
+                if order_number:
+                    worker_equipments = WorkerEquipment.objects.filter(profile=user, order__pk=order_number)
+                else:
+                    worker_equipments = WorkerEquipment.objects.filter(order__isnull=True, profile=user)
+
             if len(worker_equipments) == 0:
                 extra = 1
             else:
@@ -1120,18 +1132,31 @@ def worker_equipment_form(request, pk, lab):
             context = {
                 'formset': formset(form_kwargs={'lab': lab}, queryset=worker_equipments),
                 'worker': user,
+                'new_order': new_order,
+                'order_number': order_number,
             }
             return render(request, 'db_site/worker_equipment_form.html', context=context)
         elif request.method == 'POST' and request.is_ajax():
             print('AJAX')
             if request.POST.get('big_object_number_of_elements'):
                 new_number_of_elements = request.POST.get('big_object_number_of_elements')
-                Profile.objects.filter(pk=user.pk).update(number_of_elements=new_number_of_elements)
+                if order_number:
+                    Order.objects.filter(pk=order_number).update(number_of_elements=new_number_of_elements)
+                else:
+                    Profile.objects.filter(pk=user.pk).update(number_of_elements=new_number_of_elements)
+
                 return JsonResponse({"rez": 'Количество компонентов : {}'.format(new_number_of_elements)}, status=200)
             else:
                 return JsonResponse({"rez": 'Что-то пошло не так, попробуйте снова!'}, status=400)
         else:
-            worker_equipments = WorkerEquipment.objects.filter(profile=user)
+            if new_order == 'true':
+                worker_equipments = WorkerEquipment.objects.filter(profile=user, amount=0)
+            else:
+                if order_number:
+                    worker_equipments = WorkerEquipment.objects.filter(profile=user, order__pk=order_number)
+                else:
+                    worker_equipments = WorkerEquipment.objects.filter(profile=user)
+
             components_formset = modelformset_factory(
                 WorkerEquipment,
                 form=AddSimpleObjectToProfile,
@@ -1140,23 +1165,31 @@ def worker_equipment_form(request, pk, lab):
             formset = components_formset(request.POST, form_kwargs={'lab': lab}, queryset=worker_equipments)
             if formset.is_valid():
                 print('VALID')
+                if new_order == 'true':
+                    order = Order(number_of_elements=len(formset), lab=LabName.objects.get(slug=lab))
+                    order.save()
+
+                if order_number:
+                    # Обновление количества позиций в конкретной заявке
+                    Order.objects.filter(pk=order_number).update(number_of_elements=len(formset))
+                    order = Order(pk=order_number)
+
                 for form in formset:
                     clean_data = form.clean()
+                    print(clean_data)
                     try:
                         old_component = WorkerEquipment.objects.get(pk=clean_data['id'].id)
                         if clean_data['amount'] == 0:
                             print('DELETE : {}'.format(old_component))
-                            simple_object = old_component.simple_object
+                            # simple_object = old_component.simple_object
                             old_component.delete()  # Удаление старой составляющей если ее количество = 0
 
-                            # big_objects_list = BigObjectList.objects.filter(simple_object=simple_object)
-                            # amount = 0
-                            # for obj in big_objects_list:
-                            #     amount += obj.amount
-                            # simple_object.amount_in_work = amount
-                            # simple_object.save()
-
-                            user.number_of_elements -= 1
+                            if order_number:
+                                Order.objects.filter(pk=order_number).update(
+                                    number_of_elements=F('number_of_elements') - 1
+                                )
+                            else:
+                                user.number_of_elements -= 1
                         else:
                             if clean_data['amount'] != old_component.amount:
                                 print('UPDATE : {}'.format(old_component))
@@ -1170,12 +1203,17 @@ def worker_equipment_form(request, pk, lab):
                             user.number_of_elements -= 1
                         else:
 
-                            new_component, created = WorkerEquipment.objects.get_or_create(
-                                simple_object=clean_data['simple_object'],
-                                profile=user,
-                                # amount=clean_data['amount'],
-
-                            )
+                            if new_order == 'true' or order_number:
+                                new_component, created = WorkerEquipment.objects.get_or_create(
+                                    simple_object=clean_data['simple_object'],
+                                    profile=user,
+                                    order=order,
+                                )
+                            else:
+                                new_component, created = WorkerEquipment.objects.get_or_create(
+                                    simple_object=clean_data['simple_object'],
+                                    profile=user,
+                                )
 
                             new_component.amount += clean_data['amount']
 
@@ -1189,7 +1227,16 @@ def worker_equipment_form(request, pk, lab):
                 }
                 return render(request, 'db_site/worker_equipment_form.html', context=context)
 
-            # return redirect(worker_equipment_form, pk=pk, lab=lab)
+
+@login_required(login_url='/login/')
+def worker_order_confirm(request, lab, pk):
+    if request.user.is_superuser and request.method == 'POST':
+        order = get_object_or_404(Order, pk=pk)
+        order.confirm = True
+        order.save()
+
+        return redirect(worker_page, pk=order.equipment.all()[0].profile.user_id, lab=lab)
+    return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
 
 """---------------------------------------------------------------------------------------------------------"""
