@@ -445,3 +445,30 @@ class AddSimpleObjectToProfile(forms.ModelForm):
         self.simple_objects = SimpleObject.objects.filter(lab__slug=lab)
         super(AddSimpleObjectToProfile, self).__init__(*args, **kwargs)
         self.fields['simple_object'].queryset = self.simple_objects
+
+
+# class AddSimpleObjectToOrderForm(forms.ModelForm):
+#     class Meta:
+#         model = WorkerEquipmentOrder
+#         fields = ['simple_object', 'amount']
+#
+#         widgets = {
+#             'simple_object': forms.Select(attrs={
+#                 'class': 'form-control selectpicker',
+#                 'data-live-search': 'true',
+#             }),
+#             'amount': forms.NumberInput(
+#                 attrs={
+#                     'class': 'form-control',
+#                     'placeholder': 'Количество',
+#                     'type': 'number',
+#                     'step': 0.001,
+#                     'min': 0,
+#                 })
+#         }
+#
+#     def __init__(self, *args, **kwargs):
+#         lab = kwargs.pop('lab')
+#         self.simple_objects = SimpleObject.objects.filter(lab__slug=lab)
+#         super(AddSimpleObjectToOrderForm, self).__init__(*args, **kwargs)
+#         self.fields['simple_object'].queryset = self.simple_objects
