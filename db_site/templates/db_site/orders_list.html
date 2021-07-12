@@ -67,7 +67,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form action="{% url 'worker_order_confirm_url' lab=current_lab.slug pk=order.equipment.first.profile.user.pk %}" method="post">
+                    <form action="{% url 'worker_order_confirm_url' lab=current_lab.slug pk=order.pk %}" method="post">
                         <div class="modal-body">
                             {% csrf_token %}
                             <p>После подтверждения редактирование оборудования в заявке будет недоступно.</p>
