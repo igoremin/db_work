@@ -1354,3 +1354,45 @@ def room_page(request, lab, slug):
             'all_data': data,
         }
         return render(request, 'db_site/room_page.html', context=context)
+
+
+"""---------------------------------------------------------------------------------------------------------"""
+"""-----------------------------------------------ORDER LIST----------------------------------------------------"""
+
+
+@login_required(login_url='/login/')
+def order_list(request, lab):
+    if request.user.is_superuser and request.method == 'GET':
+        sort = request.GET.get('sort')
+
+        if not sort:
+            sort = '-date'
+            orders = Order.objects.filter(lab__slug=lab).order_by(sort)
+        else:
+            if sort == '-active':
+                orders = Order.objects.filter(lab__slug=lab, confirm=False).order_by('-date')
+            elif sort == 'active':
+                orders = Order.objects.filter(lab__slug=lab, confirm=False).order_by('date')
+            elif sort == '-confirm':
+                orders = Order.objects.filter(lab__slug=lab, confirm=True).order_by('-date')
+            elif sort == 'confirm':
+                orders = Order.objects.filter(lab__slug=lab, confirm=True).order_by('date')
+            elif sort == '-all':
+                orders = Order.objects.filter(lab__slug=lab).order_by('-date')
+            elif sort == 'all':
+                orders = Order.objects.filter(lab__slug=lab).order_by('date')
+            else:
+                orders = Order.objects.filter(lab__slug=lab).order_by('-date')
+
+        prefix = ''
+        if sort:
+            prefix = '&sort=' + sort
+
+        context = {
+            'orders': orders,
+            'old_prefix': prefix
+        }
+        return render(request, 'db_site/orders_list.html', context=context)
+
+
+"""---------------------------------------------------------------------------------------------------------"""
