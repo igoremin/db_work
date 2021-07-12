@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
-    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, BaseBigObject, Room
+    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, BaseBigObject, Room, Order, WorkerEquipment
 
 
 admin.site.register(LabName)
@@ -10,6 +10,8 @@ admin.site.register(FileForObject)
 admin.site.register(FileAndImageCategory)
 admin.site.register(DataBaseDoc)
 admin.site.register(Room)
+admin.site.register(WorkerEquipment)
+admin.site.register(Order)
 # admin.site.register(BigObject)
 
 
