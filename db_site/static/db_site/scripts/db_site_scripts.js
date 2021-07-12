@@ -169,7 +169,7 @@ function showCategory(object) {
     }
 }
 
-function showTableOnBigObjectPage(button) {
+function showTableOnPage(button) {
     console.log(button);
     let table = document.getElementById(button.id + '_table');
     if (table.style.display === 'none') {
