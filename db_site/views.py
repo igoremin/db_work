@@ -1070,8 +1070,17 @@ def worker_page(request, pk, lab):
     user = get_object_or_404(Profile, pk=pk)
     if request.user.is_superuser or user.user == request.user:
         if request.method == 'GET':
+            orders_list = Order.objects.filter(equipments__profile=user)
+            orders = []
+            for order in orders_list:
+                if order not in orders:
+                    orders.append(order)
+            worker_equipments = WorkerEquipment.objects.filter(
+                order__isnull=True, profile=user)
             context = {
                 'worker': user,
+                'orders': orders,
+                'worker_equipments': worker_equipments,
             }
             return render(request, 'db_site/worker_page.html', context=context)
 
