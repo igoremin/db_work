@@ -35,6 +35,19 @@
 
     <h1>{{ object.name }}</h1>
     <ul>
+        {% if object.invoicebaseobject_set.all %}
+            <li>{% if object.invoicebaseobject_set.all|length == 1 %}
+                    Накладная :
+                {% else %}
+                    Накладные :
+                {% endif %}
+
+                {% for invoice in object.invoicebaseobject_set.all %}
+                    <a href="{{ invoice.invoice.get_absolute_url }}">{{ invoice.invoice.number }}</a>
+                {% endfor %}
+            </li>
+        {% endif %}
+
         <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
         <li>Код справочника : {{ object.directory_code }}</li>
         <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
