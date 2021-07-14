@@ -339,6 +339,38 @@ class BaseObject(models.Model):
             self.total_price_text = '0,00'
 
 
+class Invoice(models.Model):
+    number = models.CharField(max_length=50, verbose_name='Номер накладной')
+    lab = models.ForeignKey(LabName, on_delete=models.CASCADE, related_name='invoices', related_query_name='invoice',
+                            verbose_name='Лаборатория', blank=True, null=True)
+    bill = models.CharField(max_length=100, verbose_name='Счет, субсчет')
+    date = models.DateField(verbose_name='Дата составления')
+    total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
+    total_price_text = models.CharField(verbose_name='Общая сумма с пробелами', max_length=100, blank=True)
+
+    class Meta:
+        verbose_name = 'Накладная'
+        verbose_name_plural = 'Накладные'
+        ordering = ['-date']
+
+    def __str__(self):
+        return f'{self.lab}, {self.date}, {self.number}'
+
+    def save(self, *args, **kwargs):
+        self.update_price()
+        super().save(*args, **kwargs)
+
+    def update_price(self):
+        """Обновление текстовой цены и общей стоимости"""
+        if self.total_price != 0:
+            self.total_price_text = gen_text_price(round(self.total_price, 2))
+        else:
+            self.total_price_text = '0,00'
+
+    def get_absolute_url(self):
+        return reverse('invoice_page_url', kwargs={'lab': self.lab.slug, 'pk': self.pk})
+
+
 class SimpleObject(models.Model):
     class ChoicesStatus(models.TextChoices):
         NOT_IN_WORK = 'NW', _('Не в работе')
@@ -557,6 +589,15 @@ class SimpleObject(models.Model):
             big_object.update_price(simple_objects_list=simple_objects_list)
             BigObject.objects.filter(pk=big_object.pk).update(price=big_object.price, price_text=big_object.price_text)
         super().delete(*args, **kwargs)
+
+
+class InvoiceBaseObject(models.Model):
+    invoice = models.ForeignKey(Invoice, verbose_name='Накладная', on_delete=models.CASCADE)
+    base_object = models.ForeignKey(BaseObject, verbose_name='Объект', on_delete=models.CASCADE)
+    amount = models.IntegerField(verbose_name='Количество')
+
+    def __str__(self):
+        return f'Накладная {self.invoice.number} , объект {self.base_object.name} , количество {self.amount}'
 
 
 class BaseBigObject(models.Model):
@@ -899,6 +940,9 @@ class FileAndImageCategory(models.Model):
     big_object = models.ForeignKey(
         BaseBigObject, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Сложный объект'
     )
+    invoice = models.ForeignKey(
+        Invoice, blank=True, null=True, on_delete=models.CASCADE, verbose_name='Накладная'
+    )
     name = models.CharField(max_length=150, verbose_name='Название категории')
     text = models.TextField(max_length=2000, verbose_name='Описание', blank=True)
     slug = models.SlugField(max_length=250, blank=True, null=True, verbose_name='Название на латинице')
@@ -912,6 +956,8 @@ class FileAndImageCategory(models.Model):
             return '{} , для {}'.format(self.name, self.simple_object.name)
         elif self.big_object:
             return '{} , для {}'.format(self.name, self.big_object.name)
+        elif self.invoice:
+            return '{} , для накладной № {}'.format(self.name, self.invoice.number)
         else:
             return '{}'.format(self.name)
 
