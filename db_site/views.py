@@ -1,7 +1,8 @@
+import requests
 from django.shortcuts import render, redirect
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
-    Order
+    Order, Invoice, InvoiceBaseObject
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
@@ -12,7 +13,7 @@ from django.db.models import Q, F
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
-    BigObjectForm, BaseObjectForm, CategoryListForm
+    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components
 
@@ -99,6 +100,8 @@ def object_update_files_category(request, lab, slug, pk, object_type='big'):
     if request.user.is_superuser or user.lab.slug == lab:
         if object_type == 'simple':
             target_object = get_object_or_404(SimpleObject, lab__slug=lab, slug=slug)
+        elif object_type == 'invoice':
+            target_object = get_object_or_404(Invoice, lab__slug=lab, pk=slug)
         else:
             target_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
 
@@ -545,7 +548,7 @@ def simple_object_add_form(request, lab):
     if request.user.is_superuser or user.lab.slug == lab:
         if request.method == 'GET' and request.is_ajax():
             """Поиск простых объектов по введенным буквам"""
-            q = request.GET.dict()['q']
+            q = request.GET.dict()['q'].lower()
             find_simple_objects = SimpleObject.objects.filter(name_lower__icontains=q).values_list('name', flat=True)
             return JsonResponse({"rez": str(list(find_simple_objects))}, status=200)
         if request.method == 'GET':
@@ -1237,6 +1240,181 @@ def worker_order_confirm(request, lab, pk):
 
         return redirect(worker_page, pk=order.equipment.all()[0].profile.user_id, lab=lab)
     return HttpResponseNotFound("У вас нет доступа к этой странице!")
+
+
+"""---------------------------------------------------------------------------------------------------------"""
+"""-----------------------------------------------INVOICE--------------------------------------------------"""
+
+
+@login_required(login_url='/login/')
+def invoice_list(request, lab):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser or user.lab.slug == lab:
+        all_invoice = Invoice.objects.filter(lab__slug=lab)
+        context = {
+            'all_invoice': all_invoice,
+        }
+        return render(request, 'db_site/invoice_list.html', context=context)
+
+
+@login_required(login_url='/login/')
+def invoice_page(request, lab, pk):
+    user = Profile.objects.get(user_id=request.user.id)
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if request.user.is_superuser or user.lab.slug == lab:
+        if request.method == 'GET':
+            file_categories_form = FileAndImageCategoryForm()
+            file_categories = FileAndImageCategory.objects.filter(invoice=invoice)
+
+            context = {
+                'invoice': invoice,
+                'file_categories_form': file_categories_form,
+                'file_categories': file_categories,
+            }
+            return render(request, 'db_site/invoice_page.html', context=context)
+        else:
+            form_type = 'files'
+            for key, value in request.POST.items():
+                if key == 'write_off_amount':
+                    form_type = 'write_off_amount'
+                    break
+
+            if form_type == 'files':
+                print('CREATE NEW FILE CATEGORY')
+                form = FileAndImageCategoryForm(request.POST)
+                if form.is_valid():
+                    new_category = form.save(commit=False)
+                    new_category.invoice = invoice
+                    form.save()
+
+                return redirect(invoice_page, lab, pk)
+    return HttpResponseNotFound("У вас нет доступа к этой странице!")
+
+
+@login_required(login_url='/login/')
+def invoice_page_form(request, lab, pk=None):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser:
+        if request.method == 'GET':
+            if pk is None:
+                form = InvoiceForm()
+                invoice = False
+            else:
+                invoice = get_object_or_404(Invoice, pk=pk)
+                form = InvoiceForm(instance=invoice)
+
+            context = {
+                'invoice': invoice,
+                'form': form,
+            }
+            return render(request, 'db_site/invoice_form.html', context=context)
+        else:
+            if pk is None:
+                form = InvoiceForm(request.POST)
+                invoice = False
+            else:
+                invoice = get_object_or_404(Invoice, pk=pk)
+                form = InvoiceForm(request.POST, instance=invoice)
+
+            if form.is_valid():
+                if pk is None:
+                    new_invoice = form.save(commit=False)
+                    new_invoice.lab = LabName.objects.get(slug=lab)
+                    new_invoice.save()
+                    return redirect(invoice_page, lab=lab, pk=new_invoice.pk)
+                else:
+                    form.save()
+                    return redirect(invoice_page, lab=lab, pk=pk)
+            else:
+                context = {
+                    'invoice': invoice,
+                    'form': form,
+                }
+                return render(request, 'db_site/invoice_form.html', context=context)
+
+    return HttpResponseNotFound("У вас нет доступа к этой странице!")
+
+
+@login_required(login_url='/login/')
+def invoice_object_form(request, lab, pk):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser:
+        invoice = get_object_or_404(Invoice, pk=pk)
+        if request.method == 'GET' and request.is_ajax():
+            """Поиск простых объектов по введенным буквам"""
+            q = request.GET.dict()['q'].lower()
+            find_simple_objects = SimpleObject.objects.filter(name_lower__icontains=q).values_list('name', flat=True)
+            return JsonResponse({"rez": str(list(find_simple_objects))}, status=200)
+        elif request.method == 'GET':
+            form = SimpleObjectForm()
+            base_form = CategoryListForm(lab=lab, type='BO')
+            context = {
+                'form': form,
+                'invoice': invoice,
+                'base_form': base_form,
+            }
+            return render(request, 'db_site/invoice_object_form.html', context=context)
+        else:
+            base_form = CategoryListForm(request.POST, lab=lab, type='BO')
+            base_cat = False
+            if base_form.is_valid():
+                # Определяем категорию базового объекта
+                base_cat = base_form.clean()['categories']
+            form = SimpleObjectForm(request.POST)
+            if form.is_valid():
+                # Сохраняем базовый объект на основе созданного простого, создаем связь между базовым и накладной
+                simple_object = form.save(commit=False)
+                base_object = BaseObject()
+                base_object.name = simple_object.name
+                base_object.lab = simple_object.lab
+                base_object.amount = simple_object.amount
+                base_object.total_price = simple_object.amount * simple_object.price
+                base_object.inventory_number = simple_object.inventory_number
+                base_object.directory_code = simple_object.directory_code
+                base_object.measure = simple_object.measure
+                if base_cat:
+                    base_object.category = base_cat
+                base_object.save()
+
+                simple_object.base_object = base_object
+                form.save()
+
+                InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=simple_object.amount).save()
+
+                return redirect(invoice_page, lab, pk)
+            else:
+                context = {
+                    'form': form,
+                    'invoice': invoice,
+                }
+                return render(request, 'db_site/invoice_object_form.html', context=context)
+
+
+@login_required(login_url='/login/')
+def invoice_base_object_form(request, lab, pk):
+    user = Profile.objects.get(user_id=request.user.id)
+    if request.user.is_superuser:
+        invoice = get_object_or_404(Invoice, pk=pk)
+        if request.method == 'GET':
+            form = BaseObjectForm()
+            context = {
+                'invoice': invoice,
+                'form': form,
+                'type': 'base_object_form',
+            }
+            return render(request, 'db_site/invoice_object_form.html', context=context)
+        else:
+            form = BaseObjectForm(request.POST)
+            context = {
+                'invoice': invoice,
+                'form': form,
+                'type': 'base_object_form',
+            }
+            if form.is_valid():
+                base_object = form.save()
+                InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=base_object.amount).save()
+                return redirect(invoice_page, lab, pk)
+            return render(request, 'db_site/invoice_object_form.html', context=context)
 
 
 """---------------------------------------------------------------------------------------------------------"""
