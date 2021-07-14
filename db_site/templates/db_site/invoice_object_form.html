@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Новый объект
+{% endblock %}
+
+{% block content %}
+    <h3>Новый простой объект для требовательной накладной <a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></h3>
+
+    {% if type == 'base_object_form' %}
+        <form method="post" action="{% url 'invoice_base_object_form_url' lab=invoice.lab.slug pk=invoice.pk %}">
+    {% else %}
+        <form method="post" action="{% url 'invoice_object_form_url' lab=invoice.lab.slug pk=invoice.pk %}">
+    {% endif %}
+        {% csrf_token %}
+
+        {% if base_form %}
+            <div class="mb-3">
+                {{ base_form.as_p }}
+            </div>
+
+            <hr>
+        {% endif %}
+
+        {% if form.errors %}
+            <div class="alert-danger">
+                {{ form.errors }}
+            </div>
+        {% endif %}
+        {% for field in form %}
+            <div class="mb-2">
+                {% if field.id_for_label != 'id_base_object' %}
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        {{ field.errors }}
+                    {% endif %}
+                    {% if field.id_for_label == 'search_box'%}
+                        <div id="search_advice_wrapper"></div>
+                    {% endif %}
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}

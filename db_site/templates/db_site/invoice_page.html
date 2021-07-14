@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ invoice.number }}
+{% endblock %}
+
+{% block content %}
+
+    <a class="btn btn-outline-secondary mb-3" href="{% url 'invoice_update_page_url' lab=current_lab.slug pk=invoice.pk %}" role="button">Редактировать</a>
+
+    <!--------------------- Блок добавления категории для файлов ----------------------->
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#new_files_category">
+        Добавить категорию для файлов
+    </button>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="new_files_category" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Новая категория</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ invoice.get_absolute_url }}" method="post">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {% if file_categories_form.errors %}
+                            <div class="alert-danger">
+                                {{ file_categories_form.errors }}
+                            </div>
+                        {% endif %}
+                        {{ file_categories_form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-outline-primary">Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-------------------------------------------------------------------->
+
+    <a class="btn btn-outline-secondary mb-3" href="{% url 'invoice_object_form_url' lab=current_lab.slug pk=invoice.pk %}" role="button">Создать новый объект</a>
+    <a class="btn btn-outline-secondary mb-3" href="{% url 'invoice_base_object_form_url' lab=current_lab.slug pk=invoice.pk %}" role="button">Создать новый базовый объект</a>
+
+    <div class="row">
+        <div class="col">
+            <h3>Требовательная накладная № {{ invoice.number }}</h3>
+            <ul>
+                <li>Счет, субсчет : {{ invoice.bill }}</li>
+                <li>Дата : {{ invoice.date }}</li>
+                <li>Сумма : {{ invoice.total_price_text }}</li>
+            </ul>
+        </div>
+        <div class="col">
+            {% for category in file_categories %}
+                <div class="row">
+                    <div class="col text-center">
+                        <h5 id="id__{{ category.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ category.name }}</h5>
+                    </div>
+                    <div class="col">
+                        <a class="btn btn-outline-primary" href="{% url 'object_update_category_files_url' lab=current_lab.slug slug=invoice.pk pk=category.pk object_type='invoice' %}">Редактировать</a>
+                    </div>
+                </div>
+                <div class="row" id="files_id__{{ category.id }}" style="display: none">
+                    <div class="col-md-12">
+                        <h5>{{ category.text }}</h5>
+                    </div>
+                    {% if category.images.all %}
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            Изображения
+                        </div>
+                        <div class="col-md-12 text-left">
+                            {% for image in category.images.all %}
+                                <a data-fancybox="gallery" href="{{image.image_big.url }}">
+                                    <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="15%">
+                                </a>
+                            {% endfor %}
+                            <hr>
+                        </div>
+                    {% endif %}
+                    {% if category.files.all %}
+                        <div class="col-md-12">
+                            Файлы
+                        </div>
+                        {% for file in category.files.all %}
+                            <div class="mt-2 col-md-12">
+                                <a href="{{ file.file.url }}" download>{{ file.filename }}</a>
+                            </div>
+                        {% endfor %}
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if invoice.invoicebaseobject_set.all %}
+        Состав накладной :
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Инв. номер</th>
+                <th scope="col">Количество</th>
+                <th scope="col">Стоимость</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for base_object in invoice.invoicebaseobject_set.all %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ base_object.base_object.get_absolute_url }}">{{ base_object.base_object.name }}</a>
+                    </td>
+                    <td>{{ base_object.base_object.inventory_number }}</td>
+                    <td>{{ base_object.amount }}</td>
+                    <td>{{ base_object.base_object.total_price }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+    <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if invoice %}
+        Редактирование {{ invoice.number }}
+    {% else %}
+        Добавление новой накладной
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if invoice %}
+        <h3>Редактирование накладной {{ invoice.number }}</h3>
+    {% else %}
+        <h3>Добавление новой накладной</h3>
+    {% endif %}
+
+    <form action="{% if invoice %}{% url 'invoice_update_page_url' lab=invoice.lab.slug pk=invoice.pk %}{% else %}{% url 'invoice_create_page_url' lab=current_lab.slug %}{% endif %} " method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}
