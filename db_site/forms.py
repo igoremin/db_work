@@ -207,24 +207,16 @@ class BaseBigObjectForm(forms.ModelForm):
         fields = ['name', 'category', 'inventory_number', 'kod', 'text', 'ready']
 
         widgets = {
-            # 'parent': forms.Select(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'kod': forms.TextInput(attrs={'class': 'form-control'}),
-            # 'status': forms.Select(attrs={'class': 'form-control'}),
             'text': forms.Textarea(
                 attrs={
                     'class': 'form-control',
                     'rows': 4,
                 }),
             'ready': forms.CheckboxInput(attrs={'class': 'form-check-input'})
-            # 'system_number': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            # 'controller': forms.TextInput(attrs={'class': 'form-control'}),
-            # 'detector': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            # 'interface': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            # 'report': forms.TextInput(attrs={'class': 'form-control'}),
-            # 'year': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -308,17 +300,6 @@ class PartForBigObjectForm(forms.Form):
         ).exclude(base__category__name='Камеры').order_by('full_name')
         super(PartForBigObjectForm, self).__init__(*args, **kwargs)
         self.fields['part'].queryset = self.all_parts
-    # class Meta:
-    #     model = BigObject
-    #     fields = ['parent', ]
-    #
-    #     widgets = {
-    #         'parent': forms.Select(attrs={'class': 'form-control'}),
-    #     }
-    #
-    #     labels = {
-    #         'parent': 'Выберите сборочную еденицу'
-    #     }
 
 
 class CopyBigObject(forms.Form):
