@@ -447,28 +447,14 @@ class AddSimpleObjectToProfile(forms.ModelForm):
         self.fields['simple_object'].queryset = self.simple_objects
 
 
-# class AddSimpleObjectToOrderForm(forms.ModelForm):
-#     class Meta:
-#         model = WorkerEquipmentOrder
-#         fields = ['simple_object', 'amount']
-#
-#         widgets = {
-#             'simple_object': forms.Select(attrs={
-#                 'class': 'form-control selectpicker',
-#                 'data-live-search': 'true',
-#             }),
-#             'amount': forms.NumberInput(
-#                 attrs={
-#                     'class': 'form-control',
-#                     'placeholder': 'Количество',
-#                     'type': 'number',
-#                     'step': 0.001,
-#                     'min': 0,
-#                 })
-#         }
-#
-#     def __init__(self, *args, **kwargs):
-#         lab = kwargs.pop('lab')
-#         self.simple_objects = SimpleObject.objects.filter(lab__slug=lab)
-#         super(AddSimpleObjectToOrderForm, self).__init__(*args, **kwargs)
-#         self.fields['simple_object'].queryset = self.simple_objects
+class InvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ['number', 'bill', 'date', 'total_price']
+
+        widgets = {
+            'number': forms.TextInput(attrs={'class': 'form-control'}),
+            'bill': forms.TextInput(attrs={'class': 'form-control'}),
+            'date': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),
+            'total_price': forms.TextInput(attrs={'class': 'form-control'}),
+        }
