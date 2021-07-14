@@ -256,7 +256,7 @@ $(document).ready(function() {
     }
 
     //Подключение скрипта для множественного выбора кабинета при загрузке страницы редактирования либо дававления нового простого объекта
-    if ((window.location.href.match('objects/\.+/update') != null) || (window.location.href.match('objects/add') != null) || (window.location.href.match('create_simple') != null)) {
+    if ((window.location.href.match('objects/\.+/update') != null) || (window.location.href.match('objects/add') != null) || (window.location.href.match('create_simple') != null) || window.location.href.match('create_new_simple_object') != null) {
         $('#id_room').multiselect({
             buttonText: function(options, select) {
                 if (options.length === 0) {
@@ -281,7 +281,7 @@ $(document).ready(function() {
         });
     }
     //При редактировании страницы отображаем только те категории которые доступны для выбранной лаботатории
-    if (window.location.href.match('objects/\.+/update') != null || (window.location.href.match('create_simple') != null)) {
+    if (window.location.href.match('objects/\.+/update') != null || window.location.href.match('create_simple') != null ) {
         let lab = $("#select_current_lab")
         check_categories_for_lab(lab)
         lab.change(function () {
@@ -290,7 +290,11 @@ $(document).ready(function() {
     }
     //При создании нового объекта так же отображаем необходымые категории, при этом автоматом выставляем необходимую лабораторию
     //Подключаем  поиск уже существующих простых объектов при вводе нового названия
-    if (window.location.href.match('objects/add') != null) {
+    if (
+        window.location.href.match('objects/add') != null ||
+        window.location.href.match('create_new_simple_object') != null ||
+        window.location.href.match('create_new_base_object') != null
+    ) {
         let lab_name = document.getElementById('lab_name');
         let lab = document.getElementById('select_current_lab');
         for (let l = 1; l < lab.length; l++) {
