@@ -125,6 +125,18 @@
             <h1>{{ object.name }}</h1>
             <ul>
                 <li>Базовый объект : <a href="{{ object.base_object.get_absolute_url }}">{{ object.base_object.name }}</a></li>
+                {% if object.base_object.invoicebaseobject_set.all %}
+                    <li>
+                        {% if object.base_object.invoicebaseobject_set.all|length == 1 %}
+                            Накладная :
+                        {% else %}
+                            Накладные :
+                        {% endif %}
+                        {% for invoice in object.base_object.invoicebaseobject_set.all %}
+                            <a href="{{ invoice.invoice.get_absolute_url }}">{{ invoice.invoice.number }}</a>
+                        {% endfor %}
+                    </li>
+                {% endif %}
                 <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
                 <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
                 <li>В работе : {{ object.amount_in_work }}</li>
@@ -168,50 +180,107 @@
             </ul>
         </div>
         <div class="col">
-            {% for category in file_categories %}
-                <div class="row">
-                    <div class="col text-center">
-                        <h5 id="id__{{ category.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ category.name }}</h5>
+            {% if object.base_object.invoicebaseobject_set.all %}
+                {% for data in object.base_object.invoicebaseobject_set.all %}
+                    <div class="row">
+                        <div class="col text-center mb-3" style="background-color: #e9ecef">Требовательная накладная № {{ data.invoice.number }}</div>
                     </div>
-                    <div class="col">
-                        <a class="btn btn-outline-primary" href="{% url 'object_update_category_files_url' lab=current_lab.slug slug=object.slug pk=category.pk object_type='simple' %}">Редактировать</a>
-                    </div>
-                </div>
-                <div class="row" id="files_id__{{ category.id }}" style="display: none">
-                    <div class="col-md-12">
-                        <h5>{{ category.text }}</h5>
-                    </div>
-                    {% if category.images.all %}
-                        <div class="col-md-12">
-                            <hr>
-                        </div>
-                        <div class="col-md-12 mt-1">
-                            Изображения
-                        </div>
-                        <div class="col-md-12 text-left">
-                            {% for image in category.images.all %}
-                                <a data-fancybox="gallery" href="{{image.image_big.url }}">
-                                    <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="15%">
-                                </a>
-                            {% endfor %}
-                            <hr>
-                        </div>
-                    {% endif %}
-                    {% if category.files.all %}
-                        <div class="col-md-12">
-                            Файлы
-                        </div>
-                        {% for file in category.files.all %}
-                            <div class="mt-2 col-md-12">
-                                <a href="{{ file.file.url }}" download>{{ file.filename }}</a>
+                    {% for cat in data.invoice.fileandimagecategory_set.all %}
+                        <div class="row">
+                            <div class="col text-center">
+                                <h5 id="id__{{ cat.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ cat.name }}</h5>
                             </div>
-                        {% endfor %}
-                        <div class="col-md-12">
-                            <hr>
+                            <div class="col">
+                                <a class="btn btn-outline-primary" href="{% url 'object_update_category_files_url' lab=current_lab.slug slug=data.invoice.pk pk=cat.pk object_type='invoice' %}">Редактировать</a>
+                            </div>
                         </div>
-                    {% endif %}
+                        <div class="row" id="files_id__{{ cat.id }}" style="display: none">
+                            <div class="col-md-12">
+                                <h5>{{ cat.text }}</h5>
+                            </div>
+                            {% if cat.images.all %}
+                                <div class="col-md-12">
+                                    <hr>
+                                </div>
+                                <div class="col-md-12 mt-1">
+                                    Изображения
+                                </div>
+                                <div class="col-md-12 text-left">
+                                    {% for image in cat.images.all %}
+                                        <a data-fancybox="gallery" href="{{image.image_big.url }}">
+                                            <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="15%">
+                                        </a>
+                                    {% endfor %}
+                                    <hr>
+                                </div>
+                            {% endif %}
+                            {% if cat.files.all %}
+                                <div class="col-md-12">
+                                    Файлы
+                                </div>
+                                {% for file in cat.files.all %}
+                                    <div class="mt-2 col-md-12">
+                                        <a href="{{ file.file.url }}" download>{{ file.filename }}</a>
+                                    </div>
+                                {% endfor %}
+                                <div class="col-md-12">
+                                    <hr>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+            {% endif %}
+            {% if file_categories %}
+                <div class="row">
+                    <div class="col text-center mb-3" style="background-color: #e9ecef">Экземпляр</div>
                 </div>
-            {% endfor %}
+                {% for category in file_categories %}
+                    <div class="row">
+                        <div class="col text-center">
+                            <h5 id="id__{{ category.id }}" onclick="showCategory(this);" class="btn btn-outline-secondary">{{ category.name }}</h5>
+                        </div>
+                        <div class="col">
+                            <a class="btn btn-outline-primary" href="{% url 'object_update_category_files_url' lab=current_lab.slug slug=object.slug pk=category.pk object_type='simple' %}">Редактировать</a>
+                        </div>
+                    </div>
+                    <div class="row" id="files_id__{{ category.id }}" style="display: none">
+                        <div class="col-md-12">
+                            <h5>{{ category.text }}</h5>
+                        </div>
+                        {% if category.images.all %}
+                            <div class="col-md-12">
+                                <hr>
+                            </div>
+                            <div class="col-md-12 mt-1">
+                                Изображения
+                            </div>
+                            <div class="col-md-12 text-left">
+                                {% for image in category.images.all %}
+                                    <a data-fancybox="gallery" href="{{image.image_big.url }}">
+                                        <img class="mt-2" src="{{ image.image.url }}" alt="Изображение" width="15%">
+                                    </a>
+                                {% endfor %}
+                                <hr>
+                            </div>
+                        {% endif %}
+                        {% if category.files.all %}
+                            <div class="col-md-12">
+                                Файлы
+                            </div>
+                            {% for file in category.files.all %}
+                                <div class="mt-2 col-md-12">
+                                    <a href="{{ file.file.url }}" download>{{ file.filename }}</a>
+                                </div>
+                            {% endfor %}
+                            <div class="col-md-12">
+                                <hr>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 
