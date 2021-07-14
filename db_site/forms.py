@@ -35,11 +35,19 @@ class CategoryListForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         lab = kwargs.pop('lab')
-        self.all_parts = Category.objects.filter(
-            lab__slug=lab,
-        ).exclude(cat_type='BO')
-        super(CategoryListForm, self).__init__(*args, **kwargs)
-        self.fields['categories'].queryset = self.all_parts
+        cat_type = False
+        try:
+            cat_type = kwargs.pop('type')
+            self.all_parts = Category.objects.filter(lab__slug=lab, cat_type=cat_type)
+        except KeyError:
+            self.all_parts = Category.objects.filter(
+                lab__slug=lab,
+            ).exclude(cat_type='BO')
+        finally:
+            super(CategoryListForm, self).__init__(*args, **kwargs)
+            self.fields['categories'].queryset = self.all_parts
+            if cat_type:
+                self.fields['categories'].label = 'Категория для базового объекта'
 
 
 class BaseObjectForm(forms.ModelForm):
