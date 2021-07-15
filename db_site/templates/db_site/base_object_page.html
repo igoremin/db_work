@@ -78,7 +78,6 @@
             <tr class="text-center">
                 <th scope="col">#</th>
                 <th scope="col">Название</th>
-                <th scope="col">Инв. номер</th>
                 <th scope="col">Количество</th>
                 <th scope="col">Свободно</th>
             </tr>
@@ -91,7 +90,6 @@
                     <td>
                         <a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}</a>
                     </td>
-                    <td>{{ simple_object.inventory_number }}</td>
                     <td>{{ simple_object.amount }}</td>
                     <td>{{ simple_object.amount_free }}</td>
 

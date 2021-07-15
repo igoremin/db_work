@@ -159,13 +159,13 @@
                             <a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}{% if simple_object.measure %}, {{ simple_object.measure }}{% endif %}</a>
                         </td>
                         <td>
-                            {% if simple_object.inventory_number %}
-                                {{ simple_object.inventory_number }}
+                            {% if simple_object.base_object.inventory_number %}
+                                {{ simple_object.base_object.inventory_number }}
                             {% endif %}
                         </td>
                         <td>
-                            {% if simple_object.directory_code %}
-                                {{ simple_object.directory_code }}
+                            {% if simple_object.base_object.directory_code %}
+                                {{ simple_object.base_object.directory_code }}
                             {% endif %}
                         </td>
                         <td>{{ simple_object.amount }}</td>
