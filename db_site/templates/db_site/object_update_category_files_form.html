@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1><a href="{{ object.get_absolute_url }}">{{ object.name }}</a></h1>
+    <h1><a href="{{ object.get_absolute_url }}">{{ object }}</a></h1>
     <h3>Категория : {{ category.name }}</h3>
     {% if category.text %}
         <h5>Описание : {{ category.text }}</h5>
