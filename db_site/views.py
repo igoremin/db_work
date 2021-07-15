@@ -59,7 +59,8 @@ def custom_proc_user_categories_list(request):
                 'big_objects_cat': 'none',
                 'rooms': 'none'
             }
-    except Exception:
+    except Exception as err:
+        print(err)
         pass
     finally:
         return data
@@ -314,7 +315,7 @@ def base_object_page(request, lab, slug):
 
 @login_required(login_url='/login/')
 def base_object_update_page(request, lab, slug):
-    """Страница базового объекта. lab - текущая лаборатория"""
+    """Страница обновления базового объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         base_object = get_object_or_404(BaseObject, slug=slug)
@@ -341,7 +342,7 @@ def base_object_update_page(request, lab, slug):
 
 @login_required(login_url='/login/')
 def base_object_create_simple(request, lab, slug):
-    """Страница базового объекта. lab - текущая лаборатория"""
+    """Создание простого объекта на основе базового"""
     if request.user.is_superuser:
         base_object = get_object_or_404(BaseObject, slug=slug)
         cat_form = CategoryListForm(request.POST, lab=lab)
@@ -458,7 +459,7 @@ def simple_object_page(request, lab, slug):
             all_parts_list = []
             # simple_object.update_amount()
             # Список составляющих сложных объектов в которых присутствуют простые объекты
-            big_objects_list = BigObjectList.objects.filter(simple_object__slug=slug)
+            big_objects_list = BigObjectList.objects.filter(simple_object=simple_object)
             for obj in big_objects_list:
                 for big_object in BigObject.objects.filter(base=obj.big_object, status='IW'):
                     for child in big_object.get_descendants(include_self=True):
@@ -476,8 +477,6 @@ def simple_object_page(request, lab, slug):
 
             file_categories_form = FileAndImageCategoryForm()
             file_categories = FileAndImageCategory.objects.filter(simple_object=simple_object)
-
-            # simple_object.update_amount()
 
             context = {
                 'write_off_form': write_off_form,
@@ -945,7 +944,7 @@ def big_object_update_components(request, lab, slug):
 
 @login_required(login_url='/login/')
 def big_object_update_parts(request, lab, slug):
-    """Добавление/Обновление компонентов составного объекта"""
+    """Добавление/Обновление частей составного объекта"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         base_big_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
@@ -1243,6 +1242,7 @@ def worker_order_confirm(request, lab, pk):
 
 @login_required(login_url='/login/')
 def invoice_list(request, lab):
+    """Список накладных"""
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         all_invoice = Invoice.objects.filter(lab__slug=lab)
@@ -1254,6 +1254,7 @@ def invoice_list(request, lab):
 
 @login_required(login_url='/login/')
 def invoice_page(request, lab, pk):
+    """Страница накладной"""
     user = Profile.objects.get(user_id=request.user.id)
     invoice = get_object_or_404(Invoice, pk=pk)
     if request.user.is_superuser or user.lab.slug == lab:
@@ -1288,7 +1289,7 @@ def invoice_page(request, lab, pk):
 
 @login_required(login_url='/login/')
 def invoice_page_form(request, lab, pk=None):
-    user = Profile.objects.get(user_id=request.user.id)
+    """Редактирование и создание накладной"""
     if request.user.is_superuser:
         if request.method == 'GET':
             if pk is None:
@@ -1332,7 +1333,8 @@ def invoice_page_form(request, lab, pk=None):
 
 @login_required(login_url='/login/')
 def invoice_object_form(request, lab, pk):
-    user = Profile.objects.get(user_id=request.user.id)
+    """Создание нового простого объекта и базавого на его основе.
+    Базовый так же привязывается к конкретной накладной"""
     if request.user.is_superuser:
         invoice = get_object_or_404(Invoice, pk=pk)
         if request.method == 'GET' and request.is_ajax():
@@ -1401,7 +1403,7 @@ def invoice_object_form(request, lab, pk):
 
 @login_required(login_url='/login/')
 def invoice_base_object_form(request, lab, pk):
-    user = Profile.objects.get(user_id=request.user.id)
+    """Создание нового базового объекта для конкретной накладной"""
     if request.user.is_superuser:
         invoice = get_object_or_404(Invoice, pk=pk)
         if request.method == 'GET':
@@ -1478,7 +1480,7 @@ def invoice_base_object_instance_form(request, lab, pk, instance_pk=None):
 
 @login_required(login_url='/login/')
 def load_new_db(request, lab):
-    user = Profile.objects.get(user_id=request.user.id)
+    """Загрузка нового файла с данными для конкретной лаборатории"""
     if request.user.is_superuser:
         if request.method == 'GET':
             form = DataBaseDocForm()
@@ -1559,9 +1561,6 @@ def delete_all_data_for_lab(request, lab):
             for category in all_categories:
                 print(category)
                 category.delete()
-            #
-            # big_objects_slug = BigObject.objects.filter(lab__slug=lab).values_list('slug')
-            # print(big_objects_slug)
             return redirect(home_page)
 
 
