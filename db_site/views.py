@@ -358,14 +358,11 @@ def base_object_create_simple(request, lab, slug):
                     base_object=base_object,
                     name=base_object.name,
                     lab=base_object.lab,
-                    inventory_number=base_object.inventory_number,
-                    directory_code=base_object.directory_code,
                     measure=measure,
                     price=round(base_object.total_price / base_object.amount, 2),
                     amount=base_object.amount,
                     category=cat_form.clean()['categories']
                 )
-
                 simple_object.save()
                 form = SimpleObjectForm(instance=simple_object)
                 context = {

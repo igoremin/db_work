@@ -396,10 +396,6 @@ class SimpleObject(models.Model):
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, verbose_name='Лаборатория')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Категория', blank=True, null=True)
-    inventory_number = models.CharField(verbose_name='Инвентаризационный номер, не уникальный', max_length=100,
-                                        blank=True, null=True)
-    directory_code = models.CharField(verbose_name='Код справочника, не уникальный', max_length=100,
-                                      blank=True, null=True)
     room = models.ManyToManyField(Room, related_name='simple_object', related_query_name='simple_objects',
                                   verbose_name='Кабинет', blank=True)
     place = models.CharField(max_length=200, verbose_name='Место расположения', blank=True)
@@ -453,11 +449,6 @@ class SimpleObject(models.Model):
                 self.total_price = self.price * self.amount
                 update_big_objects_price = True
                 # self.update_price()
-            if old_self.inventory_number != self.inventory_number:
-                self.inventory_number = self.inventory_number.upper()
-
-            if old_self.directory_code != self.directory_code:
-                self.directory_code = self.directory_code.upper()
 
             if old_self.lab != self.lab and self.base_object:
                 self.base_object.lab = self.lab
@@ -468,10 +459,10 @@ class SimpleObject(models.Model):
             """Проверка изменений полей для записи истории изменений.
             Если какое-либо из полей изменилось то сохраняем объект с записями в истории,
             иначе пропускаем запись истории"""
-            obj = [self.name, self.category, self.status, self.inventory_number, self.directory_code, self.price_text,
+            obj = [self.name, self.category, self.status, self.price_text,
                    self.amount, self.amount_in_work]
-            old_obj = [old_self.name, old_self.category, old_self.status, old_self.inventory_number,
-                       old_self.directory_code, old_self.price_text, old_self.amount, old_self.amount_in_work]
+            old_obj = [old_self.name, old_self.category, old_self.status,
+                       old_self.price_text, old_self.amount, old_self.amount_in_work]
 
             if obj == old_obj:
                 self.skip_history_when_saving = True
@@ -480,10 +471,6 @@ class SimpleObject(models.Model):
             print('---SAVE NEW SIMPLE OBJECT---', self)
             self.create_slug()
             self.total_price = self.price * self.amount
-            if self.inventory_number:
-                self.inventory_number = self.inventory_number.upper().strip()
-            if self.directory_code:
-                self.directory_code = self.directory_code.upper().strip()
             self.name = self.name.strip()
             self.name_lower = self.name.lower()
 

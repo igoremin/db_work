@@ -124,7 +124,9 @@
         <div class="col">
             <h1>{{ object.name }}</h1>
             <ul>
-                <li>Базовый объект : <a href="{{ object.base_object.get_absolute_url }}">{{ object.base_object.name }}</a></li>
+                {% if object.base_object %}
+                    <li>Базовый объект : <a href="{{ object.base_object.get_absolute_url }}">{{ object.base_object.name }}</a></li>
+                {% endif %}
                 {% if object.base_object.invoicebaseobject_set.all %}
                     <li>
                         {% if object.base_object.invoicebaseobject_set.all|length == 1 %}
@@ -137,7 +139,9 @@
                         {% endfor %}
                     </li>
                 {% endif %}
-                <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
+                {% if object.base_object.inventory_number %}
+                    <li>Инвентаризационный номер : {{ object.base_object.inventory_number }}</li>
+                {% endif %}
                 <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
                 <li>В работе : {{ object.amount_in_work }}</li>
                 <li>{% if object.amount_free < 0 %}Не хватает{% else %}Свободно{% endif %} : {{ object.amount_free }}</li>

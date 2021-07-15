@@ -40,9 +40,9 @@ class BigObjectAdmin(admin.ModelAdmin):
 
 @admin.register(SimpleObject)
 class SimpleObjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measure', 'inventory_number', 'amount')
+    list_display = ('name', 'measure', 'amount')
     list_filter = ('lab', 'category')
-    search_fields = ('name', 'name_lower', 'inventory_number', 'directory_code')
+    search_fields = ('name', 'name_lower')
 
 
 @admin.register(Category)

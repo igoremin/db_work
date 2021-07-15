@@ -87,7 +87,7 @@ class BaseObjectForm(forms.ModelForm):
 class SimpleObjectForm(forms.ModelForm):
     class Meta:
         model = SimpleObject
-        fields = ['base_object', 'name', 'inventory_number', 'directory_code', 'lab', 'room', 'place', 'category',
+        fields = ['base_object', 'name', 'lab', 'room', 'place', 'category',
                   'price', 'amount', 'measure', 'status', 'text']
 
         widgets = {
@@ -98,8 +98,6 @@ class SimpleObjectForm(forms.ModelForm):
                 }
             ),
             'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'search_box', 'autocomplete': "off"}),
-            'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
             'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
             'room': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'place': forms.TextInput(attrs={'class': 'form-control'}),
