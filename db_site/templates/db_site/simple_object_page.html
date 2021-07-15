@@ -186,9 +186,12 @@
         <div class="col">
             {% if object.base_object.invoicebaseobject_set.all %}
                 {% for data in object.base_object.invoicebaseobject_set.all %}
-                    <div class="row">
-                        <div class="col text-center mb-3" style="background-color: #e9ecef">Требовательная накладная № {{ data.invoice.number }}</div>
-                    </div>
+                    {% if data.invoice.fileandimagecategory_set.all %}
+                        <div class="row">
+                            <div class="col text-center mb-3" style="background-color: #e9ecef">Требовательная накладная № {{ data.invoice.number }}</div>
+                        </div>
+                    {% endif %}
+
                     {% for cat in data.invoice.fileandimagecategory_set.all %}
                         <div class="row">
                             <div class="col text-center">
@@ -237,9 +240,9 @@
 
             {% endif %}
             {% if file_categories %}
-                <div class="row">
-                    <div class="col text-center mb-3" style="background-color: #e9ecef">Экземпляр</div>
-                </div>
+{#                <div class="row">#}
+{#                    <div class="col text-center mb-3" style="background-color: #e9ecef">Экземпляр</div>#}
+{#                </div>#}
                 {% for category in file_categories %}
                     <div class="row">
                         <div class="col text-center">
