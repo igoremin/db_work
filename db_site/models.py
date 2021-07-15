@@ -4,12 +4,10 @@ from django.shortcuts import reverse
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from django.core.exceptions import ObjectDoesNotExist
 from slugify import slugify
 from django.utils.translation import gettext_lazy as _
-from django.db import IntegrityError
 from simple_history.models import HistoricalRecords
-from mptt.models import MPTTModel, TreeForeignKey, TreeManyToManyField
+from mptt.models import MPTTModel, TreeForeignKey
 from PIL import Image
 import os
 
@@ -316,6 +314,16 @@ class BaseObject(models.Model):
                     lab=self.lab, name=self.category.name, cat_type='BO'
                 )
                 self.category = new_category
+
+            if self.total_price != old_self.total_price or self.amount != old_self.amount:
+                # Обновляем простой объект в том случае если у данного базового есть связь только с одним простым
+                all_simple_objects = SimpleObject.objects.filter(base_object=self)
+                if len(all_simple_objects) == 1:
+                    simple_object = all_simple_objects[0]
+                    simple_object.amount = self.amount
+                    simple_object.total_price = self.total_price
+                    simple_object.price = round(self.total_price / self.amount, 2)
+                    simple_object.save(update_base_object=False)
         else:
             self.name_lower = self.name.lower()
             self.create_slug()
@@ -429,13 +437,12 @@ class SimpleObject(models.Model):
     class Meta:
         verbose_name = 'Простой объект'
         verbose_name_plural = 'Простые объекты'
-        # ordering = ['date_add']
         ordering = ['name_lower']
 
     def __str__(self):
-        return '{} ({})'.format(self.name, self.inventory_number)
+        return '{}'.format(self.name)
 
-    def save(self, *args, **kwargs):
+    def save(self, update_base_object=True, *args, **kwargs):
         update_big_objects_price = False    # Статус для обновления всех связанных объектов
         if self.pk is not None:
             old_self = SimpleObject.objects.get(pk=self.pk)
@@ -496,27 +503,28 @@ class SimpleObject(models.Model):
         if update_big_objects_price:
             self.update_big_objects_price()
 
-        """Проверка на количество простых объектов входящих в состав базового.
-        Если базовый объект состоит из одного простого, то их количество должно совпадать
-        Если базовый объект состоит из нескольких простых, то его количество будет равно нулю только в случае если
-        количество всех простых компонетов так же равно нулю"""
-        if self.base_object:
-            base_object_components = SimpleObject.objects.filter(base_object=self.base_object)
-            if len(base_object_components) == 1:
-                print('Найден один компонент')
-                self.base_object.amount = self.amount
-                self.base_object.save()
-            elif len(base_object_components) > 1:
-                print('Количество компонентов больше одного')
-                empty_components = 0
-                for component in base_object_components:
-                    print(component, component.amount)
-                    if component.amount == 0:
-                        empty_components += 1
-                if empty_components != 0:
-                    print('Все составляющие пустые')
-                    self.base_object.amount = 0
+        if update_base_object:
+            """Проверка на количество простых объектов входящих в состав базового.
+            Если базовый объект состоит из одного простого, то их количество должно совпадать
+            Если базовый объект состоит из нескольких простых, то его количество будет равно нулю только в случае если
+            количество всех простых компонетов так же равно нулю"""
+            if self.base_object:
+                base_object_components = SimpleObject.objects.filter(base_object=self.base_object)
+                if len(base_object_components) == 1:
+                    print('Найден один компонент')
+                    self.base_object.amount = self.amount
                     self.base_object.save()
+                elif len(base_object_components) > 1:
+                    print('Количество компонентов больше одного')
+                    empty_components = 0
+                    for component in base_object_components:
+                        print(component, component.amount)
+                        if component.amount == 0:
+                            empty_components += 1
+                    if empty_components != 0:
+                        print('Все составляющие пустые')
+                        self.base_object.amount = 0
+                        self.base_object.save()
 
     def get_absolute_url(self):
         return reverse('simple_object_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
@@ -1211,8 +1219,6 @@ class DataBaseDoc(models.Model):
                     base_object=base_object,
                     name=base_object.name,
                     lab=self.lab,
-                    inventory_number=base_object.inventory_number,
-                    directory_code=base_object.directory_code,
                     measure=base_object.measure,
                     price=round(base_object.total_price / base_object.amount, 2),
                     amount=base_object.amount,
