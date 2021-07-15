@@ -6,7 +6,8 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     object_delete_image, object_delete_file, load_new_db, base_object_page, worker_update_page,\
     worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
     base_big_object_page, room_page, backup, base_object_update_page, base_object_create_simple, worker_order_confirm,\
-    order_list, invoice_list, invoice_page, invoice_page_form, invoice_object_form, invoice_base_object_form
+    order_list, invoice_list, invoice_page, invoice_page_form, invoice_object_form, invoice_base_object_form,\
+    invoice_base_object_instance_form
 
 
 urlpatterns = [
@@ -60,5 +61,9 @@ urlpatterns = [
     path('<str:lab>/invoices/<int:pk>/create_new_simple_object/', invoice_object_form, name='invoice_object_form_url'),
     path('<str:lab>/invoices/<int:pk>/create_new_base_object/', invoice_base_object_form,
          name='invoice_base_object_form_url'),
+    path('<str:lab>/invoices/<int:pk>/add_base_object/', invoice_base_object_instance_form,
+         name='invoice_add_base_object_form_url'),
+    path('<str:lab>/invoices/<int:pk>/update_exist_instance/<int:instance_pk>/', invoice_base_object_instance_form,
+         name='invoice_update_instance_form_url'),
     path('backup/', backup, name='backup_url'),
 ]

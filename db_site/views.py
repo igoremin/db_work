@@ -1,4 +1,3 @@
-import requests
 from django.shortcuts import render, redirect
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
@@ -13,7 +12,7 @@ from django.db.models import Q, F
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
-    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm
+    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components
 
@@ -1345,10 +1344,12 @@ def invoice_object_form(request, lab, pk):
         elif request.method == 'GET':
             form = SimpleObjectForm()
             base_form = CategoryListForm(lab=lab, type='BO')
+            inventory_form = InventoryNumberForm()
             context = {
                 'form': form,
                 'invoice': invoice,
                 'base_form': base_form,
+                'inventory_form': inventory_form,
             }
             return render(request, 'db_site/invoice_object_form.html', context=context)
         else:
@@ -1357,6 +1358,14 @@ def invoice_object_form(request, lab, pk):
             if base_form.is_valid():
                 # Определяем категорию базового объекта
                 base_cat = base_form.clean()['categories']
+
+            inventory_form = InventoryNumberForm(request.POST)
+            inventory_number = None
+            directory_code = None
+            if inventory_form.is_valid():
+                inventory_number = inventory_form.clean()['inventory_number']
+                directory_code = inventory_form.clean()['directory_code']
+
             form = SimpleObjectForm(request.POST)
             if form.is_valid():
                 # Сохраняем базовый объект на основе созданного простого, создаем связь между базовым и накладной
@@ -1366,8 +1375,10 @@ def invoice_object_form(request, lab, pk):
                 base_object.lab = simple_object.lab
                 base_object.amount = simple_object.amount
                 base_object.total_price = simple_object.amount * simple_object.price
-                base_object.inventory_number = simple_object.inventory_number
-                base_object.directory_code = simple_object.directory_code
+                if inventory_number:
+                    base_object.inventory_number = inventory_number
+                if directory_code:
+                    base_object.directory_code = directory_code
                 base_object.measure = simple_object.measure
                 if base_cat:
                     base_object.category = base_cat
@@ -1383,6 +1394,8 @@ def invoice_object_form(request, lab, pk):
                 context = {
                     'form': form,
                     'invoice': invoice,
+                    'base_form': base_form,
+                    'inventory_form': inventory_form,
                 }
                 return render(request, 'db_site/invoice_object_form.html', context=context)
 
@@ -1412,6 +1425,52 @@ def invoice_base_object_form(request, lab, pk):
                 InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=base_object.amount).save()
                 return redirect(invoice_page, lab, pk)
             return render(request, 'db_site/invoice_object_form.html', context=context)
+
+
+@login_required(login_url='/login/')
+def invoice_base_object_instance_form(request, lab, pk, instance_pk=None):
+    """Добавление и обновление составляющей для накладной.
+    Если указана переменная instance_pk, то составляющая накладной будет обновляться,
+    иначе происходит добавлдение уже существующего базового объекта к данной накладной"""
+    if request.user.is_superuser:
+        invoice = get_object_or_404(Invoice, pk=pk)
+        form_type = 'add_exist_base_object'
+        if request.method == 'GET':
+            form = InvoiceBaseObjectForm(invoice_pk=invoice.pk)
+            if instance_pk:
+                instance = get_object_or_404(InvoiceBaseObject, pk=instance_pk)
+                form = InvoiceBaseObjectForm(instance=instance)
+                form_type = 'update_exist_instance'
+            context = {
+                'invoice': invoice,
+                'form': form,
+                'type': form_type,
+                'instance_pk': instance_pk
+            }
+            return render(request, 'db_site/invoice_object_form.html', context=context)
+        else:
+            form = InvoiceBaseObjectForm(request.POST, invoice_pk=invoice.pk)
+            if instance_pk:
+                instance = get_object_or_404(InvoiceBaseObject, pk=instance_pk)
+                form = InvoiceBaseObjectForm(request.POST, instance=instance)
+                form_type = 'update_exist_instance'
+
+            context = {
+                'invoice': invoice,
+                'form': form,
+                'type': form_type,
+                'instance_pk': instance_pk
+            }
+            if form.is_valid():
+                if instance_pk:
+                    form.save()
+                else:
+                    new_object_for_invoice = form.save(commit=False)
+                    new_object_for_invoice.invoice = invoice
+                    form.save()
+                return redirect(invoice_page, lab, pk)
+            return render(request, 'db_site/invoice_object_form.html', context=context)
+    return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
 
 """---------------------------------------------------------------------------------------------------------"""
@@ -1457,13 +1516,12 @@ def load_new_db(request, lab):
         else:
             form = DataBaseDocForm(request.POST, request.FILES)
             if form.is_valid():
-                print('VALID')
-                # new_file = form.save(commit=False)
-                # new_file.lab = LabName.objects.get(slug=lab)
-                # form.save()
-                #
-                # file = DataBaseDoc.objects.get(pk=new_file.pk)
-                # file.update_all_data()
+                new_file = form.save(commit=False)
+                new_file.lab = LabName.objects.get(slug=lab)
+                form.save()
+
+                file = DataBaseDoc.objects.get(pk=new_file.pk)
+                file.update_all_data()
                 return redirect(load_new_db, lab=lab)
 
             else:
