@@ -1043,10 +1043,9 @@ def search(request, lab):
         else:
             form = SearchForm(request.POST)
             if form.is_valid():
-                q = form.clean()['q']
+                q = form.clean()['q'].lower()
                 results = SimpleObject.objects.filter(
-                    Q(inventory_number__icontains=q) | Q(name_lower__icontains=q) | Q(name__icontains=q) |
-                    Q(directory_code__icontains=q)
+                    Q(name_lower__icontains=q) | Q(name__icontains=q)
                 ).filter(lab__slug=lab)
 
                 base_results = BaseObject.objects.filter(
