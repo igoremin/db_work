@@ -1,6 +1,6 @@
 from django import forms
 from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategory,\
-    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject, BaseObject, Invoice
+    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject, BaseObject, Invoice, InvoiceBaseObject
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -48,6 +48,29 @@ class CategoryListForm(forms.Form):
             self.fields['categories'].queryset = self.all_parts
             if cat_type:
                 self.fields['categories'].label = 'Категория для базового объекта'
+
+
+class InventoryNumberForm(forms.Form):
+    inventory_number = forms.CharField(
+        required=True,
+        label='Инвентаризационный номер',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Номер',
+            }
+        )
+    )
+    directory_code = forms.CharField(
+        required=True,
+        label='Код справочника',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Код',
+            }
+        )
+    )
 
 
 class BaseObjectForm(forms.ModelForm):
@@ -101,10 +124,9 @@ class SimpleObjectForm(forms.ModelForm):
             'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
             'room': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'place': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
+            'category': forms.Select(attrs={'class': 'form-control', 'id': 'category_for_lab'}),
             'price': forms.NumberInput(attrs={
                 'class': 'form-control',
-                # 'step': 0.01,
                 'min': 0,
             }),
             'amount': forms.NumberInput(attrs={
@@ -116,14 +138,6 @@ class SimpleObjectForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'text': forms.TextInput(attrs={'class': 'form-control'}),
         }
-
-    categories_list = None
-    category = forms.ModelChoiceField(
-        label='Выбор категории',
-        queryset=categories_list,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'category_for_lab'}),
-    )
 
     def __init__(self, *args, **kwargs):
         self.category = Category.objects.filter(cat_type='SO')
@@ -445,3 +459,36 @@ class InvoiceForm(forms.ModelForm):
             'date': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+
+class InvoiceBaseObjectForm(forms.ModelForm):
+    class Meta:
+        model = InvoiceBaseObject
+        fields = ['base_object', 'amount']
+
+        widgets = {
+            'base_object': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+            }),
+            'amount': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Количество',
+                    'type': 'number',
+                    'step': 0.001,
+                    'min': 0,
+                })
+        }
+
+    def __init__(self, *args, **kwargs):
+        invoice_pk = False
+        try:
+            invoice_pk = kwargs.pop('invoice_pk')
+        except KeyError:
+            pass
+        if invoice_pk is not False:
+            self.base_list = BaseObject.objects.exclude(invoicebaseobject__invoice__pk=invoice_pk)
+        super(InvoiceBaseObjectForm, self).__init__(*args, **kwargs)
+        if invoice_pk is not False:
+            self.fields['base_object'].queryset = self.base_list
