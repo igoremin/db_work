@@ -1095,7 +1095,6 @@ class BigObjectList(models.Model):
             for child in big_object.get_descendants(include_self=True):
                 component = child.base.simple_components.filter(simple_object=self.simple_object)
                 if component:
-                    print(big_object)
                     result.append(big_object)
                     break
         if len(result) > 0:
@@ -1156,6 +1155,8 @@ class WorkerEquipment(models.Model):
         verbose_name='Объект'
     )
     amount = models.FloatField(verbose_name='Количество', default=0)
+    price = models.FloatField(verbose_name='Цена одной позиции', blank=True, null=True)
+    total_price = models.FloatField(verbose_name='Сумма данной позиции', blank=True, null=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='equipment',
                               related_query_name='equipments', verbose_name='Заказ', blank=True, null=True)
 
@@ -1169,6 +1170,10 @@ class WorkerEquipment(models.Model):
 
     def save(self, *args, **kwargs):
         print('---SAVE WORKER EQUIPMENT LIST---')
+        if self.simple_object:
+            if self.simple_object.price and self.simple_object.amount:
+                self.price = self.simple_object.price
+                self.total_price = self.price * self.amount
         super().save(*args, **kwargs)
 
 
