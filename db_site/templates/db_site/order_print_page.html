@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Страница для печати</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'db_site/favicon/LogoADL.gif' %}"/>
+    <link rel="stylesheet" href="{% static 'db_site/style/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'db_site/style/db_site_style.css' %}">
+
+</head>
+<body>
+
+<div class="container" style="max-width: 1500px; min-width: 1500px">
+    <h2 class="text-center">Лаборатория {{ order.lab }}</h2>
+    <h3 class="text-center">Заявка на выдачу от {{ order.date }} , получатель : {{ profile.name }}</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col" style="width: 5%">#</th>
+            <th scope="col" style="width: 35%">Название</th>
+            <th scope="col" style="width: 10%">Инв. номер</th>
+            <th scope="col" style="width: 10%">Кол-во</th>
+            <th scope="col" style="width: 10%">Ед. изм.</th>
+            <th scope="col" style="width: 10%">Цена</th>
+            <th scope="col" style="width: 10%">Сумма</th>
+            <th scope="col" style="width: 10%">Подпись</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for data in order.equipment.all %}
+            <tr>
+                <td></td>
+                <td>{{ data.simple_object.name }}</td>
+                <td>{{ data.simple_object.base_object.inventory_number }}</td>
+                <td>{{ data.amount }}</td>
+                <td>{{ data.simple_object.measure }}</td>
+                <td>
+                    {% if data.price %}
+                        {{ data.price }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if data.total_price %}
+                        {{ data.total_price }}
+                    {% endif %}
+                </td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="row">
+        <div class="col">
+            <p>Выдал : Бизяева Юлия Михайловна / </p>
+            <p>Принял : {{ profile.name }} / </p>
+            <p>Дата и время выдачи : {{ time }}</p>
+        </div>
+        <div class="col">
+        </div>
+    </div>
+</div>
+</body>
+
+<script src="{% static 'db_site/scripts/jquery-3.4.1.js' %}"></script>
+<script src="{% static 'db_site/scripts/mark.js' %}"></script>
+<script src="{% static 'db_site/scripts/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'db_site/scripts/db_site_scripts.js' %}"></script>
+
+
+</html>
