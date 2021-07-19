@@ -7,7 +7,7 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
     base_big_object_page, room_page, backup, base_object_update_page, base_object_create_simple, worker_order_confirm,\
     order_list, invoice_list, invoice_page, invoice_page_form, invoice_object_form, invoice_base_object_form,\
-    invoice_base_object_instance_form
+    invoice_base_object_instance_form, order_print_page
 
 
 urlpatterns = [
@@ -54,6 +54,7 @@ urlpatterns = [
     path('<str:lab>/delete_all_data/', delete_all_data_for_lab, name='delete_all_data_for_lab_url'),
     path('<str:lab>/confirm_order/<int:pk>/', worker_order_confirm, name='worker_order_confirm_url'),
     path('<str:lab>/orders/', order_list, name='orders_list_url'),
+    path('<str:lab>/orders/<int:pk>/print_page/', order_print_page, name='order_print_page_url'),
     path('<str:lab>/invoices/', invoice_list, name='invoices_list_url'),
     path('<str:lab>/invoices/<int:pk>/', invoice_page, name='invoice_page_url'),
     path('<str:lab>/invoices/create/', invoice_page_form, name='invoice_create_page_url'),

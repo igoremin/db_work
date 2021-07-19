@@ -3,7 +3,7 @@ from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObje
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
     Order, Invoice, InvoiceBaseObject
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.core.exceptions import ObjectDoesNotExist
@@ -1588,7 +1588,7 @@ def room_page(request, lab, slug):
 
 
 """---------------------------------------------------------------------------------------------------------"""
-"""-----------------------------------------------ORDER LIST----------------------------------------------------"""
+"""-----------------------------------------------ORDERS----------------------------------------------------"""
 
 
 @login_required(login_url='/login/')
@@ -1624,6 +1624,21 @@ def order_list(request, lab):
             'old_prefix': prefix
         }
         return render(request, 'db_site/orders_list.html', context=context)
+
+
+@login_required(login_url='/login/')
+def order_print_page(request, lab, pk):
+    if request.user.is_superuser:
+        if request.method == "GET":
+            import datetime
+            order = get_object_or_404(Order, pk=pk)
+            profile = order.equipment.first().profile
+            context = {
+                'order': order,
+                'profile': profile,
+                'time': datetime.datetime.now()
+            }
+            return render(request, 'db_site/order_print_page.html', context=context)
 
 
 """---------------------------------------------------------------------------------------------------------"""
