@@ -630,7 +630,6 @@ def base_big_object_page(request, lab, slug):
         if request.method == 'GET':
             file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
             file_categories_form = FileAndImageCategoryForm()
-            components = BigObjectList.objects.filter(big_object__slug=slug)
             all_parts = base_big_object.get_unique_parts(include_self=True)
             base_components = get_base_components(all_parts=all_parts)
             top_level_objects = base_big_object.get_top_level_big_objects()
@@ -650,7 +649,6 @@ def base_big_object_page(request, lab, slug):
                 'parents': parents,
                 'all_parts': all_parts,
                 'base_components': base_components,
-                'components': components,
                 'samples': samples,
 
             }
@@ -685,8 +683,6 @@ def big_object_page(request, lab, slug, pk):
 
         if request.method == 'GET':
             if request.user.is_superuser or user.lab.slug == lab:
-                components = BigObjectList.objects.filter(big_object__slug=slug)
-
                 all_parts = big_object.get_descendants(include_self=True)
                 base_components = get_base_components(all_parts=all_parts)
 
@@ -699,7 +695,6 @@ def big_object_page(request, lab, slug, pk):
                 context = {
                     'base_big_object': base_big_object,
                     'big_object': big_object,
-                    'components': components,
                     # 'parents': all_parents,
                     'all_parts': all_parts,
                     'base_components': base_components,

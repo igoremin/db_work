@@ -225,68 +225,6 @@
     <h3 class="btn btn-outline-secondary" onclick="showTableOnPage(this);" id="components">Список компонентов</h3>
     <div id="components_table" style="display: none">
 
-        {% if components %}
-            <h4>
-                {% if big_object.name %}
-                    {{ big_object.name }}
-                {% else %}
-                    {{ big_object.base.name }}
-                {% endif %}
-            </h4>
-            <table  class="table table-hover table-bordered">
-                <thead>
-                <tr class="text-center">
-                    <th scope="col" style="width: 5%">#</th>
-                    <th scope="col" style="width: 30%">Название</th>
-                    <th scope="col" style="width: 15%">Инв. номер</th>
-                    <th scope="col">
-                        {% if big_object.status == 'IW' %}
-                            Используется
-                        {% elif big_object.status == 'NW'%}
-                            Требуется
-                        {% elif big_object.status == 'RD'%}
-                            Использовалось
-                        {% elif big_object.status == 'WO'%}
-                            Использовалось
-                        {% else %}
-                            Количество
-                        {% endif %}
-                    </th>
-                    {% if big_object.status == 'IW' %}
-                        <th scope="col">Остаток</th>
-                    {% elif big_object.status not in 'RD WO' %}
-                        <th scope="col">Свободно</th>
-                    {% endif %}
-                    <th scope="col">Сумма</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for component in components %}
-                    <tr>
-                        <td></td>
-                        <td>
-                            <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }}{% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a>
-                        </td>
-                        <td>
-                            {% if component.simple_object.base_object.inventory_number %}
-                                {{ component.simple_object.base_object.inventory_number }}
-                            {% endif %}
-                        </td>
-                        <td>{{ component.amount }}</td>
-                        {% if big_object.status not in 'RD WO' %}
-                            <td {% if component.simple_object.amount_free < 0 and big_object.status == 'IW'%}
-                                style="background: #dc3545"
-                            {% elif component.simple_object.amount_free < component.amount and big_object.status == 'NW'%}
-                                style="background: #dc3545"
-                            {% endif %}>{{ component.simple_object.amount_free }}</td>
-                        {% endif %}
-                        <td>{{ component.total_price_text }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-
         {% for part in all_parts %}
             {% if part.base.simple_components.all %}
                 <h5><a href="{{ part.base.get_absolute_url }}">{{ part.full_name }}</a></h5>

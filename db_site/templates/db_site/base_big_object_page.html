@@ -180,38 +180,6 @@
     <h3 class="btn btn-outline-secondary" onclick="showTableOnPage(this);" id="components">Список компонентов</h3>
     <div id="components_table" style="display: none">
 
-        {% if components %}
-            <h4>{{ base_big_object.name }}</h4>
-            <table  class="table table-hover table-bordered">
-                <thead>
-                <tr class="text-center">
-                    <th scope="col" style="width: 5%">#</th>
-                    <th scope="col" style="width: 30%">Название</th>
-                    <th scope="col" style="width: 15%">Инв. номер</th>
-                    <th scope="col">Количество</th>
-                    <th scope="col">Сумма</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for component in components %}
-                    <tr>
-                        <td></td>
-                        <td>
-                            <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }}{% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a>
-                        </td>
-                        <td>
-                            {% if component.simple_object.base_object.inventory_number %}
-                                {{ component.simple_object.base_object.inventory_number }}
-                            {% endif %}
-                        </td>
-                        <td>{{ component.amount }}</td>
-                        <td>{{ component.total_price_text }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-
         {% for part in all_parts %}
             {% if part.base.simple_components.all %}
                 <h5><a href="{{ part.base.get_absolute_url }}">{{ part.full_name }}</a></h5>
