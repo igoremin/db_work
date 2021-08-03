@@ -33,16 +33,16 @@
                         </a>
                     </td>
                     <td>
-                        {% if simple_object.inventory_number %}
+                        {% if simple_object.base_object.inventory_number %}
 {#                            <span {% if q|lower in simple_object.inventory_number|lower%}style="background-color: #f3ffbe" {% endif %}>#}
-                                {{ simple_object.inventory_number }}
+                                {{ simple_object.base_object.inventory_number }}
 {#                            </span>#}
                         {% endif %}
                     </td>
                     <td>
-                        {% if simple_object.directory_code %}
+                        {% if simple_object.base_object.directory_code %}
 {#                            <span {% if q|lower in simple_object.directory_code|lower%}style="background-color: #f3ffbe" {% endif %}>#}
-                                {{ simple_object.directory_code }}
+                                {{ simple_object.base_object.directory_code }}
 {#                            </span>#}
                         {% endif %}
                     </td>

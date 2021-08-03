@@ -329,8 +329,8 @@
                                 <td>
                                     <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }} {% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a></td>
                                 <td>
-                                    {% if component.simple_object.inventory_number %}
-                                        {{ component.simple_object.inventory_number }}
+                                    {% if component.simple_object.base_object.inventory_number %}
+                                        {{ component.simple_object.base_object.inventory_number }}
                                     {% endif %}
                                 </td>
                                 <td>{{ component.amount }}</td>
