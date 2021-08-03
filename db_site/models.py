@@ -801,15 +801,6 @@ class BigObject(MPTTModel):
                 for child in all_children:
                     child.update_simple_objects(old_self=old_self)
 
-            # if self.status == 'IW' and old_self.status != 'IW':
-            #     """Если объект в работе, тогда обновляем цену"""
-            #     self.update_price()
-            #
-            # elif self.status in ['NW']:
-            #     """Если статус не рабочий тогда зануляем стоимость"""
-            #     self.price = 0
-            #     self.price_text = '0,00'
-
             """Проверка изменений полей для записи истории изменений.
             Если какое-либо из полей изменилось то сохраняем объект с записями в истории,
             иначе пропускаем запись истории"""
@@ -831,6 +822,9 @@ class BigObject(MPTTModel):
                 self.price = 0
                 self.price_text = '0,00'
             super().save(*args, **kwargs)
+
+        if self.status in ['NW', 'IW', 'RD']:
+            self.update_price()
 
             # BigObject.objects.rebuild()
 
