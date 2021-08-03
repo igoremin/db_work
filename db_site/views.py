@@ -631,7 +631,7 @@ def base_big_object_page(request, lab, slug):
             file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
             file_categories_form = FileAndImageCategoryForm()
             components = BigObjectList.objects.filter(big_object__slug=slug)
-            all_parts = base_big_object.get_unique_parts(include_self=False)
+            all_parts = base_big_object.get_unique_parts(include_self=True)
             base_components = get_base_components(all_parts=all_parts)
             top_level_objects = base_big_object.get_top_level_big_objects()
 
@@ -687,8 +687,7 @@ def big_object_page(request, lab, slug, pk):
             if request.user.is_superuser or user.lab.slug == lab:
                 components = BigObjectList.objects.filter(big_object__slug=slug)
 
-                all_parts = big_object.get_descendants(include_self=False)
-
+                all_parts = big_object.get_descendants(include_self=True)
                 base_components = get_base_components(all_parts=all_parts)
 
                 file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
