@@ -440,6 +440,10 @@ class SimpleObject(models.Model):
         ordering = ['name_lower']
 
     def __str__(self):
+        if self.base_object:
+            if self.base_object.inventory_number:
+                return f'{self.name} ({self.base_object.inventory_number})'
+            return '{}'.format(self.name)
         return '{}'.format(self.name)
 
     def save(self, update_base_object=True, *args, **kwargs):

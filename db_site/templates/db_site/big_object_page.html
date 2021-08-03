@@ -268,8 +268,8 @@
                             <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }}{% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a>
                         </td>
                         <td>
-                            {% if component.simple_object.inventory_number %}
-                                {{ component.simple_object.inventory_number }}
+                            {% if component.simple_object.base_object.inventory_number %}
+                                {{ component.simple_object.base_object.inventory_number }}
                             {% endif %}
                         </td>
                         <td>{{ component.amount }}</td>
@@ -360,21 +360,6 @@
             <th scope="col">#</th>
             <th scope="col">Название</th>
             <th scope="col">Инв. номер</th>
-{#            <th scope="col">#}
-{#                {% if big_object.status == 'IW' %}#}
-{#                    Используется#}
-{#                {% elif big_object.status == 'NW'%}#}
-{#                    Требуется#}
-{#                {% elif big_object.status == 'RD'%}#}
-{#                    Использовалось#}
-{#                {% elif big_object.status == 'WO'%}#}
-{#                    Использовалось#}
-{#                {% endif %}#}
-{#            </th>#}
-{#            {% if big_object.status not in 'RD WO' %}#}
-{#                <th scope="col">Свободно</th>#}
-{#            {% endif %}#}
-{#            <th scope="col">Сумма</th>#}
         </tr>
         </thead>
 
@@ -383,17 +368,9 @@
             <tr>
                 <td></td>
                 <td>
-                    <a href="{{ component.get_absolute_url }}">{{ component.name }}</a></td>
+                    <a href="{{ component.get_absolute_url }}">{{ component.name }}</a>
+                </td>
                 <td>{{ component.inventory_number }}</td>
-{#                <td>{{ component.amount }}</td>#}
-{#                {% if big_object.status not in 'RD WO' %}#}
-{#                    <td {% if component.simple_object.amount_free < 0 and big_object.status == 'IW'%}#}
-{#                        style="background: #dc3545"#}
-{#                    {% elif component.simple_object.amount_free < component.amount and big_object.status == 'NW'%}#}
-{#                        style="background: #dc3545"#}
-{#                    {% endif %}>{{ component.simple_object.amount_free }}</td>#}
-{#                {% endif %}#}
-{#                <td>{{ component.total_price_text }}</td>#}
             </tr>
         {% endfor %}
         </tbody>
