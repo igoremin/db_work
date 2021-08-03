@@ -120,7 +120,6 @@
 
             {% if all_parts %}
                 <h3> Сборочные единицы :</h3>
-                <p class="small_p not_margin ml-3">{{ base_big_object.name }}</p>
                 {% for part in all_parts %}
                     <p class="not_margin small_p ml-3"><a href="{{ part.base.get_absolute_url }}">{{ part }}</a></p>
                 {% endfor %}
