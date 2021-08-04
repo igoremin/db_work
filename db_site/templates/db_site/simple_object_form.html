@@ -21,7 +21,7 @@
     <form action="{% if status == 'add' %}
                         {% url 'simple_object_add_form_url' lab=current_lab.slug%}
                     {% elif status == 'update' %}
-                        {% url 'simple_object_update_form_url' lab=current_lab.slug slug=slug%}
+                        {% url 'simple_object_update_form_url' lab=current_lab.slug slug=slug%}{% if update_base_object == False %}?update_base_object=no{% endif %}
                     {% endif %}"
     method="post">
         {% csrf_token %}
@@ -44,9 +44,7 @@
 
         {% endfor %}
 
-
-{#            {{ form.as_p }}#}
-            <button type="submit" class="btn btn-primary">Сохранить</button>
+         <button type="submit" class="btn btn-primary">Сохранить</button>
             <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
     </form>
 

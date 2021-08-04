@@ -363,13 +363,14 @@ def base_object_create_simple(request, lab, slug):
                     amount=base_object.amount,
                     category=cat_form.clean()['categories']
                 )
-                simple_object.save()
+                simple_object.save(update_base_object=False)
                 form = SimpleObjectForm(instance=simple_object)
                 context = {
                     'form': form,
                     'simple_object': simple_object,
                     'status': 'update',
                     'slug': simple_object.slug,
+                    'update_base_object': False
                 }
                 return render(request, 'db_site/simple_object_form.html', context=context)
         return redirect(base_object_page, lab, slug)
@@ -576,6 +577,7 @@ def simple_object_update_form(request, lab, slug):
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         simple_object = get_object_or_404(SimpleObject, slug=slug)
+        update_base_object = request.GET.get('update_base_object', default=True)
         if request.method == 'GET':
             form = SimpleObjectForm(instance=simple_object)    # Создаем новую форму
             context = {
@@ -587,7 +589,12 @@ def simple_object_update_form(request, lab, slug):
         else:
             form = SimpleObjectForm(request.POST, instance=simple_object)
             if form.is_valid():
-                form.save()
+                if update_base_object is True:
+                    form.save()
+                elif update_base_object == 'no':
+                    update_simple_object = form.save(commit=False)
+                    update_simple_object.save(update_base_object=False)
+
                 if simple_object.lab.slug != lab:
                     return redirect(simple_object_page, slug=simple_object.slug, lab=simple_object.lab.slug)
                 return redirect(simple_object_page, slug=simple_object.slug, lab=lab)
