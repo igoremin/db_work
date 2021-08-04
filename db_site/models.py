@@ -573,10 +573,13 @@ class SimpleObject(models.Model):
 
     def update_big_objects_price(self):
         """Обновляем цену у всех комплектующих и больших объектов где присутствует данный простой объект"""
+        base_big_objects = set()
         for component in BigObjectList.objects.filter(simple_object=self):
             """Обновление всех компонентов"""
             component.save()
-        for top_object in BigObject.objects.filter(status__in=['IW', 'NW'], top_level=True):
+            base_big_objects.add(component.big_object)
+
+        for top_object in BigObject.objects.filter(status__in=['IW', 'NW'], top_level=True, base__in=base_big_objects):
             top_object.update_price()
 
     def delete(self, *args, **kwargs):
