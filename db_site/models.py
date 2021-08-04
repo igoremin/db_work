@@ -315,15 +315,15 @@ class BaseObject(models.Model):
                 )
                 self.category = new_category
 
-            if self.total_price != old_self.total_price or self.amount != old_self.amount:
-                # Обновляем простой объект в том случае если у данного базового есть связь только с одним простым
-                all_simple_objects = SimpleObject.objects.filter(base_object=self)
-                if len(all_simple_objects) == 1:
-                    simple_object = all_simple_objects[0]
-                    simple_object.amount = self.amount
-                    simple_object.total_price = self.total_price
-                    simple_object.price = round(self.total_price / self.amount, 2)
-                    simple_object.save(update_base_object=False)
+            # if self.total_price != old_self.total_price or self.amount != old_self.amount:
+            #     # Обновляем простой объект в том случае если у данного базового есть связь только с одним простым
+            #     all_simple_objects = SimpleObject.objects.filter(base_object=self)
+            #     if len(all_simple_objects) == 1:
+            #         simple_object = all_simple_objects[0]
+            #         simple_object.amount = self.amount
+            #         simple_object.total_price = self.total_price
+            #         simple_object.price = round(self.total_price / self.amount, 2)
+            #         simple_object.save(update_base_object=False)
         else:
             self.name_lower = self.name.lower()
             self.create_slug()
@@ -508,27 +508,28 @@ class SimpleObject(models.Model):
             self.update_big_objects_price()
 
         if update_base_object:
-            """Проверка на количество простых объектов входящих в состав базового.
-            Если базовый объект состоит из одного простого, то их количество должно совпадать
-            Если базовый объект состоит из нескольких простых, то его количество будет равно нулю только в случае если
-            количество всех простых компонетов так же равно нулю"""
-            if self.base_object:
-                base_object_components = SimpleObject.objects.filter(base_object=self.base_object)
-                if len(base_object_components) == 1:
-                    print('Найден один компонент')
-                    self.base_object.amount = self.amount
-                    self.base_object.save()
-                elif len(base_object_components) > 1:
-                    print('Количество компонентов больше одного')
-                    empty_components = 0
-                    for component in base_object_components:
-                        print(component, component.amount)
-                        if component.amount == 0:
-                            empty_components += 1
-                    if empty_components != 0:
-                        print('Все составляющие пустые')
-                        self.base_object.amount = 0
-                        self.base_object.save()
+            pass
+            # """Проверка на количество простых объектов входящих в состав базового.
+            # Если базовый объект состоит из одного простого, то их количество должно совпадать
+            # Если базовый объект состоит из нескольких простых, то его количество будет равно нулю только в случае если
+            # количество всех простых компонетов так же равно нулю"""
+            # if self.base_object:
+            #     base_object_components = SimpleObject.objects.filter(base_object=self.base_object)
+            #     if len(base_object_components) == 1:
+            #         print('Найден один компонент')
+            #         self.base_object.amount = self.amount
+            #         self.base_object.save()
+            #     elif len(base_object_components) > 1:
+            #         print('Количество компонентов больше одного')
+            #         empty_components = 0
+            #         for component in base_object_components:
+            #             print(component, component.amount)
+            #             if component.amount == 0:
+            #                 empty_components += 1
+            #         if empty_components != 0:
+            #             print('Все составляющие пустые')
+            #             self.base_object.amount = 0
+            #             self.base_object.save()
 
     def get_absolute_url(self):
         return reverse('simple_object_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
@@ -563,14 +564,11 @@ class SimpleObject(models.Model):
         self.amount_in_work = amount_in_work
         self.amount_free = round(self.amount - self.amount_in_work, 2)
 
-        print(self.amount, self.amount_in_work, self.amount_free)
-
         SimpleObject.objects.filter(pk=self.pk).update(
             amount_free=self.amount_free, amount_in_work=self.amount_in_work, amount=self.amount
         )
 
         if update_big_objects_price:
-            print('UPDATE BIG OBJECTS PRICE')
             self.update_big_objects_price()
 
     def update_big_objects_price(self):
