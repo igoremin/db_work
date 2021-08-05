@@ -49,8 +49,8 @@ def create_new_file(name, base_big_object):
             'simple_object__name',
             'simple_object__measure',
             'amount',
-            'simple_object__inventory_number',
-            'simple_object__directory_code',
+            'simple_object__base_object__inventory_number',
+            'simple_object__base_object__directory_code',
         )
         if part_data:
             sheet.append([part.full_name, None, None, None, None])
@@ -73,10 +73,9 @@ def create_new_file(name, base_big_object):
     wb.save(f'{path}/{file_name}')
 
     category, created = FileAndImageCategory.objects.get_or_create(
-        big_object_id=base_big_object.id, name='Сформированные файлы'
+        big_object=base_big_object, name='Сформированные файлы'
     )
     new_file = FileForObject(
-        big_object_id=base_big_object.id,
         category=category,
         file=f'results_files/{file_name}'
     )
