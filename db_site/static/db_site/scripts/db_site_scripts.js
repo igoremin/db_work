@@ -50,6 +50,108 @@ function addSimpleObjectAria() {
 }
 
 
+function addNewSimpleObject() {
+    let form = $('#base_form')
+    let table = document.getElementById('all_components_table')
+    $.ajax({
+        type: 'POST',
+        data: 'form=' + form.serialize(),
+        error: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else{
+                alert("Что-то пошло не так, попробуйте снова!");
+            }
+        },
+        success: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else if (data.rez) {
+                console.log(data.rez);
+                form.trigger('reset');
+                $('.selectpicker').selectpicker('refresh');
+                let new_html = new DOMParser().parseFromString(data.new_html, 'text/html');
+                let new_table = new_html.getElementById('all_components_table');
+                let delete_modal = new_html.getElementById('delete_' + data.pk)
+                table.replaceWith(new_table);
+                $('#main_div').append(delete_modal);
+                tableRowsNumber();
+            }
+            else {
+                alert("Ошибка при проверке данных на сервере!\nПопробуйте снова.");
+            }
+        }
+    })
+}
+
+function deleteComponentFromBigObject(pk) {
+    console.log(pk);
+    $.ajax({
+        type: 'POST',
+        data: 'delete=' + pk,
+        error: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else{
+                alert("Что-то пошло не так, попробуйте снова!");
+            }
+        },
+        success: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else if (data.not_found) {
+                console.log(data.not_found);
+            }
+            else if (data.rez) {
+                console.log(data.rez);
+                $('#delete_' + pk).modal('toggle')
+                $('#tr_' + pk).remove()
+
+                tableRowsNumber()
+            }
+            else {
+                alert("Ошибка при проверке данных на сервере!\nПопробуйте снова.");
+            }
+        }
+    })
+}
+
+function updateComponentFromBigObject(pk) {
+    let new_amount = document.getElementsByName('new_amount_' + pk)[0]
+    $.ajax({
+        type: 'POST',
+        data: 'update=' + pk + "&new_amount=" + new_amount.value,
+        error: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else{
+                alert("Что-то пошло не так, попробуйте снова!");
+            }
+        },
+        success: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else if (data.not_found) {
+                console.log(data.not_found);
+            }
+            else if (data.rez) {
+                console.log(data.rez);
+                $('#change_' + pk).modal('toggle')
+                $('tr#tr_' + pk + ' td:nth-child(4)').text(data.new_amount.toFixed(1));
+            }
+            else {
+                alert("Ошибка при проверке данных на сервере!\nПопробуйте снова.");
+            }
+        }
+    })
+}
+
 $('#load_new_db_form').submit(function(e){
     console.log('CLICK');
     e.preventDefault();
@@ -135,7 +237,7 @@ function createFile() {
     })
 }
 
-$(function () {
+function tableRowsNumber () {
     let tables = document.querySelectorAll('table.table');
     for (let table = 0; table < tables.length; table++) {
         let tds = tables[table].querySelectorAll('tbody tr td:first-child');
@@ -144,7 +246,7 @@ $(function () {
             tds[i].innerHTML = i + 1;
         }
     }
-});
+}
 
 function showTable() {
     let table = document.getElementById('big_objects_table');
@@ -247,6 +349,8 @@ $(document).ready(function() {
     var suggest_count = 0;
     var input_initial_value = '';
     var suggest_selected = 0;
+
+    tableRowsNumber()
 
     if (window.location.href.match('/search/') != null) {
         let search_word = $("#search_word")[0].innerHTML;

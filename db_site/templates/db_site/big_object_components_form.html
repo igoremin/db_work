@@ -3,58 +3,113 @@
 
 {% block content %}
 
-{#    <div id="form_example">#}
-{##}
-{#        <div class="col">#}
-{##}
-{#            <label for="id_form-0-simple_object"><label for="id_form-0-simple_object">Простой объект:</label></label>#}
-{#            <div class="dropdown bootstrap-select form-control">#}
-{#                <select name="form-0-simple_object" class="form-control selectpicker" data-live-search="true" id="id_form-0-simple_object" tabindex="-98">#}
-{#                </select>#}
-{#                <button type="button" class="btn dropdown-toggle btn-light" data-toggle="dropdown" role="combobox" aria-owns="bs-select-1" aria-haspopup="listbox" aria-expanded="false" data-id="id_form-0-simple_object" title="Кабель UTP-5E (465168416841)"><div class="filter-option"><div class="filter-option-inner"><div class="filter-option-inner-inner">Кабель UTP-5E (465168416841)</div></div> </div></button><div class="dropdown-menu "><div class="bs-searchbox"><input type="search" class="form-control" autocomplete="off" role="combobox" aria-label="Search" aria-controls="bs-select-1" aria-autocomplete="list"></div><div class="inner show" role="listbox" id="bs-select-1" tabindex="-1"><ul class="dropdown-menu inner show" role="presentation"></ul></div></div></div>#}
-{#        </div>#}
-{#        <div class="col col-lg-2">#}
-{#            <label for="id_form-0-amount"><label for="id_form-0-amount">Количество:</label></label>#}
-{##}
-{#            <input type="number" name="form-0-amount" value="1" class="form-control" placeholder="Количество" min="0" id="id_form-0-amount">#}
-{#        </div>#}
-{##}
-{#    </div>#}
-
-    <form action="{% url 'big_object_update_components_url' lab=current_lab.slug slug=big_object.slug %}" method="POST">
+    <form action="{% url 'big_object_update_components_url' lab=current_lab.slug slug=big_object.slug %}" method="POST" id="base_form">
         {% csrf_token %}
 
-        {{ formset.management_form }}
-        {% for form in formset %}
-            <div class="row pb-2 form_div" id="simple_object">
-                <div class="col">
-                    <label for="{{ form.simple_object.id_for_label }}">{{ form.simple_object.label_tag }}</label>
-                    {{ form.simple_object.errors }}
-                    {{ form.simple_object }}
-                </div>
-                <div class="col col-lg-2">
-                    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label_tag }}</label>
-                    {{ form.amount.errors }}
-                    {{ form.amount }}
-                </div>
+        <div class="row pb-2 form_div" id="simple_object">
+            <div class="col">
+                <label for="{{ base_form.simple_object.id_for_label }}">{{ base_form.simple_object.label_tag }}</label>
+                {{ base_form.simple_object.errors }}
+                {{ base_form.simple_object }}
             </div>
-            {% for hidden in form.hidden_fields %}
-                {{ hidden }}
-            {% endfor %}
-
-        {% endfor %}
-
+            <div class="col col-lg-2">
+                <label for="{{ base_form.amount.id_for_label }}">{{ base_form.amount.label_tag }}</label>
+                {{ base_form.amount.errors }}
+                {{ base_form.amount }}
+            </div>
+        </div>
         <div id="create_div"></div>
 
         <p id="create_div_btn">
-            <button type="button" onclick="addSimpleObjectAria();" class="btn btn-primary mt-3">Добавить объект</button>
+            <button type="button" onclick="addNewSimpleObject();" class="btn btn-primary mt-3">Добавить объект</button>
         </p>
-
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
 
     </form>
 
+    <hr>
+    <h4>Таблица компонентов :</h4>
+    <table class="table table-hover table-bordered" id="all_components_table">
+        <thead>
+        <tr class="text-center">
+            <th scope="col">#</th>
+            <th scope="col" style="width: 60%"> Название</th>
+            <th scope="col" style="width: 15%">Инв. номер</th>
+            <th scope="col" style="width: 10%">Количество</th>
+            <th scope="col" style="width: 7%">#</th>
+            <th scope="col" style="width: 7%">#</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for component in all_components %}
+            <tr id="tr_{{ component.pk }}">
+                <td></td>
+                <td>
+                    <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }}{% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a>
+                </td>
+                <td>
+                    {% if component.simple_object.base_object.inventory_number %}
+                        {{ component.simple_object.base_object.inventory_number }}
+                    {% endif %}
+                </td>
+                <td>{{ component.amount }}</td>
+                <td>
+                    <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#change_{{ component.pk }}">
+                        Редактировать
+                    </button>
+
+                    <!-- Модальное окно -->
+                    <div class="modal fade" id="change_{{ component.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="staticBackdropLabel">Редактирование {{ component }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <label for="new_amount_{{ component.pk }}">Новое количество для компонента {{ component.simple_object }}</label>
+                                    <input class="form-control" name="new_amount_{{ component.pk }}" type="number" value="{{ component.amount }}" step="0.001" min="0.001">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="updateComponentFromBigObject({{ component.pk }})">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_{{ component.pk }}">
+                        Удалить
+                    </button>
+                </td>
+            </tr>
+            <!-- Модальное окно для удаления компонента-->
+            <div class="modal fade" id="delete_{{ component.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Удаление {{ component }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Вы действительно хотите исключить {{ component.simple_object }} из {{ big_object.name }} ?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-outline-danger" onclick="deleteComponentFromBigObject({{ component.pk }})">Да</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </tbody>
+
+    </table>
 
 {% endblock %}
 

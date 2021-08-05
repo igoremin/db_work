@@ -70,6 +70,14 @@ def gen_text_price(int_price):
     return new_price
 
 
+def update_big_objects_price(base_big_object):
+    """Обновляет стоимость всех сложных объектов верхнего уровня в которых есть данный базовый сложный объект"""
+    big_objects = base_big_object.get_top_level_big_objects()
+    for big_object in big_objects:
+        if big_object.status in ['NW', 'IW']:
+            big_object.update_price()
+
+
 def some_model_thumb_name(instance, filename):
     original_image_path = str(instance.image).rsplit('/', 1)[0]
     return os.path.join(original_image_path, filename)
@@ -677,7 +685,7 @@ class BaseBigObject(models.Model):
         components = set(self.components.all())
         all_top_level_objects = BigObject.objects.filter(top_level=True)
         for top_object in all_top_level_objects:
-            all_children = set(top_object.get_all_children())
+            all_children = set(top_object.get_descendants(include_self=True))
             if all_children.isdisjoint(components) is False:
                 results.append(top_object)
 
@@ -772,17 +780,6 @@ class BigObject(MPTTModel):
             k = k.parent
         # return ' -> '.join(full_path[::-1])
         return ''.join(full_path[::-1])
-
-    def get_all_children(self):
-        all_children = list()
-
-        def search(parent):
-            for child in parent.get_children():
-                all_children.append(child)
-                if child.get_children():
-                    search(child)
-        search(self)
-        return all_children
 
     def save(self, *args, **kwargs):
         print('---BIG OBJECT SAVE---')
@@ -1081,12 +1078,14 @@ class BigObjectList(models.Model):
         ordering = ['simple_object__name_lower']
 
     def __str__(self):
-        return f'{self.simple_object.name}, количетво : {self.amount}'
+        return f'{self.simple_object.name}, количество : {self.amount}'
 
-    def save(self, *args, **kwargs):
-        print('---SAVE BIG OBJECT LIST---')
+    def save(self, update_simple_object=False, *args, **kwargs):
+        print(f'---SAVE BIG OBJECT LIST : {self}---')
         self.update_total_price()
         super().save(*args, **kwargs)
+        if update_simple_object:
+            self.simple_object.update_amount()
 
     def search_all_top_level_objects_with_simple_object(self):
         result = []
@@ -1104,7 +1103,13 @@ class BigObjectList(models.Model):
     def update_total_price(self):
         self.total_price = self.amount * self.simple_object.price
         self.total_price_text = gen_text_price(self.total_price)
-        # self.save()
+
+    def delete(self, *args, **kwargs):
+        base_big_object = self.big_object
+        simple_object = self.simple_object
+        super().delete()
+        simple_object.update_amount(update_big_objects_price=False)
+        update_big_objects_price(base_big_object)
 
 
 class Order(models.Model):

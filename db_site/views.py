@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
     Order, Invoice, InvoiceBaseObject
@@ -14,7 +15,7 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
     BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm
 from .scripts import create_new_file, data_base_backup
-from .models import get_base_components
+from .models import get_base_components, update_big_objects_price
 
 
 def custom_proc_user_categories_list(request):
@@ -859,87 +860,90 @@ def big_object_update_components(request, lab, slug):
     user = Profile.objects.get(user_id=request.user.id)
     if request.user.is_superuser or user.lab.slug == lab:
         big_object = get_object_or_404(BaseBigObject, lab__slug=lab, slug=slug)
+        big_object_components = BigObjectList.objects.filter(big_object=big_object)
+
+        base_form = SimpleObjectForBigObjectForm(lab=lab)
+        context = {
+            'big_object': big_object,
+            'base_form': base_form,
+            'all_components': big_object_components,
+        }
         if request.method == 'GET':
-            big_object_components = BigObjectList.objects.filter(big_object=big_object)
-            if len(big_object_components) == 0:
-                extra = 1
-            else:
-                extra = 0
-            formset = modelformset_factory(BigObjectList, form=SimpleObjectForBigObjectForm, extra=extra)
-            context = {
-                'formset': formset(form_kwargs={'lab': lab}, queryset=big_object_components),
-                'big_object': big_object,
-            }
             return render(request, 'db_site/big_object_components_form.html', context=context)
         elif request.method == 'POST' and request.is_ajax():
-            print('AJAX')
             if request.POST.get('big_object_number_of_elements'):
                 new_number_of_elements = request.POST.get('big_object_number_of_elements')
                 BigObject.objects.filter(pk=big_object.pk).update(number_of_elements=new_number_of_elements)
                 return JsonResponse({"rez": 'Количество компонентов : {}'.format(new_number_of_elements)}, status=200)
+            elif request.POST.get('form'):
+                form = SimpleObjectForBigObjectForm(request.POST, lab=lab)
+                if form.is_valid():
+                    clean_data = form.clean()
+                    new_simple_object = clean_data['simple_object']
+                    if new_simple_object.pk in big_object_components.values_list('simple_object', flat=True):
+                        return JsonResponse({"err": f'{new_simple_object} уже добавлен в список!'}, status=200)
+                    else:
+                        new_component, created = BigObjectList.objects.get_or_create(
+                            simple_object=clean_data['simple_object'],
+                            big_object=big_object
+                        )
+
+                        new_component.amount += clean_data['amount']
+                        new_component.save()
+                        new_component.simple_object.update_amount()
+                        html_str = render_to_string(
+                            'db_site/big_object_components_form.html', context=context, request=request
+                        )
+
+                        return JsonResponse(
+                            {
+                                "rez": 'Объект добавлен',
+                                'new_object': f'{new_component.simple_object.name}',
+                                'amount': f'{new_component.amount}',
+                                'pk': f'{new_component.pk}',
+                                'url': f'{new_component.simple_object.get_absolute_url()}',
+                                'new_html': f'{html_str}'
+                            }, status=200)
+
+                return JsonResponse({"rez": 'Объект добавлен'}, status=200)
+
+            elif request.POST.get('delete'):
+                if request.user.is_superuser:
+                    pk = request.POST.get('delete')
+                    try:
+                        component = BigObjectList.objects.get(pk=pk)
+                        component.delete()
+                        return JsonResponse({"rez": 'Объект удален'}, status=200)
+                    except ObjectDoesNotExist:
+                        return JsonResponse({"not_found": 'Объект не найден'}, status=200)
+                    except Exception as err:
+                        return JsonResponse({"err": '{}'.format(str(err))}, status=200)
+                else:
+                    return JsonResponse({"err": 'Пользователь должен быть администратором!'}, status=200)
+
+            elif request.POST.get('update'):
+                if request.user.is_superuser:
+                    try:
+                        pk = request.POST.get('update')
+                        new_amount = float(request.POST.get('new_amount'))
+                        if new_amount > 0:
+                            component = BigObjectList.objects.get(pk=pk)
+                            component.amount = new_amount
+                            component.save(update_simple_object=True)
+                            update_big_objects_price(component.big_object)
+                            return JsonResponse({"rez": 'Количество обновленно', 'new_amount': component.amount}, status=200)
+                        else:
+                            return JsonResponse({"err": 'Введенное значение должно быть больше нуля!'}, status=200)
+                    except ObjectDoesNotExist:
+                        return JsonResponse({"not_found": 'Объект не найден'}, status=200)
+                    except Exception as err:
+                        return JsonResponse({"err": '{}'.format(str(err))}, status=200)
+                else:
+                    return JsonResponse({"err": 'Пользователь должен быть администратором!'}, status=200)
             else:
                 return JsonResponse({"rez": 'Что-то пошло не так, попробуйте снова!'}, status=400)
         else:
-            big_object_components = BigObjectList.objects.filter(big_object=big_object)
-            components_formset = modelformset_factory(
-                BigObjectList,
-                form=SimpleObjectForBigObjectForm,
-                extra=big_object.number_of_elements
-            )
-            formset = components_formset(request.POST, form_kwargs={'lab': lab}, queryset=big_object_components)
-            if formset.is_valid():
-                print('VALID')
-                for form in formset:
-                    clean_data = form.clean()
-                    try:
-                        old_component = BigObjectList.objects.get(pk=clean_data['id'].id)
-                        simple_object = old_component.simple_object
-                        if clean_data['amount'] == 0:
-                            print('DELETE : {}'.format(old_component))
-
-                            old_component.delete()  # Удаление старой составляющей если ее количество = 0
-
-                            big_objects_list = BigObjectList.objects.filter(simple_object=simple_object)
-                            amount = 0
-                            for obj in big_objects_list:
-                                amount += obj.amount
-                            simple_object.update_amount(update_big_objects_price=True)
-                            # simple_object.amount_in_work = amount
-                            # simple_object.save()
-
-                            big_object.number_of_elements -= 1
-                        else:
-                            if clean_data['amount'] != old_component.amount:
-                                print('UPDATE : {}'.format(old_component))
-                                old_component.amount = clean_data['amount']
-                                old_component.simple_object = clean_data['simple_object']
-                                old_component.save()    # Обновление компонента для объекта
-                                simple_object.update_amount(update_big_objects_price=True)
-                    except KeyError:
-                        big_object.number_of_elements -= 1
-                    except (ObjectDoesNotExist, AttributeError):
-                        if clean_data['amount'] == 0:
-                            big_object.number_of_elements -= 1
-                        else:
-                            print('CREATE NEW COMPONENT')
-                            new_component, created = BigObjectList.objects.get_or_create(
-                                simple_object=clean_data['simple_object'],
-                                # amount=clean_data['amount'],
-                                big_object=big_object
-                            )
-
-                            new_component.amount += clean_data['amount']
-                            print('NEW COMPONENT SAVE')
-                            new_component.save()
-                            new_component.simple_object.update_amount()
-                big_object.save()       # Обновление стоимости объекта и количества составляющих
-                return redirect(base_big_object_page, lab=lab, slug=slug)
-            else:
-                context = {
-                    'formset': formset,
-                    'big_object': big_object,
-                }
-                return render(request, 'db_site/big_object_components_form.html', context=context)
+            return HttpResponseNotFound("Что-то пошло не так, обратитесь к администратору!")
     return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
 
