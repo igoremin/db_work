@@ -13,13 +13,20 @@ import os
 
 
 def get_base_components(all_parts):
-    base_components = set()
+    base_components = {}
 
     for part in all_parts:
         simple_components = part.base.simple_components.filter(simple_object__base_object__isnull=False)
         if simple_components:
             for simple_component in simple_components:
-                base_components.add(simple_component.simple_object.base_object)
+                base_object = simple_component.simple_object.base_object
+                if len(base_object.simpleobject_set.all()) == 1:
+                    if base_object in base_components:
+                        base_components[base_object] = base_components[base_object] + simple_component.amount
+                    else:
+                        base_components[base_object] = simple_component.amount
+                else:
+                    base_components[base_object] = '-'
 
     if len(base_components) > 0:
         return base_components

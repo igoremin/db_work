@@ -298,19 +298,24 @@
             <th scope="col">#</th>
             <th scope="col">Название</th>
             <th scope="col">Инв. номер</th>
+            <th scope="col">Количетсво</th>
         </tr>
         </thead>
 
         <tbody>
-        {% for component in base_components %}
-            <tr>
-                <td></td>
-                <td>
-                    <a href="{{ component.get_absolute_url }}">{{ component.name }}</a>
-                </td>
-                <td>{{ component.inventory_number }}</td>
-            </tr>
-        {% endfor %}
+            {% for component, amount in base_components.items %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ component.get_absolute_url }}">{{ component.name }}{% if component.measure %}, {{ component.measure }}{% endif %}</a></td>
+                    <td>{{ component.inventory_number }}</td>
+                    <td>
+                        {% if amount != '-' %}
+                            {{ amount }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 {#    {% endif %}#}
