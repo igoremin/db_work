@@ -108,6 +108,8 @@ def generate_path(instance, filename):
         return '{0}/images/{1}'.format(instance.category.simple_object.slug, filename)
     elif instance.category.big_object:
         return '{0}/images/{1}'.format(instance.category.big_object.slug, filename)
+    elif instance.category.invoice:
+        return 'invoices/{0}/images/{1}'.format(instance.category.invoice.number, filename)
     else:
         return 'images/{0}'.format(filename)
 
@@ -117,6 +119,8 @@ def generate_path_for_files(instance, filename):
         return '{0}/files/{1}'.format(instance.category.simple_object.slug, filename)
     elif instance.category.big_object:
         return '{0}/files/{1}'.format(instance.category.big_object.slug, filename)
+    elif instance.category.invoice:
+        return '{0}/files/{1}'.format(instance.category.invoice.number, filename)
     else:
         return 'files/{0}'.format(filename)
 
@@ -366,7 +370,7 @@ class Invoice(models.Model):
     number = models.CharField(max_length=50, verbose_name='Номер накладной')
     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, related_name='invoices', related_query_name='invoice',
                             verbose_name='Лаборатория', blank=True, null=True)
-    bill = models.CharField(max_length=100, verbose_name='Счет, субсчет')
+    bill = models.CharField(max_length=100, verbose_name='Счет, субсчет', blank=True)
     date = models.DateField(verbose_name='Дата составления')
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
     total_price_text = models.CharField(verbose_name='Общая сумма с пробелами', max_length=100, blank=True)
