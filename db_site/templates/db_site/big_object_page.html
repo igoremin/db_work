@@ -232,10 +232,10 @@
                     <thead>
                     <tr class="text-center">
                         <th scope="col" style="width: 5%">#</th>
-                        <th scope="col" style="width: 30%">Название</th>
+                        <th scope="col" style="width: 50%">Название</th>
                         <th scope="col" style="width: 15%">Инв. номер</th>
                         {% if base_big_object != big_object %}
-                            <th scope="col">
+                            <th scope="col" style="width: 10%">
                                 {% if part.status == 'IW' %}
                                     Используется
                                 {% elif part.status == 'NW'%}
@@ -247,16 +247,16 @@
                                 {% endif %}
                             </th>
                             {% if part.status == 'IW' %}
-                                <th scope="col">Остаток</th>
+                                <th scope="col" style="width: 10%">Остаток</th>
                             {% elif part.status not in 'RD WO' %}
-                                <th scope="col">Свободно</th>
+                                <th scope="col" style="width: 10%">Свободно</th>
                             {% endif %}
                         {% else %}
-                            <th scope="col">Количество</th>
+                            <th scope="col" style="width: 10%">Количество</th>
                         {% endif %}
 
 
-                        <th scope="col">Сумма</th>
+                        <th scope="col" style="width: 10%">Сумма</th>
                     </tr>
                     </thead>
                     <tbody>
