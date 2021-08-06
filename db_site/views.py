@@ -250,6 +250,8 @@ def category_page(request, lab, slug):
             if sort:
                 if 'price' in sort[0]:
                     base_sorted = [sort[0].replace('price', 'total_price')]
+                elif 'amount_free' in sort[0]:
+                    base_sorted = [sort[0].replace('amount_free', 'name_lower')]
             else:
                 sort = ['name_lower']
                 base_sorted = ['name_lower']

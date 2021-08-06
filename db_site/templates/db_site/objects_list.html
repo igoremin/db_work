@@ -40,6 +40,8 @@
                 <option value="-price">стоимость (по убыванию) 	     &#8595;</option>
                 <option value="amount">количество (по возрастанию)   &#8593;</option>
                 <option value="-amount">количество (по убыванию)     &#8595;</option>
+                <option value="amount_free">количество свободных (по возрастанию)     &#8593;</option>
+                <option value="-amount_free">количество свободных (по убыванию)     &#8595;</option>
             </select>
             <button type="submit" class="btn btn-sm btn-primary btn-raised mt-1 mb-3">Сортировать</button>
         </form>
@@ -143,7 +145,6 @@
                     <th scope="col">#</th>
                     <th scope="col" style="width: 30%"> Название</th>
                     <th scope="col" style="width: 15%">Инв. номер</th>
-                    <th scope="col" style="width: 15%">Код справочника</th>
                     <th scope="col">Всего</th>
                     <th scope="col">Свободно</th>
                     <th scope="col">Стоимость</th>
@@ -161,11 +162,6 @@
                         <td>
                             {% if simple_object.base_object.inventory_number %}
                                 {{ simple_object.base_object.inventory_number }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if simple_object.base_object.directory_code %}
-                                {{ simple_object.base_object.directory_code }}
                             {% endif %}
                         </td>
                         <td>{{ simple_object.amount }}</td>
@@ -257,7 +253,6 @@
                 <th scope="col">#</th>
                 <th scope="col" style="width: 30%">Название</th>
                 <th scope="col" style="width: 15%">Инв. номер</th>
-                <th scope="col" style="width: 15%">Код справочника</th>
                 <th scope="col">Всего</th>
                 <th scope="col">Сумма</th>
             </tr>
@@ -273,11 +268,6 @@
                     <td>
                         {% if base_object.inventory_number %}
                             {{ base_object.inventory_number }}
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if base_object.directory_code %}
-                            {{ base_object.directory_code }}
                         {% endif %}
                     </td>
                     <td>{{ base_object.amount }}</td>
