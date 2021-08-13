@@ -152,6 +152,70 @@ function updateComponentFromBigObject(pk) {
     })
 }
 
+function add_new_comment() {
+    let form = $('#comment_form')
+    console.log(form.serialize());
+    let files = $('#id_file');
+    // let files_data = new FormData($('#id_file')[0].files);
+    // console.log(files_data)
+    // files_data.append('file', files)
+    // console.log(files);
+    $.ajax({
+        type: 'POST',
+        data: 'file=' + files.prop("files"),
+        enctype: 'multipart/form-data',
+        // contentType: 'application/json',
+        // processData: false,
+        error: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else{
+                alert("Что-то пошло не так, попробуйте снова!");
+            }
+        },
+        success: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else if (data.rez) {
+                console.log(data.rez);
+                let new_html = new DOMParser().parseFromString(data.new_html, 'text/html');
+                let new_comments = new_html.getElementById('comments');
+                let old_comments = document.getElementById('comments')
+                old_comments.replaceWith(new_comments)
+                simplemde.value('')
+            }
+        }
+    })
+}
+
+function change_task_status(type) {
+    $.ajax({
+        url: window.location.pathname + 'change_status/',
+        type: 'POST',
+        data: 'type=' + type,
+        error: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else{
+                alert("Что-то пошло не так, попробуйте снова!");
+            }
+        },
+        success: function (data) {
+            if (data.err) {
+                alert(data.err);
+            }
+            else if (data.rez) {
+                location.reload();
+                return false;
+            }
+        }
+    })
+}
+
+
 $('#load_new_db_form').submit(function(e){
     console.log('CLICK');
     e.preventDefault();
@@ -328,6 +392,103 @@ function check_categories_for_lab (lab) {
         }
     }
 }
+
+$(document).ready(function () {
+    // $('.treetable').treetable();
+    if (window.location.href.match('/create_new_task/') != null || window.location.href.match('/update_task/') != null || window.location.href.match('/tracker/\.+/all/\.+') != null) {
+        $('#id_executors').multiselect({
+            buttonText: function(options, select) {
+                if (options.length === 0) {
+                    return 'Не выбраны';
+                }
+                else if (options.length > 3) {
+                    return 'Больше трех';
+                }
+                else {
+                    var labels = [];
+                    options.each(function() {
+                        if ($(this).attr('label') !== undefined) {
+                            labels.push($(this).attr('label'));
+                        }
+                        else {
+                            labels.push($(this).html());
+                        }
+                    });
+                    return labels.join(', ') + '';
+                }
+            }
+        });
+    }
+    console.log(window.location.href);
+    if (window.location.href.match('tracker/.+/all/.*/?$') != null || window.location.href.match('worker/.+/$') != null) {
+        var
+            $table = $('table.tree-table'),
+            rows = $table.find('tr');
+
+        rows.each(function (index, row) {
+            var
+                $row = $(row),
+                level = $row.data('level'),
+                id = $row.data('id'),
+                $columnName = $row.find('td[data-column="name"]'),
+                children = $table.find('tr[data-parent="' + id + '"]');
+
+            // if (children.length) {
+            //     var expander = $columnName;
+            //
+            //     children.hide();
+            //
+            //     expander.on('click', function (e) {
+            //         var $target = $(e.target);
+            //         if ($target.hasClass('glyphicon-chevron-right')) {
+            //             console.log('IF')
+            //             $target
+            //                 .removeClass('glyphicon-chevron-right')
+            //                 .addClass('glyphicon-chevron-down');
+            //
+            //             children.show();
+            //         } else {
+            //             console.log('ELSE')
+            //             $target
+            //                 .removeClass('glyphicon-chevron-down')
+            //                 .addClass('glyphicon-chevron-right');
+            //
+            //             reverseHide($table, $row);
+            //         }
+            //     });
+            // }
+            //width:' + 15 * level + 'px;
+            let r = ''
+            for (let i = 1; i < level; i++) {
+                r = r + '---'
+            }
+            $columnName.prepend('' +
+                '<span class="treegrid-indent" style="display:inline-block">' + r + '</span>');
+        });
+
+        // Reverse hide all elements
+        // reverseHide = function (table, element) {
+        //     var
+        //         $element = $(element),
+        //         id = $element.data('id'),
+        //         children = table.find('tr[data-parent="' + id + '"]');
+        //
+        //     if (children.length) {
+        //         children.each(function (i, e) {
+        //             reverseHide(table, e);
+        //         });
+        //
+        //         $element
+        //             .find('.glyphicon-chevron-down')
+        //             .removeClass('glyphicon-chevron-down')
+        //             .addClass('glyphicon-chevron-right');
+        //
+        //         children.hide();
+        //     }
+        // };
+
+    }
+})
 
 $(document).ready(function() {
     if (window.location.href.match('sort=') != null) {

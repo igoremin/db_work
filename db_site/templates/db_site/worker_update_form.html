@@ -8,7 +8,7 @@
     <h3>{{ worker.name }}</h3>
     <h4>Редактирование</h4>
 
-    <form action="{% url 'worker_update_page_url' lab=current_lab.slug pk=worker.pk %}" method="post">
+    <form action="{% url 'worker_update_page_url' lab=current_lab.slug pk=worker.pk %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-outline-primary">Сохранить</button>

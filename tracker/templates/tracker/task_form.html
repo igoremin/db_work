@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titile %}
+
+{% endblock %}
+
+{% block content %}
+    {% if task %}
+        <h3>Обновление задачи : <a href="{{ task.get_absolute_url }}">{{ task.name }}</a></h3>
+        <form method="post" action="{% url 'update_task_url' lab=current_lab.slug pk=task.pk %}">
+    {% else %}
+        <h3>Добавление новой задачи</h3>
+        <form method="post" action="{% url 'new_task_form_url' lab=current_lab.slug %}">
+    {% endif %}
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">
+    <button type="submit" class="btn btn-outline-secondary">Сохранить</button>
+
+    </form>
+
+{% endblock %}
+
+{% block java_script %}
+    <script>
+        var simplemde = new SimpleMDE({
+            placeholder: "Type here...",
+            spellChecker: false,
+        });
+        let text_area = $('#id_text')
+        document.querySelector('div.editor-statusbar').remove()
+
+        simplemde.codemirror.on("change", function(){
+            text_area.val(simplemde.value());
+        });
+    </script>
+{% endblock %}

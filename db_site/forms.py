@@ -411,14 +411,28 @@ class DataBaseDocForm(forms.ModelForm):
 
 
 class ChangeProfile(forms.ModelForm):
+    avatar_label = None
+
     class Meta:
         model = Profile
-        fields = ['name', 'room_number']
+        fields = ['name', 'room_number', 'avatar']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'room_number': forms.Select(attrs={'class': 'form-control'})
+            'room_number': forms.Select(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ChangeProfile, self).__init__(*args, **kwargs)
+        if 'instance' in kwargs.keys():
+            profile = kwargs['instance']
+            if profile.avatar:
+                self.avatar_label = f'Текущий аватар : {profile.avatar.url}'
+            else:
+                self.avatar_label = f'Текущий аватар не выбран'
+            self.fields['avatar'].label = self.avatar_label
+            self.fields['avatar'].label_suffix = ''
 
 
 class AddSimpleObjectToProfile(forms.ModelForm):

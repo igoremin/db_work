@@ -129,6 +129,12 @@ def generate_path_for_database(instance, filename):
     return 'database/{0}/{1}'.format(instance.lab.name, filename)
 
 
+def generate_path_for_avatar(instance, filename):
+    slug_name = slugify(instance.name, to_lower=True, separator='_')
+    print(f'NEW PATH : {"avatars/{0}/{1}".format(slug_name, filename)}')
+    return 'avatars/{0}/{1}'.format(slug_name, filename)
+
+
 def del_path(full_path):
     try:
         if len(os.listdir(full_path)) == 0:
@@ -270,10 +276,12 @@ class Category(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name='Имя')
+    avatar = models.ImageField(blank=True, null=True, verbose_name='Аватар', upload_to=generate_path_for_avatar)
     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, verbose_name='Лаборатория', blank=True, null=True)
     room_number = models.ForeignKey(Room, on_delete=models.PROTECT, verbose_name='Номер кабинета',
                                     blank=True, null=True)
     number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
+    robot = models.BooleanField(verbose_name='Робот или человек', default=False)
 
     class Meta:
         ordering = ['name']
@@ -285,12 +293,35 @@ class Profile(models.Model):
             return f'{self.name} : {self.lab.name}'
 
     def save(self, *args, **kwargs):
+        print(f'AVATAR : {self.avatar}')
         if not self.id:
             self.name = self.user.username
+            if self.avatar:
+                super().save(*args, **kwargs)
+                self.save_avatar()
+        else:
+            old_self = Profile.objects.get(pk=self.pk)
+            if old_self.avatar != self.avatar and self.avatar:
+                print(old_self.avatar, self.avatar)
+                old_self.delete_avatar()
+                super().save(*args, **kwargs)
+                self.save_avatar()
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse('worker_page_url', kwargs={'pk': self.pk, 'lab': self.lab.slug})
+
+    def avatar_url(self):
+        if self.avatar:
+            return self.avatar.url
+        return '/media/avatars/default_avatar.png'
+
+    def save_avatar(self):
+        img = Image.open(self.avatar.path)
+        img.save(self.avatar.path, quality=40)
+
+    def delete_avatar(self):
+        self.avatar.delete(save=False)
 
 
 class BaseObject(models.Model):

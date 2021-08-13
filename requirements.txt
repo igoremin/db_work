@@ -10,3 +10,4 @@ django-simple-history==3.0.0
 Pillow==8.2.0
 openpyxl==3.0.7
 yadisk==1.2.14
+Markdown==3.3.4

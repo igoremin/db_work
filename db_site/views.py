@@ -16,6 +16,7 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
     BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components, update_big_objects_price
+from tracker.models import Task, CommentForTask
 
 
 def custom_proc_user_categories_list(request):
@@ -28,38 +29,40 @@ def custom_proc_user_categories_list(request):
         'rooms': 'none'
     }
     try:
-        lab = request.build_absolute_uri().replace('//', '').split('/')[1]
+        all_lab = LabName.objects.all().values_list('slug', flat=True)
+        lab = list(set(all_lab) & set(request.build_absolute_uri().replace('//', '').split('/')))
+        if len(lab) == 1:
+            lab = lab[0]
+            lab_categories_base = Category.objects.filter(lab__slug=lab, cat_type='BO')
+            lab_categories_simple_equipment = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='EQ')
+            lab_categories_simple_materials = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='MT')
+            lab_categories_big = Category.objects.filter(lab__slug=lab, cat_type='BG')
+            # base_categories = Category.objects.filter(lab__slug=lab, )
+            search_form = SearchForm()
+            workers = Profile.objects.filter(lab__slug=lab)
+            user = Profile.objects.get(user_id=request.user.id)
 
-        lab_categories_base = Category.objects.filter(lab__slug=lab, cat_type='BO')
-        lab_categories_simple_equipment = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='EQ')
-        lab_categories_simple_materials = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='MT')
-        lab_categories_big = Category.objects.filter(lab__slug=lab, cat_type='BG')
-        # base_categories = Category.objects.filter(lab__slug=lab, )
-        search_form = SearchForm()
-        workers = Profile.objects.filter(lab__slug=lab)
-        user = Profile.objects.get(user_id=request.user.id)
+            rooms = Room.objects.filter(lab__slug=lab)
 
-        rooms = Room.objects.filter(lab__slug=lab)
-
-        data = {'user_cat_list_base': lab_categories_base,
-                'user_cat_list_simple_equipment': lab_categories_simple_equipment,
-                'user_cat_list_simple_materials': lab_categories_simple_materials,
-                'current_lab': LabName.objects.get(slug=lab),
-                'search_form': search_form,
-                'workers': workers,
-                'user_info': user,
-                'big_objects_cat': lab_categories_big,
-                'rooms': rooms
+            data = {'user_cat_list_base': lab_categories_base,
+                    'user_cat_list_simple_equipment': lab_categories_simple_equipment,
+                    'user_cat_list_simple_materials': lab_categories_simple_materials,
+                    'current_lab': LabName.objects.get(slug=lab),
+                    'search_form': search_form,
+                    'workers': workers,
+                    'user_info': user,
+                    'big_objects_cat': lab_categories_big,
+                    'rooms': rooms
+                    }
+            if lab not in LabName.objects.values_list('slug', flat=True):
+                data = {
+                    'user_cat_list': 'none',
+                    'current_lab': 'none',
+                    'search_form': 'none',
+                    'user_info': 'none',
+                    'big_objects_cat': 'none',
+                    'rooms': 'none'
                 }
-        if lab not in LabName.objects.values_list('slug', flat=True):
-            data = {
-                'user_cat_list': 'none',
-                'current_lab': 'none',
-                'search_form': 'none',
-                'user_info': 'none',
-                'big_objects_cat': 'none',
-                'rooms': 'none'
-            }
     except Exception as err:
         print(err)
         pass
@@ -1077,6 +1080,8 @@ def worker_page(request, pk, lab):
     user = get_object_or_404(Profile, pk=pk)
     if request.user.is_superuser or user.user == request.user:
         if request.method == 'GET':
+            worker_tasks = Task.objects.filter(executors__in=[user], status__in=['IW', 'NW'], privat=False)
+            private_tasks, done_private_tasks = Task.get_task_tree(lab=lab, private=True, user=user)
             orders_list = Order.objects.filter(equipments__profile=user)
             orders = []
             for order in orders_list:
@@ -1088,6 +1093,8 @@ def worker_page(request, pk, lab):
                 'worker': user,
                 'orders': orders,
                 'worker_equipments': worker_equipments,
+                'worker_tasks': worker_tasks,
+                'private_tasks': private_tasks,
             }
             return render(request, 'db_site/worker_page.html', context=context)
 
@@ -1106,7 +1113,7 @@ def worker_update_page(request, pk, lab):
             }
             return render(request, 'db_site/worker_update_form.html', context=context)
         else:
-            form = ChangeProfile(request.POST, instance=user)
+            form = ChangeProfile(request.POST, request.FILES, instance=user)
             if form.is_valid():
                 form.save()
 

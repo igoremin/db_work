@@ -5,10 +5,11 @@ v_server
 db.sqlite3
 /media
 db_site/migrations/
+tracker/migrations/
 feedback/migrations/
 /static
 .DS_Store 
 .idea
 .directory
-/db_main/files/token.txt
+/db_main/files/
 /db_size.txt

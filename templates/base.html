@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="shortcut icon" type="image/png" href="{% static 'db_site/favicon/LogoADL.gif' %}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
     <link rel="stylesheet" href="{% static 'db_site/style/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'db_site/style/db_site_style.css' %}">
     <title>
@@ -147,6 +148,8 @@
             <ol class="breadcrumb">
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">Запрос оборудования</a></li>
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoices_list_url' lab=current_lab.slug %}" role="button">Все накладные</a></li>
+                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'task_list_for_current_lab' lab=current_lab.slug %}" role="button">Список задач</a></li>
+                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'new_task_form_url' lab=current_lab.slug %}" role="button">Создать задачу</a></li>
             </ol>
 
         </nav>
@@ -191,36 +194,6 @@
                     <a class="nav-link" href="{% url 'load_new_database_url' lab=current_lab.slug %}">Добавить новый файл с данными</a>
                 </div>
             {% endif %}
-            {% if user.is_superuser and user_cat_list != 'none' %}
-                <!-- Button trigger modal -->
-                <div class="col" data-toggle="modal" data-target="#objects_delete">
-                    <a class="nav-link" style="cursor: pointer">Удалить все данные</a>
-                </div>
-
-                <!-- Модальное окно -->
-                <div class="modal fade" id="objects_delete" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="staticBackdropLabel">Удаление данных для лаборатории</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                Вы действительно хотите удалить все кроме составных объектов для данной лаборатории?
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                                <a role="button" class="btn btn-outline-danger" href="{% url 'delete_all_data_for_lab_url' lab=current_lab.slug %}">Да</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-{#                <div class="col">#}
-{#                    <a class="nav-link" href="{% url 'delete_all_data_for_lab_url' lab=current_lab.slug %}">Удалить все простые объекты у данной лаборатории</a>#}
-{#                </div>#}
-            {% endif %}
             {% if user.is_superuser %}
                 <div class="col">
                     <form method="post" action="{% url 'backup_url' %}" id="make_backup">
@@ -236,8 +209,8 @@
 <script src="{% static 'db_site/scripts/jquery-3.4.1.js' %}"></script>
 <script src="{% static 'db_site/scripts/mark.js' %}"></script>
 <script src="{% static 'db_site/scripts/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'db_site/scripts/simplemde.min.js' %}"></script>
 <script src="{% static 'db_site/scripts/db_site_scripts.js' %}"></script>
-{#<script src="{% static '' %}"></script>#}
 
 
 <!-- Latest compiled and minified CSS -->
@@ -248,6 +221,10 @@
 <!-- Include the plugin's CSS and JS: -->
 <script type="text/javascript" src={% static 'db_site/scripts/bootstrap-multiselect.js' %}></script>
 <link rel="stylesheet" href={% static 'db_site/style/bootstrap-multiselect.css' %} type="text/css"/>
+
+{% block java_script %}
+
+{% endblock %}
 
 </body>
 </html>

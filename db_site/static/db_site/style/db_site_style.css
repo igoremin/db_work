@@ -99,6 +99,23 @@ p.small_p {
     background-color:#818187;
 }
 
+/*Настройка редактора текста*/
+.CodeMirror, .CodeMirror-scroll {
+	min-height: 100px;
+}
+
+.comment {
+    background-color: rgba(229, 229, 229, 0.6);
+    margin-bottom: 1rem;
+    border-radius: 20px;
+    min-height: 100px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.table td, .table th {
+    padding: 0.5rem;
+}
 
 /*footer*/
 .col_white_amrc { color:#FFF;}

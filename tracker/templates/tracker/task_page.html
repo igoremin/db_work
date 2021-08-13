@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Задача : {{ task }}
+{% endblock %}
+
+{% block content %}
+    {% if task %}
+        {% if task.privat %}
+            <p class="small_p">Приватная задача</p>
+        {% endif %}
+
+        {% if user_can_change %}
+
+            {% if task.status == 'IW' and not task.can_close %}
+                <p class="small">Задачу можно закрыть только если закрыты все подзадачи</p>
+            {% endif %}
+
+            {% if task.status in 'NW IW' %}
+
+                <a class="btn btn-outline-secondary mb-3" href="{% url 'update_task_url' lab=current_lab.slug pk=task.pk %}" role="button">Редактировать</a>
+
+                <!--------------------- Блок добавления подзадачи ----------------------->
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#create_task_for_task">
+                    Добавить подзадачу
+                </button>
+
+                <!-- Модальное окно -->
+                <div class="modal fade" id="create_task_for_task" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Новая задача</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form action="{% url 'create_task_for_task_url' pk=task.pk lab=task.lab.slug %}" method="post">
+                                <div class="modal-body">
+                                    {% csrf_token %}
+                                    {{ task_for_task_form.as_p }}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+                                    <button type="submit" class="btn btn-outline-secondary">Создать</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-------------------------------------------------------------------->
+            {% endif %}
+            {% if task.status == 'NW' %}
+
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#start_work">
+                    Приступить к работе
+                </button>
+
+                <!-- Modal -->
+                <div class="modal fade" id="start_work" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Изменение статуса</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Изменить статус задачи на рабочий ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="change_task_status('start_work')">Да</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% elif task.status == 'IW' and task.can_close %}
+
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#stop_work">
+                    Закрыть задачу
+                </button>
+
+                <!-- Modal -->
+                <div class="modal fade" id="stop_work" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Изменение статуса</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Закрыть задачу ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="change_task_status('stop_work_status_true')">Закрыть (решен)</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="change_task_status('stop_work_status_false')">Закрыть (не решен)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <h3>Задача : {{ task.name }}</h3>
+        <ul>
+            <li>Автор : <a href="{{ task.creator.get_absolute_url }}">{{ task.creator.name }}</a></li>
+
+            {% if task.executors.all %}
+                <li>
+                    {% if task.executors.all|length > 1 %}
+                        Исполнители :
+                    {% else %}
+                        Исполнитель :
+                    {% endif %}
+                    {% for executor in task.executors.all %}
+                        <a href="{{ executor.get_absolute_url }}">{{ executor.name }}</a>{% if forloop.last == False %}, {% endif %}
+                    {% endfor %}
+                </li>
+            {% endif %}
+            {% if task.big_object %}
+                <li>Сборочная единица : <a href="{{ task.big_object.get_absolute_url }}">{{ task.big_object }}</a></li>
+            {% endif %}
+
+            <li>Создана : {{ task.create_date }}</li>
+            {% if task.start_date %}
+                <li>Начата : {{ task.start_date }}</li>
+            {% endif %}
+
+            <li>Дедлайн : {{ task.end_date }}</li>
+            <li>Статус : {{ task.get_status_display }}</li>
+            {% if task.parent %}
+                <li>Родитель : <a href="{{ task.parent.get_absolute_url }}">{{ task.parent.name }}</a></li>
+            {% endif %}
+
+        </ul>
+        <h5>Описание задачи :</h5>
+        <p>{{ task.get_message_as_markdown|linebreaks }}</p>
+    {% endif %}
+
+    {% if task_tree %}
+        <h5>Подзадачи :</h5>
+        <table class="table table-hover tree-table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Название</th>
+                    <th scope="col">Начато</th>
+                    <th scope="col">Выполнить до</th>
+                    <th scope="col">Статус</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for task, level in task_tree %}
+                    <tr data-id="{{ task.pk }}" data-parent="{{ task.parent.pk }}" data-level="{{ level }}">
+                        <td></td>
+                        <td {% if task.if_get_children %}class="glyphicon-chevron-right"{% endif %} data-column="name" style="width: 55%">
+                            <a href="{{ task.get_absolute_url }}">{{ task.name}}</a>
+                        </td>
+                        <td style="width: 15%">{% if task.start_date %}{{ task.start_date }}{% endif %}</td>
+                        <td style="width: 15% ;background-color: {{ task.get_color }}">{{ task.end_date }}</td>
+                        <td style="width: 15%">{{ task.get_status_display }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+
+    <h5>Комментарии : </h5>
+    <div id="comments">
+        {% for comment in comments %}
+            <div class="row comment">
+                <div class="col-1 avatar">
+                    <img class="mt-2 mb-2" src="{{ comment.user.avatar_url }}" alt="Аватар" width="80%">
+                </div>
+                <div class="col-11">
+                    <div class="header row small">
+                        <div class="col-10">
+                            {{ comment.user.name }}{% if comment.user.robot %} (робот) {% endif %}
+                        </div>
+                        <div class="col-2">
+                            {{ comment.date }}
+                        </div>
+                    </div>
+                    <div class="message_text">
+                        {{ comment.get_message_as_markdown|linebreaks }}
+                    </div>
+                    <div>
+                        {% if comment.files.all %}
+                            <span class="small">
+                                Прикрепленные файлы :
+                                {% for file in comment.files.all %}
+                                    <a href="{{ file.file.url }}" download>{{ file.filename }}</a>{% if forloop.last == False %}, {% endif %}
+                                {% endfor %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    {% if comment_form %}
+        <p class="not_margin">Новый комментарий :</p>
+        <form method="post" action="{% url 'task_page_url' lab=current_lab.slug pk=task.pk %}" id="comment_form" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ comment_form.text }}
+            {{ add_new_files_form.file }}
+            <button type="submit" class="btn btn-outline-secondary mt-2">Отправить</button>
+        </form>
+    {% endif %}
+
+
+{% endblock %}
+
+{% block java_script %}
+    <script>
+        let comment_text_area = $('#id_text')
+        var simplemde = new SimpleMDE({
+            placeholder: "Type here...",
+            spellChecker: false,
+            element: document.getElementById('id_text')
+        });
+        simplemde.codemirror.on("change", function(){
+            comment_text_area.val(simplemde.value());
+        });
+        document.querySelector('div.editor-statusbar').remove()
+
+        {#-----------------------------------------------------#}
+
+        let text_area = $('#new_task_for_task__text')
+        let new_task_simplemde = new SimpleMDE({
+            placeholder: "Type here...",
+            spellChecker: false,
+            element: document.getElementById('new_task_for_task__text')
+        })
+        new_task_simplemde.codemirror.on("change", function(){
+            text_area.val(new_task_simplemde.value());
+        });
+
+    </script>
+{% endblock %}

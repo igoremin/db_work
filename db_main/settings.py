@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'db_site',
     'feedback',
+    'tracker',
     'simple_history',       # Отслеживание изменений объекта
     'mptt'
 ]
