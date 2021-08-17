@@ -107,14 +107,21 @@ p.small_p {
 .comment {
     background-color: rgba(229, 229, 229, 0.6);
     margin-bottom: 1rem;
-    border-radius: 20px;
+    margin-left: 1rem;
+    border-radius: 10px;
     min-height: 100px;
     display: flex;
     justify-content: space-between;
+    box-shadow: 5px 5px 5px #0002;
+    width: 97%;
 }
 
 .table td, .table th {
     padding: 0.5rem;
+}
+
+.breadcrumb {
+    box-shadow: 5px 5px 5px #0002;
 }
 
 /*footer*/
