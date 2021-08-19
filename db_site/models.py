@@ -408,8 +408,13 @@ class BaseObject(models.Model):
             self.total_price_text = '0,00'
 
     def get_short_bill(self):
-        short_bill = self.bill.split('.')[0:2]
-        return '.'.join(short_bill)
+        if self.bill:
+            short_bill = self.bill.split('.')[1:3]
+            if len(short_bill) > 0:
+                return '.'.join(short_bill)
+            else:
+                return self.bill
+        return ''
 
 
 class InvoiceType(models.Model):
@@ -458,8 +463,13 @@ class Invoice(models.Model):
         return reverse('invoice_page_url', kwargs={'lab': self.lab.slug, 'pk': self.pk})
 
     def get_short_bill(self):
-        short_bill = self.bill.split('.')[0:2]
-        return '.'.join(short_bill)
+        if self.bill:
+            short_bill = self.bill.split('.')[1:3]
+            if len(short_bill) > 0:
+                return '.'.join(short_bill)
+            else:
+                return self.bill
+        return ''
 
 
 class SimpleObject(models.Model):
