@@ -408,7 +408,21 @@ class BaseObject(models.Model):
             self.total_price_text = '0,00'
 
 
+class InvoiceType(models.Model):
+    invoice_type = models.CharField(max_length=200, verbose_name='Тип накладной')
+
+    class Meta:
+        verbose_name = 'Тип накладной'
+        verbose_name_plural = 'Типы накладных'
+
+    def __str__(self):
+        return self.invoice_type
+
+
 class Invoice(models.Model):
+    invoice_type = models.ForeignKey(
+        InvoiceType, verbose_name='Тип накладной', blank=True, null=True, on_delete=models.SET_NULL
+    )
     number = models.CharField(max_length=50, verbose_name='Номер накладной')
     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, related_name='invoices', related_query_name='invoice',
                             verbose_name='Лаборатория', blank=True, null=True)

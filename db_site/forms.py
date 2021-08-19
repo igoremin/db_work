@@ -495,9 +495,13 @@ class AddSimpleObjectToProfile(forms.ModelForm):
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ['number', 'bill', 'date', 'total_price']
+        fields = ['invoice_type', 'number', 'bill', 'date', 'total_price']
 
         widgets = {
+            'invoice_type': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+            }),
             'number': forms.TextInput(attrs={'class': 'form-control'}),
             'bill': forms.TextInput(attrs={'class': 'form-control'}),
             'date': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),

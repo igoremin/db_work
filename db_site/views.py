@@ -307,80 +307,84 @@ def category_page(request, lab, slug):
 def base_object_page(request, lab, slug):
     """Страница базового объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
-    if request.user.is_superuser or user.lab.slug == lab:
-        if request.method == 'GET':
-            base_object = get_object_or_404(BaseObject, slug=slug)
-            simple_objects = SimpleObject.objects.filter(base_object=base_object)
-            cat_form = CategoryListForm(lab=lab)
-            context = {
-                'object': base_object,
-                'simple_objects': simple_objects,
-                'cat_form': cat_form,
-            }
-            return render(request, 'db_site/base_object_page.html', context=context)
+    if not request.user.is_superuser or user.lab.slug != lab:
+        raise Http404
+    if request.method == 'GET':
+        base_object = get_object_or_404(BaseObject, slug=slug)
+        simple_objects = SimpleObject.objects.filter(base_object=base_object)
+        cat_form = CategoryListForm(lab=lab)
+        context = {
+            'object': base_object,
+            'simple_objects': simple_objects,
+            'cat_form': cat_form,
+        }
+        return render(request, 'db_site/base_object_page.html', context=context)
 
 
 @login_required(login_url='/login/')
 def base_object_update_page(request, lab, slug):
     """Страница обновления базового объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
-    if request.user.is_superuser or user.lab.slug == lab:
-        base_object = get_object_or_404(BaseObject, slug=slug)
-        if request.method == 'GET':
-            form = BaseObjectForm(instance=base_object)
-            context = {
-                'form': form,
-                'base_object': base_object
-            }
-            return render(request, 'db_site/base_object_update_form.html', context=context)
-        else:
-            form = BaseObjectForm(request.POST, instance=base_object)
-            if form.is_valid():
-                form.save()
-                if lab != base_object.lab.slug:
-                    # Изменилась лаборатория. Необходимо найти все простые объекты связанные с данным базовым и
-                    # переметить их в другую лабораторию
-                    simple_objects = SimpleObject.objects.filter(base_object=base_object)
-                    if simple_objects:
-                        simple_objects.update(lab=base_object.lab)
+    if not request.user.is_superuser or user.lab.slug != lab:
+        raise Http404
 
-            return redirect(base_object_page, lab=base_object.lab.slug, slug=base_object.slug)
+    base_object = get_object_or_404(BaseObject, slug=slug)
+    if request.method == 'GET':
+        form = BaseObjectForm(instance=base_object)
+        context = {
+            'form': form,
+            'base_object': base_object
+        }
+        return render(request, 'db_site/base_object_update_form.html', context=context)
+    else:
+        form = BaseObjectForm(request.POST, instance=base_object)
+        if form.is_valid():
+            form.save()
+            if lab != base_object.lab.slug:
+                # Изменилась лаборатория. Необходимо найти все простые объекты связанные с данным базовым и
+                # переметить их в другую лабораторию
+                simple_objects = SimpleObject.objects.filter(base_object=base_object)
+                if simple_objects:
+                    simple_objects.update(lab=base_object.lab)
+        return redirect(base_object_page, lab=base_object.lab.slug, slug=base_object.slug)
 
 
 @login_required(login_url='/login/')
 def base_object_create_simple(request, lab, slug):
     """Создание простого объекта на основе базового"""
-    if request.user.is_superuser:
-        base_object = get_object_or_404(BaseObject, slug=slug)
-        cat_form = CategoryListForm(request.POST, lab=lab)
-        if request.method == 'POST':
-            if cat_form.is_valid():
+    if not request.user.is_superuser:
+        raise Http404
 
-                measure = '---'
-                if base_object.measure:
-                    base_measure = base_object.measure.lower().strip().replace('.', '')
-                    if base_measure in SimpleObject.ChoicesMeasure.values:
-                        measure = base_measure
-                simple_object = SimpleObject(
-                    base_object=base_object,
-                    name=base_object.name,
-                    lab=base_object.lab,
-                    measure=measure,
-                    price=round(base_object.total_price / base_object.amount, 2),
-                    amount=base_object.amount,
-                    category=cat_form.clean()['categories']
-                )
-                simple_object.save(update_base_object=False)
-                form = SimpleObjectForm(instance=simple_object)
-                context = {
-                    'form': form,
-                    'simple_object': simple_object,
-                    'status': 'update',
-                    'slug': simple_object.slug,
-                    'update_base_object': False
-                }
-                return render(request, 'db_site/simple_object_form.html', context=context)
-        return redirect(base_object_page, lab, slug)
+    base_object = get_object_or_404(BaseObject, slug=slug)
+    cat_form = CategoryListForm(request.POST, lab=lab)
+    if request.method == 'POST':
+        if cat_form.is_valid():
+
+            measure = '---'
+            if base_object.measure:
+                base_measure = base_object.measure.lower().strip().replace('.', '')
+                if base_measure in SimpleObject.ChoicesMeasure.values:
+                    measure = base_measure
+            simple_object = SimpleObject(
+                base_object=base_object,
+                name=base_object.name,
+                lab=base_object.lab,
+                measure=measure,
+                price=round(base_object.total_price / base_object.amount, 2),
+                amount=base_object.amount,
+                category=cat_form.clean()['categories']
+            )
+            simple_object.save(update_base_object=False)
+            form = SimpleObjectForm(instance=simple_object)
+            context = {
+                'form': form,
+                'simple_object': simple_object,
+                'status': 'update',
+                'slug': simple_object.slug,
+                'update_base_object': False
+            }
+            return render(request, 'db_site/simple_object_form.html', context=context)
+    return redirect(base_object_page, lab, slug)
 
 
 @login_required(login_url='/login/')

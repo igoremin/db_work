@@ -50,7 +50,10 @@
 
     <div class="row">
         <div class="col">
-            <h3>Требовательная накладная № {{ invoice.number }}</h3>
+            <h3>
+                {% if invoice.invoice_type %}
+                    {{ invoice.invoice_type }}
+                {% endif %}  {{ invoice.number }}</h3>
             <ul>
                 <li>Счет, субсчет : {{ invoice.bill }}</li>
                 <li>Дата : {{ invoice.date }}</li>
