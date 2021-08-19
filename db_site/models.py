@@ -393,6 +393,9 @@ class BaseObject(models.Model):
     def get_absolute_url(self):
         return reverse('base_object_page_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
 
+    def get_absolute_update_url(self):
+        return reverse('base_object_update_page_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
+
     def create_slug(self):
         all_slugs = BaseObject.objects.all().values_list('slug', flat=True)
         self.slug = gen_slug(lab=self.lab.slug, title=self.name, all_slugs=all_slugs)
@@ -596,6 +599,9 @@ class SimpleObject(models.Model):
 
     def get_absolute_url(self):
         return reverse('simple_object_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
+
+    def get_absolute_update_url(self):
+        return reverse('simple_object_update_form_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
 
     def create_slug(self):
         all_slugs = SimpleObject.objects.all().values_list('slug', flat=True)
