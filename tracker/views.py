@@ -126,10 +126,10 @@ def task_form(request, lab, pk=None):
                     bot_send = True
                     end_date = formats.date_format(end_date, 'SHORT_DATE_FORMAT')
                     new_end_date = formats.date_format(task.end_date, 'SHORT_DATE_FORMAT')
-                    message += f'-**Дедлайн изменился** с "{end_date}" **на** "{new_end_date}"\n'
+                    message += f'-**Дедлайн изменился с** "{end_date}" **на** "{new_end_date}"\n'
                 if text != task.text:
                     bot_send = True
-                    message += f'-**Описание изменилось** с "{text}" **на** "{task.text}"'
+                    message += f'-**Описание изменилось с**\n "{text}"\n **на** \n"{task.text}"'
                 if bot_send:
                     task.add_robot_comment(message, user)
                 return redirect(task_page, lab=lab, pk=pk)
