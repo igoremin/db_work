@@ -307,7 +307,7 @@ def category_page(request, lab, slug):
 def base_object_page(request, lab, slug):
     """Страница базового объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
-    if not request.user.is_superuser or user.lab.slug != lab:
+    if not request.user.is_superuser and user.lab.slug != lab:
         raise Http404
     if request.method == 'GET':
         base_object = get_object_or_404(BaseObject, slug=slug)
@@ -325,7 +325,7 @@ def base_object_page(request, lab, slug):
 def base_object_update_page(request, lab, slug):
     """Страница обновления базового объекта. lab - текущая лаборатория"""
     user = Profile.objects.get(user_id=request.user.id)
-    if not request.user.is_superuser or user.lab.slug != lab:
+    if not request.user.is_superuser and user.lab.slug != lab:
         raise Http404
 
     base_object = get_object_or_404(BaseObject, slug=slug)
