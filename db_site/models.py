@@ -407,6 +407,10 @@ class BaseObject(models.Model):
         else:
             self.total_price_text = '0,00'
 
+    def get_short_bill(self):
+        short_bill = self.bill.split('.')[0:2]
+        return '.'.join(short_bill)
+
 
 class InvoiceType(models.Model):
     invoice_type = models.CharField(max_length=200, verbose_name='Тип накладной')
@@ -452,6 +456,10 @@ class Invoice(models.Model):
 
     def get_absolute_url(self):
         return reverse('invoice_page_url', kwargs={'lab': self.lab.slug, 'pk': self.pk})
+
+    def get_short_bill(self):
+        short_bill = self.bill.split('.')[0:2]
+        return '.'.join(short_bill)
 
 
 class SimpleObject(models.Model):
