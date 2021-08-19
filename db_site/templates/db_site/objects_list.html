@@ -8,7 +8,11 @@
 {#        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a>#}
 {#        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>#}
         <a class="btn btn-outline-secondary mb-3" href="{% url 'category_update_form_url' lab=current_lab.slug slug=cat_slug %}" role="button">Редактировать категорию</a>
-{#        <a class="btn btn-outline-danger mb-3" href="#" role="button">Удалить категорию</a>#}
+        {% if base_objects %}
+            <a class="btn btn-outline-secondary mb-3" href="{% url 'base_objects_list_update_page_url' lab=current_lab.slug cat=cat_slug %}" role="button">Редактировать базовый список</a>
+        {% endif %}
+
+        {#        <a class="btn btn-outline-danger mb-3" href="#" role="button">Удалить категорию</a>#}
     {% endif %}
     {% if type == 'category_page' %}
         {% if base_objects %}

@@ -17,11 +17,12 @@
     <table class="table">
         <thead>
         <tr>
-            <th scope="col" style="width: 5%">#</th>
-            <th scope="col" style="width: 35%">Название</th>
+            <th scope="col" style="width: 2%">#</th>
+            <th scope="col" style="width: 30%">Название</th>
             <th scope="col" style="width: 10%">Инв. номер</th>
-            <th scope="col" style="width: 10%">Кол-во</th>
-            <th scope="col" style="width: 10%">Ед. изм.</th>
+            <th scope="col" style="width: 8%">Кол-во</th>
+            <th scope="col" style="width: 10%">Накладная</th>
+            <th scope="col" style="width: 10%">Счет</th>
             <th scope="col" style="width: 10%">Цена</th>
             <th scope="col" style="width: 10%">Сумма</th>
             <th scope="col" style="width: 10%">Подпись</th>
@@ -33,8 +34,19 @@
                 <td></td>
                 <td>{{ data.simple_object.name }}</td>
                 <td>{{ data.simple_object.base_object.inventory_number }}</td>
-                <td>{{ data.amount }}</td>
-                <td>{{ data.simple_object.measure }}</td>
+                <td>{{ data.amount }}{% if data.simple_object.measure %} {{ data.simple_object.measure }}{% endif %} </td>
+                <td>
+                    {% if data.simple_object.base_object.invoicebaseobject_set.all %}
+                        {% for invoice in data.simple_object.base_object.invoicebaseobject_set.all %}
+                            {{ invoice.invoice.number }}
+                        {% endfor %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if data.simple_object.base_object.bill %}
+                        {{ data.simple_object.base_object.bill }}
+                    {% endif %}
+                </td>
                 <td>
                     {% if data.price %}
                         {{ data.price }}
@@ -52,8 +64,8 @@
     </table>
     <div class="row">
         <div class="col">
-            <p>Выдал : Бизяева Юлия Михайловна / </p>
-            <p>Принял : {{ profile.name }} / </p>
+            <p>Отпустил : Бизяева Юлия Михайловна / </p>
+            <p>Получил : {{ profile.name }} / </p>
             <p>Дата и время выдачи : {{ time }}</p>
         </div>
         <div class="col">

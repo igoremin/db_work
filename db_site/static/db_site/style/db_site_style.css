@@ -124,6 +124,10 @@ p.small_p {
     box-shadow: 5px 5px 5px #0002;
 }
 
+.alert-danger {
+    border-radius: 5px;
+}
+
 /*footer*/
 .col_white_amrc { color:#FFF;}
 footer { width:100%; background-color:#263238;}

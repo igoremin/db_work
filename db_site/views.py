@@ -4,7 +4,7 @@ from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObje
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
     Order, Invoice, InvoiceBaseObject
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect, Http404
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,7 +13,8 @@ from django.db.models import Q, F
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
     SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
-    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm
+    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm,\
+    BaseObjectsListForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components, update_big_objects_price
 from tracker.models import Task, CommentForTask

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Редактироание списка базовых объектов
+{% endblock %}
+
+{% block content %}
+
+    <form method="post" action="">
+        {{ formset.management_form }}
+        {% if form.errors %}
+
+        {% endif %}
+        {% csrf_token %}
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 5%">#</th>
+                <th scope="col" style="width: 45%">Название</th>
+                <th scope="col" style="width: 15%">Инв. номер</th>
+                <th scope="col" style="width: 10%">Счет</th>
+                <th scope="col" style="width: 5%">Мера</th>
+                <th scope="col" style="width: 10%">Всего</th>
+                <th scope="col" style="width: 10%">Сумма</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for form in formset %}
+                <tr>
+                    <td></td>
+                    <td>
+                        {% if form.name.errors %}
+                            <div class="alert-danger">
+                                {{ form.name.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.name }}
+                    </td>
+                    <td>
+                        {% if form.inventory_number.errors %}
+                            <div class="alert-danger">
+                                {{ form.inventory_number.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.inventory_number }}
+                    </td>
+                    <td>
+                        {% if form.inventory_number.errors %}
+                            <div class="alert-danger">
+                                {{ form.inventory_number.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.bill }}
+                    </td>
+                    <td>
+                        {% if form.measure.errors %}
+                            <div class="alert-danger">
+                                {{ form.measure.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.measure }}
+                    </td>
+                    <td>
+                        {% if form.amount.errors %}
+                            <div class="alert-danger">
+                                {{ form.amount.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.amount }}
+                    </td>
+                    <td>
+                        {% if form.total_price.errors %}
+                            <div class="alert-danger">
+                                {{ form.total_price.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.total_price }}
+                    </td>
+                </tr>
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}

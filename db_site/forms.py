@@ -115,6 +115,28 @@ class BaseObjectForm(forms.ModelForm):
         self.fields['category'].queryset = self.category
 
 
+class BaseObjectsListForm(forms.ModelForm):
+    """Форма для обновления базового объекта из списка"""
+    class Meta:
+        model = BaseObject
+        fields = [
+            'name', 'inventory_number', 'bill', 'measure', 'amount', 'total_price'
+        ]
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'bill': forms.TextInput(attrs={'class': 'form-control'}),
+            'measure': forms.TextInput(attrs={'class': 'form-control'}),
+            'total_price': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount': forms.TextInput(attrs={
+                'class': 'form-control',
+                'step': 0.001,
+                'min': 0,
+            }),
+        }
+
+
 class SimpleObjectForm(forms.ModelForm):
     class Meta:
         model = SimpleObject
