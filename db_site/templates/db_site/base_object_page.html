@@ -49,7 +49,9 @@
         {% endif %}
 
         <li>Инвентаризационный номер : {{ object.inventory_number }}</li>
-        <li>Код справочника : {{ object.directory_code }}</li>
+        {% if object.bill %}
+            <li>Счет : {{ object.bill }}</li>
+        {% endif %}
         <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
         <li>Сумма : {{ object.total_price_text }}</li>
         <li>Лаборатория : {{ object.lab.name }}</li>

@@ -1359,7 +1359,7 @@ def invoice_object_form(request, lab, pk):
         elif request.method == 'GET':
             form = SimpleObjectForm()
             base_form = CategoryListForm(lab=lab, type='BO')
-            inventory_form = InventoryNumberForm()
+            inventory_form = InventoryNumberForm(initial={'bill': invoice.bill})
             context = {
                 'form': form,
                 'invoice': invoice,
@@ -1374,12 +1374,12 @@ def invoice_object_form(request, lab, pk):
                 # Определяем категорию базового объекта
                 base_cat = base_form.clean()['categories']
 
-            inventory_form = InventoryNumberForm(request.POST)
+            inventory_form = InventoryNumberForm(request.POST, initial={'bill': invoice.bill})
             inventory_number = None
-            directory_code = None
+            bill = None
             if inventory_form.is_valid():
                 inventory_number = inventory_form.clean()['inventory_number']
-                directory_code = inventory_form.clean()['directory_code']
+                bill = inventory_form.clean()['bill']
 
             form = SimpleObjectForm(request.POST)
             if form.is_valid():
@@ -1392,8 +1392,8 @@ def invoice_object_form(request, lab, pk):
                 base_object.total_price = simple_object.amount * simple_object.price
                 if inventory_number:
                     base_object.inventory_number = inventory_number
-                if directory_code:
-                    base_object.directory_code = directory_code
+                if bill:
+                    base_object.bill = bill
                 base_object.measure = simple_object.measure
                 if base_cat:
                     base_object.category = base_cat
@@ -1421,7 +1421,7 @@ def invoice_base_object_form(request, lab, pk):
     if request.user.is_superuser:
         invoice = get_object_or_404(Invoice, pk=pk)
         if request.method == 'GET':
-            form = BaseObjectForm()
+            form = BaseObjectForm(initial={'bill': invoice.bill})
             context = {
                 'invoice': invoice,
                 'form': form,
@@ -1429,7 +1429,7 @@ def invoice_base_object_form(request, lab, pk):
             }
             return render(request, 'db_site/invoice_object_form.html', context=context)
         else:
-            form = BaseObjectForm(request.POST)
+            form = BaseObjectForm(request.POST, initial={'bill': invoice.bill})
             context = {
                 'invoice': invoice,
                 'form': form,

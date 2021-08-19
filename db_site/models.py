@@ -334,6 +334,7 @@ class BaseObject(models.Model):
                                         blank=True, null=True)
     directory_code = models.CharField(verbose_name='Код справочника, не уникальный', max_length=100,
                                       blank=True, null=True)
+    bill = models.CharField(max_length=100, verbose_name='Счет', blank=True, null=True)
     measure = models.CharField(verbose_name='Единица измерения', max_length=10, blank=True, null=True)
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
     total_price_text = models.CharField(verbose_name='Общая сумма с пробелами', max_length=100, blank=True)
@@ -345,7 +346,14 @@ class BaseObject(models.Model):
         ordering = ['name_lower']
 
     def __str__(self):
-        return '{} ({})'.format(self.name, self.inventory_number)
+        str_name = ''
+        if self.inventory_number and self.bill:
+            str_name += f'{self.inventory_number}, {self.bill}'
+        elif self.inventory_number:
+            str_name += f'{self.inventory_number}'
+        elif self.bill:
+            str_name += f'{self.bill}'
+        return '{} ({})'.format(self.name, str_name)
 
     def save(self, *args, **kwargs):
         self.name = self.name.strip()
@@ -491,9 +499,14 @@ class SimpleObject(models.Model):
 
     def __str__(self):
         if self.base_object:
-            if self.base_object.inventory_number:
+            if self.base_object.inventory_number and self.base_object.bill:
+                return f'{self.name} ({self.base_object.inventory_number}, {self.base_object.bill})'
+            elif self.base_object.inventory_number:
                 return f'{self.name} ({self.base_object.inventory_number})'
-            return '{}'.format(self.name)
+            elif self.base_object.bill:
+                return f'{self.name} ({self.base_object.bill})'
+            else:
+                return '{}'.format(self.name)
         return '{}'.format(self.name)
 
     def save(self, update_base_object=True, *args, **kwargs):

@@ -14,7 +14,7 @@
                 <th scope="col">#</th>
                 <th scope="col" style="width: 30%">Название</th>
                 <th scope="col" style="width: 15%">Инв. номер</th>
-                <th scope="col" style="width: 15%">Код справочника</th>
+                <th scope="col" style="width: 15%">Счет</th>
                 <th scope="col">Всего</th>
                 <th scope="col">Свободно</th>
                 <th scope="col">Стоимость</th>
@@ -28,22 +28,17 @@
                     <td></td>
                     <td>
                         <a href="{{ simple_object.get_absolute_url }}">
-{#                                {% if q|lower in simple_object.name|lower%}style="background-color: #f3ffbe" {% endif %}>#}
                             {{ simple_object.name }}
                         </a>
                     </td>
                     <td>
                         {% if simple_object.base_object.inventory_number %}
-{#                            <span {% if q|lower in simple_object.inventory_number|lower%}style="background-color: #f3ffbe" {% endif %}>#}
                                 {{ simple_object.base_object.inventory_number }}
-{#                            </span>#}
                         {% endif %}
                     </td>
                     <td>
-                        {% if simple_object.base_object.directory_code %}
-{#                            <span {% if q|lower in simple_object.directory_code|lower%}style="background-color: #f3ffbe" {% endif %}>#}
-                                {{ simple_object.base_object.directory_code }}
-{#                            </span>#}
+                        {% if simple_object.base_object.bill %}
+                                {{ simple_object.base_object.bill }}
                         {% endif %}
                     </td>
                     <td>{{ simple_object.amount }}</td>
@@ -64,8 +59,8 @@
                 <th scope="col">#</th>
                 <th scope="col" style="width: 30%">Название</th>
                 <th scope="col" style="width: 15%">Инв. номер</th>
-                <th scope="col" style="width: 15%">Код справочника</th>
-                <th scope="col">Всего</th>
+                <th scope="col" style="width: 15%">Счет</th>
+                <th scope="col">Количество</th>
                 <th scope="col">Сумма</th>
             </tr>
             </thead>
@@ -85,8 +80,8 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if object.directory_code %}
-                                {{ object.directory_code }}
+                        {% if object.bill %}
+                                {{ object.bill }}
                         {% endif %}
                     </td>
                     <td>{{ object.amount }}</td>

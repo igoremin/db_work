@@ -143,7 +143,7 @@ function updateComponentFromBigObject(pk) {
             else if (data.rez) {
                 console.log(data.rez);
                 $('#change_' + pk).modal('toggle')
-                $('tr#tr_' + pk + ' td:nth-child(4)').text(data.new_amount.toFixed(1));
+                $('tr#tr_' + pk + ' td:nth-child(5)').text(data.new_amount.toFixed(1));
             }
             else {
                 alert("Ошибка при проверке данных на сервере!\nПопробуйте снова.");

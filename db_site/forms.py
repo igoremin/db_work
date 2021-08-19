@@ -61,9 +61,9 @@ class InventoryNumberForm(forms.Form):
             }
         )
     )
-    directory_code = forms.CharField(
+    bill = forms.CharField(
         required=True,
-        label='Код справочника',
+        label='Счет',
         widget=forms.TextInput(
             attrs={
                 'class': 'form-control',
@@ -72,11 +72,18 @@ class InventoryNumberForm(forms.Form):
         )
     )
 
+    # def __init__(self, bill=None, *args, **kwargs):
+    #     super(InventoryNumberForm, self).__init__(*args, **kwargs)
+    #     if bill:
+    #         self.fields['bill'].value = bill
+
 
 class BaseObjectForm(forms.ModelForm):
     class Meta:
         model = BaseObject
-        fields = ['name', 'lab', 'category', 'inventory_number', 'directory_code', 'measure', 'total_price', 'amount']
+        fields = [
+            'name', 'lab', 'category', 'inventory_number', 'directory_code', 'bill', 'measure', 'total_price', 'amount'
+        ]
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -84,6 +91,7 @@ class BaseObjectForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'bill': forms.TextInput(attrs={'class': 'form-control'}),
             'measure': forms.TextInput(attrs={'class': 'form-control'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),
             'amount': forms.TextInput(attrs={

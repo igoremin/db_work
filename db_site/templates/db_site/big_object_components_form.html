@@ -32,8 +32,9 @@
         <thead>
         <tr class="text-center">
             <th scope="col">#</th>
-            <th scope="col" style="width: 60%"> Название</th>
+            <th scope="col" style="width: 50%"> Название</th>
             <th scope="col" style="width: 15%">Инв. номер</th>
+            <th scope="col" style="width: 10%">Счет</th>
             <th scope="col" style="width: 10%">Количество</th>
             <th scope="col" style="width: 7%">#</th>
             <th scope="col" style="width: 7%">#</th>
@@ -50,6 +51,11 @@
                 <td>
                     {% if component.simple_object.base_object.inventory_number %}
                         {{ component.simple_object.base_object.inventory_number }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if component.simple_object.base_object.bill %}
+                        {{ component.simple_object.base_object.bill }}
                     {% endif %}
                 </td>
                 <td>{{ component.amount }}</td>

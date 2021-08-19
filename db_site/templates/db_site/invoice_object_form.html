@@ -9,6 +9,8 @@
         <h3>Добавление существующего базового объекта к накладной <a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></h3>
     {% elif type == 'update_exist_instance' %}
         <h3>Редактирование составляющей у накладной <a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></h3>
+    {% elif type == 'base_object_form' %}
+        <h3>Новый базовый объект для требовательной накладной <a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></h3>
     {% else %}
         <h3>Новый простой объект для требовательной накладной <a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></h3>
     {% endif %}

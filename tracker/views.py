@@ -181,6 +181,10 @@ def create_task_for_exist_task(request, lab, pk):
             new_task.privat = parent.privat
             new_task.save()
 
+            parent.add_robot_comment(
+                f'{user.name} создал(a) подзадачу "[{new_task.name}]'
+                f'({new_task.get_absolute_url()})"', user
+            )
             text = f'{user.name} создал(a) эту подзадачу для задачи "{parent.name}"'
             new_task.add_robot_comment(text, user)
             return redirect(task_page, lab=lab.slug, pk=new_task.pk)

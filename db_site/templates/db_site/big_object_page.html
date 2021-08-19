@@ -295,10 +295,11 @@
     <table id="base_components_table" class="table table-hover table-bordered" style="display: none">
         <thead>
         <tr class="text-center">
-            <th scope="col">#</th>
-            <th scope="col">Название</th>
-            <th scope="col">Инв. номер</th>
-            <th scope="col">Количество</th>
+            <th scope="col" style="width: 5%">#</th>
+            <th scope="col" style="width: 50%">Название</th>
+            <th scope="col" style="width: 25%">Инв. номер</th>
+            <th scope="col" style="width: 10%">Счет</th>
+            <th scope="col" style="width: 10%">Количество</th>
         </tr>
         </thead>
 
@@ -309,6 +310,11 @@
                     <td>
                         <a href="{{ component.get_absolute_url }}">{{ component.name }}{% if component.measure %}, {{ component.measure }}{% endif %}</a></td>
                     <td>{{ component.inventory_number }}</td>
+                    <td>
+                        {% if component.bill %}
+                            {{ component.bill }}
+                        {% endif %}
+                    </td>
                     <td>
                         {% if amount != '-' %}
                             {{ amount }}

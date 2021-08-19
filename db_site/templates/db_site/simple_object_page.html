@@ -142,6 +142,9 @@
                 {% if object.base_object.inventory_number %}
                     <li>Инвентаризационный номер : {{ object.base_object.inventory_number }}</li>
                 {% endif %}
+                {% if object.base_object.bill %}
+                    <li>Счет : {{ object.base_object.bill }}</li>
+                {% endif %}
                 <li>Количество : {{ object.amount }} {% if object.measure %} , {{ object.measure }}{% endif %}</li>
                 <li>В работе : {{ object.amount_in_work }}</li>
                 <li>{% if object.amount_free < 0 %}Не хватает{% else %}Свободно{% endif %} : {{ object.amount_free }}</li>
