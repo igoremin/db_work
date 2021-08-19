@@ -13,7 +13,7 @@
 
 <div class="container" style="max-width: 1500px; min-width: 1500px">
     <h2 class="text-center">{{ order.lab }}</h2>
-    <h3 class="text-center pb-3">Заявка на выдачу от {{ order.date }} <br> Получатель : {{ profile.name }}</h3>
+    <h3 class="text-center pb-3">Заявка на выдачу от {{ order.date.date }} <br> Получатель : {{ profile.name }}</h3>
     <table class="table">
         <thead>
         <tr>
@@ -66,7 +66,7 @@
         <div class="col">
             <p>Отпустил : Бизяева Юлия Михайловна / </p>
             <p>Получил : {{ profile.name }} / </p>
-            <p>Дата и время выдачи : {{ time }}</p>
+            <p>Дата выдачи : {{ time.date }}</p>
         </div>
         <div class="col">
         </div>
