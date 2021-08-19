@@ -383,6 +383,49 @@ def base_object_create_simple(request, lab, slug):
         return redirect(base_object_page, lab, slug)
 
 
+@login_required(login_url='/login/')
+def base_objects_list_update(request, lab, cat):
+    """Страница обновления таблица базовых объектов по выбранной категории (cat). lab - текущая лаборатория"""
+    if not request.user.is_superuser:
+        raise Http404
+
+    base_objects = BaseObject.objects.filter(category__slug=cat, lab__slug=lab)
+    if request.method == 'GET':
+        formset = modelformset_factory(BaseObject, form=BaseObjectsListForm, extra=0)
+        context = {
+            'formset': formset(queryset=base_objects),
+        }
+        return render(request, 'db_site/base_objects_list_update_page.html', context=context)
+    else:
+        forms_formset = modelformset_factory(
+            BaseObject,
+            form=BaseObjectsListForm,
+            extra=len(base_objects)
+        )
+        formset = forms_formset(request.POST, queryset=base_objects)
+        if formset.is_valid():
+            for form in formset:
+                clean_data = form.clean()
+                old_base_object = BaseObject.objects.get(pk=clean_data['id'].id)
+                old_base_object_dict = {
+                    'name': old_base_object.name,
+                    'inventory_number': old_base_object.inventory_number,
+                    'bill': old_base_object.bill,
+                    'measure': old_base_object.measure,
+                    'amount': old_base_object.amount,
+                    'total_price': old_base_object.total_price,
+                    'id': old_base_object
+                }
+                if clean_data != old_base_object_dict:
+                    form.save()
+            return redirect(category_page, lab, cat)
+        else:
+            context = {
+                'formset': formset,
+            }
+        return render(request, 'db_site/base_objects_list_update_page.html', context=context)
+
+
 """---------------------------------------------------------------------------------------------------------"""
 """------------------------------------------SIMPLE OBJECTS-------------------------------------------------"""
 
