@@ -1539,6 +1539,8 @@ def invoice_base_object_instance_form(request, lab, pk, instance_pk=None):
                 else:
                     new_object_for_invoice = form.save(commit=False)
                     new_object_for_invoice.invoice = invoice
+                    if not new_object_for_invoice.base_object.bill:
+                        BaseObject.objects.filter(pk=new_object_for_invoice.base_object.pk).update(bill=invoice.bill)
                     form.save()
                 return redirect(invoice_page, lab, pk)
             return render(request, 'db_site/invoice_object_form.html', context=context)
