@@ -62,7 +62,7 @@
             <li>Сотрудник : <a href="{{ object.worker.get_absolute_url }}">{{ object.worker.name }}</a></li>
         {% endif %}
         {% if object.status %}
-            <li>Статус : {{ object.status }}</li>
+            <li>Статус : {{ object.get_status_display }}</li>
         {% endif %}
         {% if object.category %}
             <li>Раздел : {{ object.category.name }}</li>

@@ -325,6 +325,12 @@ class Profile(models.Model):
 
 
 class BaseObject(models.Model):
+    class ChoicesStatus(models.TextChoices):
+        NOT_IN_WORK = 'NW', _('Не в работе')
+        IN_REPAIRING = 'IR', _('В ремонте')
+        IN_WORK = 'IW', _('Активный')
+        WRITTEN_OF = 'WO', _('Списано')
+
     name = models.CharField(max_length=200, verbose_name='Название')
     name_lower = models.CharField(max_length=200, verbose_name='Название в нижнем регистре', blank=True)
     slug = models.SlugField(max_length=250, unique=True, blank=True, verbose_name='URL')
@@ -339,6 +345,12 @@ class BaseObject(models.Model):
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
     total_price_text = models.CharField(verbose_name='Общая сумма с пробелами', max_length=100, blank=True)
     amount = models.FloatField(verbose_name='Общее количество единиц', default=0)
+    status = models.CharField(
+        max_length=2,
+        choices=ChoicesStatus.choices,
+        default=ChoicesStatus.IN_WORK,
+        verbose_name='Статус'
+    )
 
     class Meta:
         verbose_name = 'Базовый объект'
@@ -473,11 +485,6 @@ class Invoice(models.Model):
 
 
 class SimpleObject(models.Model):
-    class ChoicesStatus(models.TextChoices):
-        NOT_IN_WORK = 'NW', _('Не в работе')
-        IN_WORK = 'IW', _('Активный')
-        WRITTEN_OF = 'WO', _('Списано')
-
     class ChoicesMeasure(models.TextChoices):
         GRAND = 'шт', _('шт')
         METRE = 'м', _('м')
@@ -488,7 +495,6 @@ class SimpleObject(models.Model):
         GRAM = 'гр', _('гр')
         EMPTY = '---', _('---')
 
-    # parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
     base_object = models.ForeignKey(
         to=BaseObject, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Базовая единица'
     )
@@ -514,12 +520,6 @@ class SimpleObject(models.Model):
         choices=ChoicesMeasure.choices,
         default=ChoicesMeasure.EMPTY,
         max_length=3,
-    )
-    status = models.CharField(
-        max_length=2,
-        choices=ChoicesStatus.choices,
-        default=ChoicesStatus.IN_WORK,
-        verbose_name='Статус'
     )
     history = HistoricalRecords(
         verbose_name='История',
@@ -568,9 +568,9 @@ class SimpleObject(models.Model):
             """Проверка изменений полей для записи истории изменений.
             Если какое-либо из полей изменилось то сохраняем объект с записями в истории,
             иначе пропускаем запись истории"""
-            obj = [self.name, self.category, self.status, self.price_text,
+            obj = [self.name, self.category, self.price_text,
                    self.amount, self.amount_in_work]
-            old_obj = [old_self.name, old_self.category, old_self.status,
+            old_obj = [old_self.name, old_self.category,
                        old_self.price_text, old_self.amount, old_self.amount_in_work]
 
             if obj == old_obj:
@@ -682,6 +682,16 @@ class SimpleObject(models.Model):
 
         for top_object in BigObject.objects.filter(status__in=['IW', 'NW'], top_level=True, base__in=base_big_objects):
             top_object.update_price()
+
+    def write_off(self, amount):
+        self.amount = self.amount - amount
+        if self.amount == 0 and self.base_object:
+            if len(self.base_object.simpleobject_set.all()) == 1:
+                BaseObject.objects.filter(pk=self.base_object.pk).update(status='WO', amount=0)
+                # self.base_object.status = 'WO'
+                # self.base_object.amount = 0
+
+        self.save()
 
     def delete(self, *args, **kwargs):
         all_big_objects = BaseBigObject.objects.filter(simple_components__simple_object=self)

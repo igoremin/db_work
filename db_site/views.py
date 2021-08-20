@@ -260,8 +260,12 @@ def category_page(request, lab, slug):
                 sort = ['name_lower']
                 base_sorted = ['name_lower']
 
-            base_objects = BaseObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*base_sorted)
-            simple_objects = SimpleObject.objects.filter(category__slug=slug, lab__slug=lab).order_by(*sort)
+            base_objects = BaseObject.objects.filter(
+                category__slug=slug, lab__slug=lab
+            ).exclude(status='WO').order_by(*base_sorted)
+            simple_objects = SimpleObject.objects.filter(
+                category__slug=slug, lab__slug=lab
+            ).exclude(base_object__status='WO').order_by(*sort)
             big_objects = BigObject.objects.filter(
                 base__category__slug=slug, base__lab__slug=lab, parent=None
             )
@@ -394,11 +398,15 @@ def base_objects_list_update(request, lab, cat):
         raise Http404
 
     base_objects = BaseObject.objects.filter(category__slug=cat, lab__slug=lab)
+    page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
+        request=request, objects=base_objects
+    )
     if request.method == 'GET':
         formset = modelformset_factory(BaseObject, form=BaseObjectsListForm, extra=0)
         context = {
-            'formset': formset(queryset=base_objects),
+            'formset': formset(queryset=page.object_list),
         }
+        context.update(paginator_dict)
         return render(request, 'db_site/base_objects_list_update_page.html', context=context)
     else:
         forms_formset = modelformset_factory(
@@ -406,7 +414,7 @@ def base_objects_list_update(request, lab, cat):
             form=BaseObjectsListForm,
             extra=len(base_objects)
         )
-        formset = forms_formset(request.POST, queryset=base_objects)
+        formset = forms_formset(request.POST, queryset=page.object_list)
         if formset.is_valid():
             for form in formset:
                 clean_data = form.clean()
@@ -414,6 +422,7 @@ def base_objects_list_update(request, lab, cat):
                 old_base_object_dict = {
                     'name': old_base_object.name,
                     'inventory_number': old_base_object.inventory_number,
+                    'status': old_base_object.status,
                     'bill': old_base_object.bill,
                     'measure': old_base_object.measure,
                     'amount': old_base_object.amount,
@@ -445,11 +454,13 @@ def simple_objects_list(request, lab, obj_type=None):
                 sort = ['name_lower']
             if obj_type:
                 all_objects = SimpleObject.objects.filter(
-                    lab__slug=lab, status__in=['IW', 'NW'], category__obj_type=obj_type
+                    lab__slug=lab, base_object__status__in=['IW', 'NW'], category__obj_type=obj_type
                 ).order_by(*sort)
                 all_name = Category.objects.filter(obj_type=obj_type)[0].get_obj_type_display()
             else:
-                all_objects = SimpleObject.objects.filter(lab__slug=lab, status__in=['IW', 'NW']).order_by(*sort)
+                all_objects = SimpleObject.objects.filter(
+                    lab__slug=lab, base_object__status__in=['IW', 'NW']
+                ).order_by(*sort)
                 all_name = 'Весь список'
 
             page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
@@ -485,10 +496,10 @@ def simple_objects_write_off_list(request, lab, obj_type=None):
                 sort = ['name_lower']
             if obj_type:
                 all_objects = SimpleObject.objects.filter(
-                    lab__slug=lab, status='WO', category__obj_type=obj_type
+                    lab__slug=lab, base_object__status='WO', category__obj_type=obj_type
                 ).order_by(*sort)
             else:
-                all_objects = SimpleObject.objects.filter(lab__slug=lab, status='WO').order_by(*sort)
+                all_objects = SimpleObject.objects.filter(lab__slug=lab, base_object__status='WO').order_by(*sort)
             page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                 request=request, objects=all_objects
             )
@@ -563,9 +574,7 @@ def simple_object_page(request, lab, slug):
                 )
                 if write_off_form.is_valid():
                     clean_data = write_off_form.clean()
-                    simple_object.amount = simple_object.amount - float(clean_data['write_off_amount'])
-                    simple_object.save()
-
+                    simple_object.write_off(float(clean_data['write_off_amount']))
             return redirect(simple_object_page, lab=lab, slug=slug)
 
     return HttpResponseNotFound("У вас нет доступа к этой странице!")
@@ -579,11 +588,11 @@ def simple_object_history(request, lab, slug):
         simple_object = SimpleObject.objects.get(lab__slug=lab, slug=slug)
         if request.method == 'GET':
             all_history = simple_object.history.all().values_list(
-                'name', 'category__name', 'status', 'inventory_number', 'price_text',
+                'name', 'category__name', 'price_text',
                 'amount', 'amount_in_work', 'history_date'
             )
             context = {
-                'row_names': ['Название', 'Категория', 'Статус', 'Инв. номер', 'Стоимость',
+                'row_names': ['Название', 'Категория', 'Стоимость',
                               'Количество', 'В работе', 'Дата'],
                 'history': all_history,
                 'object': simple_object,

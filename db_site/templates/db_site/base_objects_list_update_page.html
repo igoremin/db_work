@@ -6,7 +6,42 @@
 
 {% block content %}
 
-    <form method="post" action="">
+    {% if is_paginator %}
+
+        <nav aria-label="...">
+            <ul class="pagination pagination-sm mb-0">
+                {% if prev_url %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
+                    </li>
+                {% endif %}
+
+                {% for n in page_object.paginator.page_range %}
+
+                    {% if page_object.number == n %}
+                        <li class="page-item active" aria-current="page">
+                            <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                        </li>
+                    {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
+                        </li>
+
+                    {% endif %}
+                {% endfor %}
+
+                {% if next_url %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    {% endif %}
+
+    <form method="post" class="mb-3" action="">
         {{ formset.management_form }}
         {% if form.errors %}
 
@@ -15,9 +50,10 @@
         <table class="table table-hover table-bordered">
             <thead>
             <tr class="text-center">
-                <th scope="col" style="width: 5%">#</th>
-                <th scope="col" style="width: 45%">Название</th>
-                <th scope="col" style="width: 15%">Инв. номер</th>
+                <th scope="col" style="width: 2%">#</th>
+                <th scope="col" style="width: 40%">Название</th>
+                <th scope="col" style="width: 13%">Инв. номер</th>
+                <th scope="col" style="width: 10%">Статус</th>
                 <th scope="col" style="width: 10%">Счет</th>
                 <th scope="col" style="width: 5%">Мера</th>
                 <th scope="col" style="width: 10%">Всего</th>
@@ -43,6 +79,14 @@
                             </div>
                         {% endif %}
                         {{ form.inventory_number }}
+                    </td>
+                    <td>
+                        {% if form.status.errors %}
+                            <div class="alert-danger">
+                                {{ form.status.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.status }}
                     </td>
                     <td>
                         {% if form.inventory_number.errors %}
@@ -87,5 +131,40 @@
         <button type="submit" class="btn btn-primary">Сохранить</button>
         <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
     </form>
+
+    {% if is_paginator %}
+
+        <nav aria-label="...">
+            <ul class="pagination pagination-sm mb-0">
+                {% if prev_url %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
+                    </li>
+                {% endif %}
+
+                {% for n in page_object.paginator.page_range %}
+
+                    {% if page_object.number == n %}
+                        <li class="page-item active" aria-current="page">
+                            <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                        </li>
+                    {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
+                        </li>
+
+                    {% endif %}
+                {% endfor %}
+
+                {% if next_url %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    {% endif %}
 
 {% endblock %}

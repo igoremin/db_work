@@ -43,41 +43,46 @@
         </div>
         <!-------------------------------------------------------------------->
 
-        <!--------------------- Блок списания количества ----------------------->
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#object_write_off">
-            Списать количество
-        </button>
+        {% if object.base_object.status != 'WO' %}
+            <!--------------------- Блок списания количества ----------------------->
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="modal" data-target="#object_write_off">
+                Списать количество
+            </button>
 
-        <!-- Модальное окно -->
-        <div class="modal fade" id="object_write_off" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="staticBackdropLabel">Списать определенное количество</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+            <!-- Модальное окно -->
+            <div class="modal fade" id="object_write_off" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Списать определенное количество</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="{{ object.get_absolute_url }}" method="post">
+                            <div class="modal-body">
+                                <p>При списании всех простых объектов (итоговое количество равно нулю)
+                                    и при условии что у связанного базового объекта есть только один простой,
+                                    данный базовый объект так же будет списан и занулен </p>
+                                {% csrf_token %}
+                                {% if write_off_form.errors %}
+                                    <div class="alert-danger">
+                                        {{ write_off_form.errors }}
+                                    </div>
+                                {% endif %}
+                                {{ write_off_form.as_p }}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                                <button type="submit" class="btn btn-outline-primary">Списать</button>
+                            </div>
+                        </form>
                     </div>
-                    <form action="{{ object.get_absolute_url }}" method="post">
-                        <div class="modal-body">
-                            {% csrf_token %}
-                            {% if write_off_form.errors %}
-                                <div class="alert-danger">
-                                    {{ write_off_form.errors }}
-                                </div>
-                            {% endif %}
-                            {{ write_off_form.as_p }}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                            <button type="submit" class="btn btn-outline-primary">Списать</button>
-                        </div>
-                    </form>
                 </div>
             </div>
-        </div>
-        <!-------------------------------------------------------------------->
+            <!-------------------------------------------------------------------->
+        {% endif %}
 
         <!--------------------- Блок удаления объекта ----------------------->
         <!-- Button trigger modal -->
@@ -174,8 +179,8 @@
                         {% endfor %}
                     </li>
                 {% endif %}
-                {% if object.status %}
-                    <li>Статус : {{ object.get_status_display }}</li>
+                {% if object.base_object.status %}
+                    <li>Статус : {{ object.base_object.get_status_display }}</li>
                 {% endif %}
                 {% if object.category %}
                     <li>Категория : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>

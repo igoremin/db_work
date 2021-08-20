@@ -82,13 +82,15 @@ class BaseObjectForm(forms.ModelForm):
     class Meta:
         model = BaseObject
         fields = [
-            'name', 'lab', 'category', 'inventory_number', 'directory_code', 'bill', 'measure', 'total_price', 'amount'
+            'name', 'lab', 'category', 'status', 'inventory_number', 'directory_code',
+            'bill', 'measure', 'total_price', 'amount'
         ]
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
             'bill': forms.TextInput(attrs={'class': 'form-control'}),
@@ -120,12 +122,13 @@ class BaseObjectsListForm(forms.ModelForm):
     class Meta:
         model = BaseObject
         fields = [
-            'name', 'inventory_number', 'bill', 'measure', 'amount', 'total_price'
+            'name', 'inventory_number','status', 'bill', 'measure', 'amount', 'total_price'
         ]
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
             'bill': forms.TextInput(attrs={'class': 'form-control'}),
             'measure': forms.TextInput(attrs={'class': 'form-control'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),
@@ -141,7 +144,7 @@ class SimpleObjectForm(forms.ModelForm):
     class Meta:
         model = SimpleObject
         fields = ['base_object', 'name', 'lab', 'room', 'place', 'category',
-                  'price', 'amount', 'measure', 'status', 'text']
+                  'price', 'amount', 'measure', 'text']
 
         widgets = {
             'base_object': forms.Select(
@@ -165,7 +168,6 @@ class SimpleObjectForm(forms.ModelForm):
                 'min': 0,
             }),
             'measure': forms.Select(attrs={'class': 'form-control'}),
-            'status': forms.Select(attrs={'class': 'form-control'}),
             'text': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
