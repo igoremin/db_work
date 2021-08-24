@@ -150,6 +150,9 @@
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoices_list_url' lab=current_lab.slug %}" role="button">Все накладные</a></li>
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'task_list_for_current_lab' lab=current_lab.slug %}" role="button">Список задач</a></li>
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'new_task_form_url' lab=current_lab.slug %}" role="button">Создать задачу</a></li>
+                {% if user_info.can_change_big_object and not user.is_superuser %}
+                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a></li>
+                {% endif %}
             </ol>
 
         </nav>

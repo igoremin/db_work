@@ -3,6 +3,8 @@
 
 {% block content %}
 
+    <h3>Редактирование компонентов для <a href="{{ big_object.get_absolute_url }}">{{ big_object }}</a></h3>
+
     <form action="{% url 'big_object_update_components_url' lab=current_lab.slug slug=big_object.slug %}" method="POST" id="base_form">
         {% csrf_token %}
 

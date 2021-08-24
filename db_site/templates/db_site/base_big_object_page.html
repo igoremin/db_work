@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-    {% if user.is_staff %}
+    {% if user.is_staff or user_info.can_change_big_object %}
         {% if base_big_object.ready %}
             <p class="small_p">Редактирование запрещено</p>
         {% else %}

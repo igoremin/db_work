@@ -282,6 +282,11 @@ class Profile(models.Model):
                                     blank=True, null=True)
     number_of_elements = models.IntegerField(verbose_name='Количество позиций простых элементов', default=1, blank=True)
     robot = models.BooleanField(verbose_name='Робот или человек', default=False)
+    can_change_big_object = models.BooleanField(
+        verbose_name='Пользователь может изменять компоненты сложного объекта',
+        default=False,
+        blank=True,
+    )
 
     class Meta:
         ordering = ['name']
