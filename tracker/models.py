@@ -129,7 +129,7 @@ class Task(models.Model):
 
     def get_color(self):
         if self.status in ['NW', 'IW']:
-            days_left = timezone.timedelta(days=self.end_date.day) - timezone.timedelta(days=timezone.now().day)
+            days_left = self.end_date - timezone.now().date()
             if days_left.days < 0:
                 return '#ffa3a3'
             elif 0 <= days_left.days <= 3:
