@@ -46,7 +46,7 @@
                         <td>
                             <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
                         </td>
-                        <td>{{ object.inventory_number }}</td>
+                        <td>{{ object.base_object.inventory_number }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

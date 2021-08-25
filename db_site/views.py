@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
-    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room,\
+from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject, \
+    FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room, \
     Order, Invoice, InvoiceBaseObject
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect, Http404
@@ -11,9 +11,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db.models import Q, F
 from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, BaseBigObjectForm, \
-    SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm,\
-    AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm,\
-    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm,\
+    SimpleObjectForBigObjectForm, SearchForm, CopyBigObject, FileAndImageCategoryForm, \
+    AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm, \
+    BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm, \
     BaseObjectsListForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components, update_big_objects_price
@@ -21,11 +21,16 @@ from tracker.models import Task, CommentForTask
 
 
 def custom_proc_user_categories_list(request):
+    try:
+        user = Profile.objects.get(user_id=request.user.id)
+    except ObjectDoesNotExist:
+        user = None
+
     data = {
         'user_cat_list': 'none',
         'current_lab': 'none',
         'search_form': 'none',
-        'user_info': 'none',
+        'user_info': user,
         'big_objects_cat': 'none',
         'rooms': 'none'
     }
@@ -38,11 +43,8 @@ def custom_proc_user_categories_list(request):
             lab_categories_simple_equipment = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='EQ')
             lab_categories_simple_materials = Category.objects.filter(lab__slug=lab, cat_type='SO', obj_type='MT')
             lab_categories_big = Category.objects.filter(lab__slug=lab, cat_type='BG')
-            # base_categories = Category.objects.filter(lab__slug=lab, )
             search_form = SearchForm()
             workers = Profile.objects.filter(lab__slug=lab)
-            user = Profile.objects.get(user_id=request.user.id)
-
             rooms = Room.objects.filter(lab__slug=lab)
 
             data = {'user_cat_list_base': lab_categories_base,
@@ -60,7 +62,7 @@ def custom_proc_user_categories_list(request):
                     'user_cat_list': 'none',
                     'current_lab': 'none',
                     'search_form': 'none',
-                    'user_info': 'none',
+                    'user_info': user,
                     'big_objects_cat': 'none',
                     'rooms': 'none'
                 }
@@ -266,10 +268,18 @@ def category_page(request, lab, slug):
             simple_objects = SimpleObject.objects.filter(
                 category__slug=slug, lab__slug=lab
             ).exclude(base_object__status='WO').order_by(*sort)
-            big_objects = BigObject.objects.filter(
-                base__category__slug=slug, base__lab__slug=lab, parent=None
-            )
-
+            if category.cat_type == 'BG':
+                big_objects = BigObject.objects.filter(
+                    base__category__slug=slug, base__lab__slug=lab, parent=None,
+                ).exclude(status='WO')
+                write_off_objects = BigObject.objects.filter(
+                    base__category__slug=slug, base__lab__slug=lab, parent=None, status='WO'
+                )
+            else:
+                big_objects = BigObject.objects.filter(
+                    base__category__slug=slug, base__lab__slug=lab, parent=None,
+                )
+                write_off_objects = None
             if simple_objects:
                 page, is_paginator, next_url, prev_url, last_url, paginator_dict = paginator_module(
                     request=request, objects=simple_objects
@@ -290,6 +300,7 @@ def category_page(request, lab, slug):
                 'simple_objects_count': simple_objects.count(),
                 'big_objects': big_objects,
                 'big_objects_count': big_objects.count(),
+                'big_objects_write_off': write_off_objects,
                 'cat_slug': slug,
                 'category': category,
                 'type': 'category_page',
@@ -476,8 +487,8 @@ def simple_objects_list(request, lab, obj_type=None):
                 'simple_objects_count': all_objects.count(),
                 'old_prefix': prefix,
                 'all_name': all_name,
-                'category': 'all',              # Необходимо для определения текущей категории.
-                                                # Если категория общая то нет доступа для ее редактирования
+                'category': 'all',  # Необходимо для определения текущей категории.
+                # Если категория общая то нет доступа для ее редактирования
             }
             context.update(paginator_dict)
 
@@ -504,9 +515,9 @@ def simple_objects_write_off_list(request, lab, obj_type=None):
                 request=request, objects=all_objects
             )
             context = {
-                'simple_objects': all_objects,
-                'category': 'all',      # Необходимо для определения текущей категории.
-                                        # Если категория общая то нет доступа для ее редактирования
+                'write_off_objects': all_objects,
+                'category': 'all',  # Необходимо для определения текущей категории.
+                # Если категория общая то нет доступа для ее редактирования
             }
             context.update(paginator_dict)
 
@@ -642,7 +653,7 @@ def simple_object_update_form(request, lab, slug):
         simple_object = get_object_or_404(SimpleObject, slug=slug)
         update_base_object = request.GET.get('update_base_object', default=True)
         if request.method == 'GET':
-            form = SimpleObjectForm(instance=simple_object)    # Создаем новую форму
+            form = SimpleObjectForm(instance=simple_object)  # Создаем новую форму
             context = {
                 'form': form,
                 'status': 'update',
@@ -755,7 +766,11 @@ def big_object_page(request, lab, slug, pk):
             if request.user.is_superuser or user.lab.slug == lab:
                 all_parts = big_object.get_descendants(include_self=True)
                 base_components = get_base_components(all_parts=all_parts)
-
+                all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=big_object.base, room__isnull=False)
+                for sim in all_simple_objects:
+                    print(sim)
+                    print(WorkerEquipment.objects.filter(simple_object=sim, order__isnull=True))
+                print(all_simple_objects)
                 file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
                 file_categories_form = FileAndImageCategoryForm()
                 change_form = BigObjectForm(instance=big_object)
@@ -993,7 +1008,8 @@ def big_object_update_components(request, lab, slug):
                             component.amount = new_amount
                             component.save(update_simple_object=True)
                             update_big_objects_price(component.big_object)
-                            return JsonResponse({"rez": 'Количество обновленно', 'new_amount': component.amount}, status=200)
+                            return JsonResponse({"rez": 'Количество обновленно', 'new_amount': component.amount},
+                                                status=200)
                         else:
                             return JsonResponse({"err": 'Введенное значение должно быть больше нуля!'}, status=200)
                     except ObjectDoesNotExist:

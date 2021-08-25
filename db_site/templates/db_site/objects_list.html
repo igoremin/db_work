@@ -64,10 +64,10 @@
         {% endif %}>
             <thead>
             <tr class="text-center">
-                <th scope="col">#</th>
-                <th scope="col">Название</th>
-                <th scope="col">Категория</th>
-                <th scope="col">РЮКС</th>
+                <th scope="col" style="width: 5%">#</th>
+                <th scope="col" style="width: 70%">Название</th>
+{#                <th scope="col" style="width: 20%">Категория</th>#}
+                <th scope="col" style="width: 25%">РЮКС</th>
             </tr>
             </thead>
 
@@ -89,9 +89,51 @@
                     {% endif %}
                     </a>
                 </td>
-                <td><a href="{{ big_object.base.category.get_absolute_url }}">{{ big_object.base.category.name }}</a></td>
+{#                <td><a href="{{ big_object.base.category.get_absolute_url }}">{{ big_object.base.category.name }}</a></td>#}
                 <td>{% if big_object.base.kod %}{{ big_object.get_full_kod }}{% endif %}</td>
             </tr>
+
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+    {% endif %}
+
+    {% if big_objects_write_off %}
+        <h3>{{ category.name }} (списано)</h3>
+
+        <table class="table table-hover table-bordered" id="big_objects_table">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 5%">#</th>
+                <th scope="col" style="width: 70%">Название</th>
+{#                <th scope="col" style="width: 20%">Категория</th>#}
+                <th scope="col" style="width: 25%">РЮКС</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for big_object in big_objects_write_off %}
+                <tr>
+                    <td></td>
+                    <td>
+                        {% if big_object.top_level == True %}
+                            <a href="{{ big_object.get_absolute_url }}">
+                        {% else %}
+                            <a href="{{ big_object.base.get_absolute_url }}">
+                        {% endif %}
+
+                        {% if big_object.name %}
+                            {{ big_object.name }}
+                        {% else %}
+                            {{ big_object.base.name }}
+                        {% endif %}
+                        </a>
+                    </td>
+{#                    <td><a href="{{ big_object.base.category.get_absolute_url }}">{{ big_object.base.category.name }}</a></td>#}
+                    <td>{% if big_object.base.kod %}{{ big_object.get_full_kod }}{% endif %}</td>
+                </tr>
 
             {% endfor %}
             </tbody>
@@ -334,6 +376,113 @@
             </nav>
 
         {% endif %}
+    {% endif %}
+
+    {% if write_off_objects %}
+
+        {% if category == 'all' %}
+            <h3 class="mb-3">Списано</h3>
+            <p>Количество позиций : {{ write_off_objects|length }}</p>
+        {% endif %}
+
+
+        {% if is_paginator %}
+
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if prev_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
+                        </li>
+                    {% endif %}
+
+                    {% for n in page_object.paginator.page_range %}
+
+                        {% if page_object.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                            </li>
+                        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if next_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% endif %}
+
+        <table class="table table-hover table-bordered" id="simple_objects_table">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 5%">#</th>
+                <th scope="col" style="width: 60%"> Название</th>
+                <th scope="col" style="width: 35%">Инв. номер</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for simple_object in page_object.object_list %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}{% if simple_object.measure %}, {{ simple_object.measure }}{% endif %}</a>
+                    </td>
+                    <td>
+                        {% if simple_object.base_object.inventory_number %}
+                            {{ simple_object.base_object.inventory_number }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+        {% if is_paginator %}
+
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if prev_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{{ old_prefix }}">Начало</a>
+                        </li>
+                    {% endif %}
+
+                    {% for n in page_object.paginator.page_range %}
+
+                        {% if page_object.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <p class="page-link">{{ n }} <span class="sr-only">(current)</span></p>
+                            </li>
+                        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}{{ old_prefix }}">{{ n }}</a>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if next_url %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}{{ old_prefix }}">Конец</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% endif %}
+
     {% endif %}
 
     <input id="old_sorted_prefix" type="hidden" name="old_sorted" value="{{ old_prefix }}">

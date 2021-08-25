@@ -612,27 +612,7 @@ class SimpleObject(models.Model):
 
         if update_base_object:
             pass
-            # """Проверка на количество простых объектов входящих в состав базового.
-            # Если базовый объект состоит из одного простого, то их количество должно совпадать
-            # Если базовый объект состоит из нескольких простых, то его количество будет равно нулю только в случае если
-            # количество всех простых компонетов так же равно нулю"""
-            # if self.base_object:
-            #     base_object_components = SimpleObject.objects.filter(base_object=self.base_object)
-            #     if len(base_object_components) == 1:
-            #         print('Найден один компонент')
-            #         self.base_object.amount = self.amount
-            #         self.base_object.save()
-            #     elif len(base_object_components) > 1:
-            #         print('Количество компонентов больше одного')
-            #         empty_components = 0
-            #         for component in base_object_components:
-            #             print(component, component.amount)
-            #             if component.amount == 0:
-            #                 empty_components += 1
-            #         if empty_components != 0:
-            #             print('Все составляющие пустые')
-            #             self.base_object.amount = 0
-            #             self.base_object.save()
+            # self.update_base_object()
 
     def get_absolute_url(self):
         return reverse('simple_object_url', kwargs={'slug': self.slug, 'lab': self.lab.slug})
@@ -677,6 +657,33 @@ class SimpleObject(models.Model):
         if update_big_objects_price:
             self.update_big_objects_price()
 
+        self.update_base_object()
+
+    def update_base_object(self):
+        """Проверка на количество простых объектов входящих в состав базового.
+        Если базовый объект состоит из одного простого, то их количество должно совпадать
+        Если базовый объект состоит из нескольких простых, то его количество будет равно нулю только в случае если
+        количество всех простых компонетов так же равно нулю"""
+        if self.base_object:
+            base_object_components = SimpleObject.objects.filter(base_object=self.base_object)
+            if len(base_object_components) == 1:
+                print('Найден один компонент')
+                self.base_object.amount = self.amount
+                self.base_object.save()
+            elif len(base_object_components) > 1:
+                print('Количество компонентов больше одного')
+                empty_components = 0
+                for component in base_object_components:
+                    print(component, component.amount)
+                    if component.amount == 0:
+                        empty_components += 1
+                if empty_components != 0:
+                    print('Все составляющие пустые')
+                    self.base_object.amount = 0
+                else:
+                    self.base_object.amount = self.amount
+                self.base_object.save()
+
     def update_big_objects_price(self):
         """Обновляем цену у всех комплектующих и больших объектов где присутствует данный простой объект"""
         base_big_objects = set()
@@ -692,9 +699,13 @@ class SimpleObject(models.Model):
         self.amount = self.amount - amount
         if self.amount == 0 and self.base_object:
             if len(self.base_object.simpleobject_set.all()) == 1:
-                BaseObject.objects.filter(pk=self.base_object.pk).update(status='WO', amount=0)
-                # self.base_object.status = 'WO'
-                # self.base_object.amount = 0
+                self.base_object.status = 'WO'
+                self.base_object.amount = 0
+                self.base_object.save()
+        if self.amount == 0:
+            for room in self.room.all():
+                self.room.remove(room)
+            WorkerEquipment.objects.filter(simple_object=self, order__isnull=True).delete()
 
         self.save()
 
@@ -1000,8 +1011,6 @@ class BigObject(MPTTModel):
         # self.save()
 
     def update_simple_objects(self, old_self=None):
-        print(self, self.status)
-        print('--------------')
         if self.status == 'IW':
             """Если статус рабочий, тогда обновляем количество свободных простых объектов"""
             # self.update_price()
@@ -1011,8 +1020,6 @@ class BigObject(MPTTModel):
 
         elif self.status in ['WO', 'NW', 'RD']:
             """Если старый статус был в работе а новый нет, тогда зануляем цену и обновляем свободные простые объекты"""
-            self.price = 0
-            self.price_text = '0,00'
             all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=self.base)
             for simple_object in all_simple_objects:
                 if self.status == 'RD' and old_self.status == 'IW':
@@ -1021,10 +1028,25 @@ class BigObject(MPTTModel):
                     amount = BigObjectList.objects.get(big_object=self.base, simple_object=simple_object).amount
                     simple_object.amount -= amount
                 simple_object.update_amount()
-            if self.status == 'RD' and old_self.status == 'IW':
+            if self.status == 'WO' and old_self.status == 'RD':
                 """После сохранения всех простых объектов списываем их если статус
-                сложного объекта изменился на готовый и количество простых объектов == 0"""
-                all_simple_objects.filter(amount=0).update(status='WO')
+                сложного объекта изменился на 'списано' и количество простых объектов == 0"""
+                self.write_off()
+                for simple_object in all_simple_objects.filter(room__isnull=False, amount=0):
+                    for room in simple_object.room.all():
+                        simple_object.room.remove(room)
+                    simple_object.save()
+                    WorkerEquipment.objects.filter(simple_object=simple_object, order__isnull=True).delete()
+
+    def write_off(self):
+        base_objects = SimpleObject.objects.filter(
+            big_object_list__big_object=self.base, amount=0
+        ).values_list('base_object', flat=True)
+        for pk in base_objects:
+            base = BaseObject.objects.get(pk=pk)
+            if len(base.simpleobject_set.all()) == 1:
+                base.status = 'WO'
+                base.save()
 
     def delete(self, *args, **kwargs):
         self.status = 'WO'
