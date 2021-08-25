@@ -295,6 +295,17 @@ class BigObjectForm(forms.ModelForm):
                 })
         }
 
+    def __init__(self, *args, **kwargs):
+        super(BigObjectForm, self).__init__(*args, **kwargs)
+        if 'instance' in kwargs.keys():
+            big_object = kwargs['instance']
+            if big_object.status == 'NW':
+                self.fields['status'].choices = self.fields['status'].choices[0:2]
+            elif big_object.status == 'IW':
+                self.fields['status'].choices = self.fields['status'].choices[1:3]
+            if big_object.status == 'RD':
+                self.fields['status'].choices = self.fields['status'].choices[2:4]
+
 
 class SimpleObjectForBigObjectForm(forms.ModelForm):
     class Meta:
