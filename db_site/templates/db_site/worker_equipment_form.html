@@ -12,41 +12,151 @@
         <h4>Добавление оборудования</h4>
     {% endif %}
 
-    <form action="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}{% if new_order == 'true' %}?new_order=true{% elif order_number %}?order_number={{ order_number }}{% endif %}" method="post">
+    <form action="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}{% if new_order == 'true' %}?new_order=true{% elif order_number %}?order_number={{ order_number }}{% endif %}" method="POST" id="base_form">
         {% csrf_token %}
 
-        {{ formset.management_form }}
-        {% for form in formset %}
-            <div class="row pb-2 form_div" id="simple_object">
-                <div class="col">
-                    <label for="{{ form.simple_object.id_for_label }}">{{ form.simple_object.label_tag }}</label>
-                    {{ form.simple_object.errors }}
-                    {{ form.simple_object }}
-                </div>
-                <div class="col col-lg-2">
-                    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label_tag }}</label>
-                    {{ form.amount.errors }}
-                    {{ form.amount }}
-                </div>
+        <div class="row pb-2 form_div" id="simple_object">
+            <div class="col">
+                <label for="{{ simple_object_select_form.simple_object.id_for_label }}">{{ simple_object_select_form.simple_object.label_tag }}</label>
+                {{ simple_object_select_form.simple_object.errors }}
+                {{ simple_object_select_form.simple_object }}
             </div>
-            {% for hidden in form.hidden_fields %}
-                {{ hidden }}
-            {% endfor %}
-
-        {% endfor %}
-
+            <div class="col col-lg-2">
+                <label for="{{ simple_object_select_form.amount.id_for_label }}">{{ base_form.amount.label_tag }}</label>
+                {{ simple_object_select_form.amount.errors }}
+                {{ simple_object_select_form.amount }}
+            </div>
+        </div>
         <div id="create_div"></div>
 
         <p id="create_div_btn">
-            <button type="button" onclick="addSimpleObjectAria();" class="btn btn-primary mt-3">Добавить объект</button>
+            <button type="button" onclick="addNewSimpleObject();" class="btn btn-outline-primary mt-3">Добавить</button>
         </p>
 
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
 
+    <hr>
+    <table class="table table-hover table-bordered" id="all_components_table">
+        <thead>
+        <tr class="text-center">
+            <th scope="col" style="width: 6%">#</th>
+            <th scope="col" style="width: 50%"> Название</th>
+            <th scope="col" style="width: 20%"> Инв. номер</th>
+            <th scope="col" style="width: 10%">Количество</th>
+            <th scope="col" style="width: 7%">#</th>
+            <th scope="col" style="width: 7%">#</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for component in all_components %}
+            <tr id="tr_{{ component.pk }}">
+                <td></td>
+                <td>
+                    <a href="{{ component.simple_object.get_absolute_url }}">{{ component.simple_object.name }}{% if component.simple_object.measure %}, {{ component.simple_object.measure }}{% endif %}</a>
+                </td>
+                <td>
+                    {% if component.simple_object.base_object.inventory_number %}
+                        {{ component.simple_object.base_object.inventory_number }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ component.amount }}
+                </td>
+                <td>
+                    <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#change_{{ component.pk }}">
+                        Редактировать
+                    </button>
+
+                    <!-- Модальное окно -->
+                    <div class="modal fade" id="change_{{ component.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="staticBackdropLabel">Редактирование {{ component }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <label for="new_amount_{{ component.pk }}">Новое количество для компонента {{ component.simple_object }}</label>
+                                    <input class="form-control" name="new_amount_{{ component.pk }}" type="number" value="{{ component.amount }}" step="0.001" min="0.001">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="updateComponentFromBigObject({{ component.pk }})">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_{{ component.pk }}">
+                        Удалить
+                    </button>
+                </td>
+            </tr>
+            <!-- Модальное окно для удаления компонента-->
+            <div class="modal fade" id="delete_{{ component.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Удаление {{ component }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Вы действительно хотите исключить {{ component.simple_object }} из заявки ?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-outline-danger" onclick="deleteComponentFromBigObject({{ component.pk }})">Да</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+{#    <form action="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}{% if new_order == 'true' %}?new_order=true{% elif order_number %}?order_number={{ order_number }}{% endif %}" method="post">#}
+{#        {% csrf_token %}#}
+{##}
+{#        {{ formset.management_form }}#}
+{#        {% for form in formset %}#}
+{#            <div class="row pb-2 form_div" id="simple_object">#}
+{#                <div class="col">#}
+{#                    <label for="{{ form.simple_object.id_for_label }}">{{ form.simple_object.label_tag }}</label>#}
+{#                    {{ form.simple_object.errors }}#}
+{#                    {{ form.simple_object }}#}
+{#                </div>#}
+{#                <div class="col col-lg-2">#}
+{#                    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label_tag }}</label>#}
+{#                    {{ form.amount.errors }}#}
+{#                    {{ form.amount }}#}
+{#                </div>#}
+{#            </div>#}
+{#            {% for hidden in form.hidden_fields %}#}
+{#                {{ hidden }}#}
+{#            {% endfor %}#}
+{##}
+{#        {% endfor %}#}
+{##}
+{#        <div id="create_div"></div>#}
+{##}
+{#        <p id="create_div_btn">#}
+{#            <button type="button" onclick="addSimpleObjectAria();" class="btn btn-primary mt-3">Добавить объект</button>#}
+{#        </p>#}
+{##}
+{#        <button type="submit" class="btn btn-primary">Сохранить</button>#}
+{#        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">#}
+{##}
 {#        {{ form.as_p }}#}
 {#        <button type="submit" class="btn btn-outline-primary">Сохранить</button>#}
 {#        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">#}
-    </form>
+{#    </form>#}
 
 {% endblock %}

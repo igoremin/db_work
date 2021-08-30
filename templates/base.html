@@ -146,7 +146,15 @@
                 </ol>
             {% endif %}
             <ol class="breadcrumb">
-                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">Запрос оборудования</a></li>
+                <div class="dropdown">
+                    <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Запрос оборудования
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">По списку оборудования</a>
+                        <a class="dropdown-item" href="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">По накладной</a>
+                    </div>
+                </div>
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoices_list_url' lab=current_lab.slug %}" role="button">Все накладные</a></li>
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'task_list_for_current_lab' lab=current_lab.slug %}" role="button">Список задач</a></li>
                 <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'new_task_form_url' lab=current_lab.slug %}" role="button">Создать задачу</a></li>

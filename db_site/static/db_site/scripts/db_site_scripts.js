@@ -56,6 +56,7 @@ function addNewSimpleObject() {
     $.ajax({
         type: 'POST',
         data: 'form=' + form.serialize(),
+        url: form.attr('action'),
         error: function (data) {
             if (data.err) {
                 alert(data.err);
@@ -69,13 +70,17 @@ function addNewSimpleObject() {
                 alert(data.err);
             }
             else if (data.rez) {
-                console.log(data.rez);
-                form.trigger('reset');
-                $('.selectpicker').selectpicker('refresh');
+                if (data.new_page_url) {
+                    window.history.pushState({"html":data.new_html,"pageTitle": 'TEST'},"", data.new_page_url);
+                }
                 let new_html = new DOMParser().parseFromString(data.new_html, 'text/html');
                 let new_table = new_html.getElementById('all_components_table');
-                let delete_modal = new_html.getElementById('delete_' + data.pk)
+                let new_base_form = new_html.getElementById('base_form')
+                console.log(new_base_form)
+                let delete_modal = new_html.getElementById('delete_' + data.pk);
                 table.replaceWith(new_table);
+                form.replaceWith(new_base_form)
+                $('.selectpicker').selectpicker();
                 $('#main_div').append(delete_modal);
                 tableRowsNumber();
             }
@@ -143,7 +148,11 @@ function updateComponentFromBigObject(pk) {
             else if (data.rez) {
                 console.log(data.rez);
                 $('#change_' + pk).modal('toggle')
-                $('tr#tr_' + pk + ' td:nth-child(5)').text(data.new_amount.toFixed(1));
+                let pos = 5;
+                if (data.pos) {
+                    pos = 4;
+                }
+                $('tr#tr_' + pk + ' td:nth-child(' + pos +')').text(data.new_amount.toFixed(1));
             }
             else {
                 alert("Ошибка при проверке данных на сервере!\nПопробуйте снова.");

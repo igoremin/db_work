@@ -307,7 +307,7 @@ class BigObjectForm(forms.ModelForm):
                 self.fields['status'].choices = self.fields['status'].choices[2:4]
 
 
-class SimpleObjectForBigObjectForm(forms.ModelForm):
+class SimpleObjectAndAmountForm(forms.ModelForm):
     class Meta:
         model = BigObjectList
         fields = ['simple_object', 'amount']
@@ -329,8 +329,8 @@ class SimpleObjectForBigObjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         lab = kwargs.pop('lab')
-        self.simple_objects = SimpleObject.objects.filter(lab__slug=lab)
-        super(SimpleObjectForBigObjectForm, self).__init__(*args, **kwargs)
+        self.simple_objects = SimpleObject.objects.filter(lab__slug=lab, base_object__status='IW')
+        super(SimpleObjectAndAmountForm, self).__init__(*args, **kwargs)
         self.fields['simple_object'].queryset = self.simple_objects
 
 
@@ -520,6 +520,29 @@ class InvoiceForm(forms.ModelForm):
             'date': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+
+class AllInvoiceForm(forms.Form):
+    all_invoice = None
+    invoice = forms.ModelChoiceField(
+            label='Накладная',
+            required=True,
+            queryset=all_invoice,
+            widget=forms.Select(
+                attrs={
+                    'class': 'form-control selectpicker',
+                    'data-live-search': 'true',
+                }
+            )
+    )
+
+    def __init__(self, *args, **kwargs):
+        if 'lab' in kwargs.keys():
+            self.all_invoice = Invoice.objects.filter(lab__slug=kwargs.pop('lab'))
+        else:
+            self.all_invoice = Invoice.objects.all()
+        super(AllInvoiceForm, self).__init__(*args, **kwargs)
+        self.fields['invoice'].queryset = self.all_invoice
 
 
 class InvoiceBaseObjectForm(forms.ModelForm):

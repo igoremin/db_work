@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Заявка по накладной
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=user_info.pk %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+
+{% endblock %}

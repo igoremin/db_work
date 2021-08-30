@@ -7,7 +7,7 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     worker_equipment_form, delete_all_data_for_lab, big_object_update_parts, big_object_delete_part,\
     base_big_object_page, room_page, backup, base_object_update_page, base_object_create_simple, worker_order_confirm,\
     order_list, invoice_list, invoice_page, invoice_page_form, invoice_object_form, invoice_base_object_form,\
-    invoice_base_object_instance_form, order_print_page, base_objects_list_update
+    invoice_base_object_instance_form, order_print_page, base_objects_list_update, worker_equipment_by_invoice_form
 
 
 urlpatterns = [
@@ -51,6 +51,8 @@ urlpatterns = [
     path('<str:lab>/worker/<int:pk>/', worker_page, name='worker_page_url'),
     path('<str:lab>/worker/<int:pk>/update/', worker_update_page, name='worker_update_page_url'),
     path('<str:lab>/worker/<int:pk>/add_equipment/', worker_equipment_form, name='worker_equipment_form_url'),
+    path('<str:lab>/worker/<int:pk>/add_equipment_by_invoice/', worker_equipment_by_invoice_form,
+         name='worker_equipment_by_invoice_form_url'),
     path('<str:lab>/room/<str:slug>/', room_page, name='room_page_url'),
     path('<str:lab>/database_file/add/', load_new_db, name='load_new_database_url'),
     path('<str:lab>/delete_all_data/', delete_all_data_for_lab, name='delete_all_data_for_lab_url'),
