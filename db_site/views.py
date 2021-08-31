@@ -1161,9 +1161,9 @@ def worker_page(request, pk, lab):
                 if order not in orders:
                     orders.append(order)
             worker_equipments = WorkerEquipment.objects.filter(
-                order__isnull=True, profile=user) | WorkerEquipment.objects.filter(
-                order__confirm=True, profile=user
+                order__isnull=True, profile=user
             )
+
             context = {
                 'worker': user,
                 'orders': orders,
