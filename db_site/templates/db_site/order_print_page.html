@@ -54,7 +54,7 @@
                 </td>
                 <td>
                     {% if data.total_price %}
-                        {{ data.total_price }}
+                        {{ data.total_price|floatformat:2 }}
                     {% endif %}
                 </td>
                 <td></td>

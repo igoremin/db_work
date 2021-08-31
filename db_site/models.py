@@ -420,7 +420,8 @@ class BaseObject(models.Model):
     def update_price(self):
         """Обновление текстовой цены и общей стоимости"""
         if self.total_price != 0:
-            self.total_price_text = gen_text_price(round(self.total_price, 2))
+            self.total_price = round(self.total_price, 2)
+            self.total_price_text = gen_text_price(self.total_price)
         else:
             self.total_price_text = '0,00'
 
@@ -626,7 +627,7 @@ class SimpleObject(models.Model):
 
     def update_price(self):
         """Обновление текстовой цены и общей стоимости"""
-        self.total_price = self.price * self.amount
+        self.total_price = round(self.price * self.amount, 2)
 
         if self.price != 0:
             self.price_text = gen_text_price(round(self.price, 2))
@@ -1313,11 +1314,10 @@ class WorkerEquipment(models.Model):
         return f'{self.simple_object.name}, количетво : {self.amount}'
 
     def save(self, *args, **kwargs):
-        print('---SAVE WORKER EQUIPMENT LIST---')
         if self.simple_object:
             if self.simple_object.price and self.simple_object.amount:
                 self.price = self.simple_object.price
-                self.total_price = self.price * self.amount
+                self.total_price = round(self.price * self.amount, 2)
         super().save(*args, **kwargs)
 
 
