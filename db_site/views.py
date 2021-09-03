@@ -982,7 +982,7 @@ def big_object_update_components(request, lab, slug):
                                 'new_html': f'{html_str}'
                             }, status=200)
 
-                return JsonResponse({"rez": 'Объект добавлен'}, status=200)
+                return JsonResponse({"err": 'Ошибка при чтении формы'}, status=200)
 
             elif request.POST.get('delete'):
                 if request.user.is_superuser:
