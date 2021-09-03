@@ -374,6 +374,30 @@ function CatTypeSelectChange(select) {
 }
 
 
+$(document).ready(function () {
+    if (window.location.href.match('/invoices/') != null) {
+        instance = new Mark(document.querySelectorAll("table tbody"));
+    }
+})
+
+function search_on_table(text) {
+    let search_text = text.toLowerCase();
+    if (search_text.length < 1) {
+        instance.unmark();
+    }
+    else if (search_text.length >= 1) {
+        instance.unmark();
+        instance.mark(search_text);
+    }
+    $.each($("table tbody tr"), function() {
+        if($(this).text().toLowerCase().indexOf(search_text) === -1)
+           $(this).hide();
+        else
+           $(this).show();
+    });
+}
+
+
 $(function() {
   $('.selectpicker').selectpicker();
 });

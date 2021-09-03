@@ -109,6 +109,12 @@
     </div>
 
     {% if invoice.invoicebaseobject_set.all %}
+        <p>
+            Поиск по накладной :
+            <span>
+                <input type="text" id="invoice_search" placeholder="Слово для поиска" onkeyup="search_on_table(this.value)">
+            </span>
+        </p>
         Состав накладной :
         <table class="table table-hover table-bordered">
             <thead>
