@@ -76,12 +76,12 @@ def gen_text_price(int_price):
     return new_price
 
 
-def update_big_objects_price(base_big_object):
+def update_big_objects_price(base_big_object, update_child_price=True):
     """Обновляет стоимость всех сложных объектов верхнего уровня в которых есть данный базовый сложный объект"""
     big_objects = base_big_object.get_top_level_big_objects()
     for big_object in big_objects:
-        if big_object.status in ['NW', 'IW']:
-            big_object.update_price()
+        if big_object.status in ['NW', 'IW', 'RD']:
+            big_object.update_total_price(update_child_price=update_child_price)
 
 
 def some_model_thumb_name(instance, filename):
@@ -692,7 +692,7 @@ class SimpleObject(models.Model):
             base_big_objects.add(component.big_object)
 
         for top_object in BigObject.objects.filter(status__in=['IW', 'NW'], top_level=True, base__in=base_big_objects):
-            top_object.update_price()
+            top_object.update_total_price()
 
     def write_off(self, amount):
         self.amount = self.amount - amount
@@ -712,7 +712,7 @@ class SimpleObject(models.Model):
         all_big_objects = BaseBigObject.objects.filter(simple_components__simple_object=self)
         for big_object in all_big_objects:
             simple_objects_list = BigObjectList.objects.filter(big_object=big_object).exclude(simple_object=self)
-            big_object.update_price(simple_objects_list=simple_objects_list)
+            big_object.update_total_price(simple_objects_list=simple_objects_list)
             BigObject.objects.filter(pk=big_object.pk).update(price=big_object.price, price_text=big_object.price_text)
         super().delete(*args, **kwargs)
 
@@ -817,6 +817,14 @@ class BaseBigObject(models.Model):
                     results.add(component.parent.base)
 
         return results
+
+    def update_price_for_instance(self):
+        instance = BigObject.objects.filter(base=self, status__in=['IW', 'RD', 'NW'], parent__isnull=True)
+        for big_object in instance:
+            if not big_object.top_level:
+                update_big_objects_price(self, update_child_price=True)
+            else:
+                big_object.update_total_price(update_child_price=False)
 
 
 class BigObject(MPTTModel):
@@ -938,7 +946,7 @@ class BigObject(MPTTModel):
             super().save(*args, **kwargs)
 
         if self.status in ['NW', 'IW', 'RD']:
-            self.update_price()
+            self.update_total_price()
 
             # BigObject.objects.rebuild()
 
@@ -987,25 +995,37 @@ class BigObject(MPTTModel):
     def copy_children(self):
         pass
 
-    def update_price(self, simple_objects_list=None):
-        print('UPDATE BIG OBJECT PRICE', self)
-        children = self.get_children()
+    def update_total_price(self, simple_objects_list=None, update_child_price=True):
+        """Обновление стоимости для сложного объекта с учетом стоимости всех детей"""
         if simple_objects_list is None:
             simple_objects_list = BigObjectList.objects.filter(big_object=self.base)
         total_price = 0
         for simple_object in simple_objects_list:
             total_price += simple_object.total_price
         for child in self.get_descendants(include_self=False)[::-1]:
-            child.update_price()
-            if child in children:
-                total_price += child.price
+            if update_child_price:
+                child.update_self_price()
+            total_price += child.price
         self.price = total_price
         if self.price == 0:
             self.price_text = '0,00'
         else:
             self.price_text = gen_text_price(self.price)
         BigObject.objects.filter(pk=self.pk).update(price=self.price, price_text=self.price_text)
-        # self.save()
+
+    def update_self_price(self):
+        """Обновление стоимости конкретно для данного сложного объекта без учета детей"""
+        price = 0
+        simple_objects_list = BigObjectList.objects.filter(big_object=self.base)
+        for simple_object in simple_objects_list:
+            price += simple_object.total_price
+        self.price = price
+        if self.price == 0:
+            self.price_text = '0,00'
+        else:
+            self.price_text = gen_text_price(self.price)
+
+        BigObject.objects.filter(pk=self.pk).update(price=self.price, price_text=self.price_text)
 
     def update_simple_objects(self, old_self):
         if self.status == 'IW':

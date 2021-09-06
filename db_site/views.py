@@ -766,11 +766,6 @@ def big_object_page(request, lab, slug, pk):
             if request.user.is_superuser or user.lab.slug == lab:
                 all_parts = big_object.get_descendants(include_self=True)
                 base_components = get_base_components(all_parts=all_parts)
-                all_simple_objects = SimpleObject.objects.filter(big_object_list__big_object=big_object.base, room__isnull=False)
-                for sim in all_simple_objects:
-                    print(sim)
-                    print(WorkerEquipment.objects.filter(simple_object=sim, order__isnull=True))
-                print(all_simple_objects)
                 file_categories = FileAndImageCategory.objects.filter(big_object=base_big_object)
                 file_categories_form = FileAndImageCategoryForm()
                 change_form = BigObjectForm(instance=big_object)
@@ -780,10 +775,8 @@ def big_object_page(request, lab, slug, pk):
                 context = {
                     'base_big_object': base_big_object,
                     'big_object': big_object,
-                    # 'parents': all_parents,
                     'all_parts': all_parts,
                     'base_components': base_components,
-                    # 'status': status,
                     'file_categories': file_categories,
                     'file_categories_form': file_categories_form,
                     'copy_form': big_object_copy,
@@ -962,12 +955,14 @@ def big_object_update_components(request, lab, slug):
                     else:
                         new_component, created = BigObjectList.objects.get_or_create(
                             simple_object=clean_data['simple_object'],
-                            big_object=big_object
+                            big_object=big_object,
+                            amount=clean_data['amount']
                         )
 
-                        new_component.amount += clean_data['amount']
-                        new_component.save()
                         new_component.simple_object.update_amount()
+
+                        big_object.update_price_for_instance()
+
                         html_str = render_to_string(
                             'db_site/big_object_components_form.html', context=context, request=request
                         )
@@ -1007,7 +1002,8 @@ def big_object_update_components(request, lab, slug):
                             component = BigObjectList.objects.get(pk=pk)
                             component.amount = new_amount
                             component.save(update_simple_object=True)
-                            update_big_objects_price(component.big_object)
+                            big_object.update_price_for_instance()
+                            # update_big_objects_price(component.big_object)
                             return JsonResponse({"rez": 'Количество обновленно', 'new_amount': component.amount},
                                                 status=200)
                         else:
@@ -1085,7 +1081,7 @@ def big_object_update_parts(request, lab, slug):
 
                 # Обновление стоимости сложных объектов с учетом новых сборочных едениц
                 for big_object in BigObject.objects.filter(base=base_big_object):
-                    big_object.update_price()
+                    big_object.update_total_price()
 
             else:
                 print(form)
