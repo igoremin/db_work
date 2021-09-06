@@ -39,7 +39,6 @@ def get_all_children(big_object, all_children=None):
         all_children = list()
     children = big_object.get_children()
     for child in children:
-        print(child.base.name)
         all_children.append(child)
         if child.get_children():
             get_all_children(child)
@@ -131,7 +130,6 @@ def generate_path_for_database(instance, filename):
 
 def generate_path_for_avatar(instance, filename):
     slug_name = slugify(instance.name, to_lower=True, separator='_')
-    print(f'NEW PATH : {"avatars/{0}/{1}".format(slug_name, filename)}')
     return 'avatars/{0}/{1}'.format(slug_name, filename)
 
 
@@ -165,7 +163,6 @@ class LabName(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        print('---SAVE POST---')
         if self.id:
             old_self = LabName.objects.get(pk=self.pk)
             if old_self.name != self.name:
@@ -200,7 +197,6 @@ class Room(models.Model):
         return self.number
 
     def save(self, *args, **kwargs):
-        print('---SAVE ROOM---')
         if self.id:
             old_self = Room.objects.get(pk=self.pk)
             if old_self.number != self.number:
@@ -254,7 +250,6 @@ class Category(models.Model):
         return f'{self.lab.name} : {self.name}'
 
     def save(self, *args, **kwargs):
-        print('---SAVE CATEGORY---')
         if self.pk is not None:
             old_self = Category.objects.get(pk=self.pk)
             if old_self.name != self.name:
@@ -298,7 +293,6 @@ class Profile(models.Model):
             return f'{self.name} : {self.lab.name}'
 
     def save(self, *args, **kwargs):
-        print(f'AVATAR : {self.avatar}')
         if not self.id:
             self.name = self.user.username
             if self.avatar:
@@ -307,7 +301,6 @@ class Profile(models.Model):
         else:
             old_self = Profile.objects.get(pk=self.pk)
             if old_self.avatar != self.avatar and self.avatar:
-                print(old_self.avatar, self.avatar)
                 old_self.delete_avatar()
                 super().save(*args, **kwargs)
                 self.save_avatar()
@@ -554,7 +547,6 @@ class SimpleObject(models.Model):
         update_big_objects_price = False    # Статус для обновления всех связанных объектов
         if self.pk is not None:
             old_self = SimpleObject.objects.get(pk=self.pk)
-            print('---SAVE SIMPLE OBJECT---', self)
             if old_self.name != self.name:
                 self.name = self.name.strip()
                 self.create_slug()
@@ -583,7 +575,6 @@ class SimpleObject(models.Model):
                 self.skip_history_when_saving = True
 
         else:
-            print('---SAVE NEW SIMPLE OBJECT---', self)
             self.create_slug()
             self.total_price = self.price * self.amount
             self.name = self.name.strip()
@@ -759,7 +750,6 @@ class BaseBigObject(models.Model):
             return self.name
 
     def save(self, *args, **kwargs):
-        print('---BASE BIG OBJECT SAVE---')
         try:
             top_level = kwargs.pop('top_level')
         except KeyError:
@@ -909,7 +899,6 @@ class BigObject(MPTTModel):
         return ''.join(full_path[::-1])
 
     def save(self, *args, **kwargs):
-        print('---BIG OBJECT SAVE---')
         full_path = [self.base.name]
         k = self.parent
         while k is not None:
@@ -1128,7 +1117,6 @@ class ImageForObject(models.Model):
         return os.path.basename(self.image.name)
 
     def save(self, *args, **kwargs):
-        print('---SAVE PHOTO---')
         if self.pk is not None:
             old_self = ImageForObject.objects.get(pk=self.pk)
             if self.image != old_self.image:
@@ -1147,21 +1135,18 @@ class ImageForObject(models.Model):
         super().save(*args, **kwargs)
 
     def change_photo(self, new_image):
-        print('---CHANGE PHOTO---')
         self.image.delete(False)
         self.image_big.delete(False)
         self.image = new_image
         self.save()
 
     def change_path(self, *args, **kwargs):
-        print('---CHANGE PATH---')
         for image in [self.image, self.image_big]:
             image_name = str(image.path).rsplit(os.sep, 1)[1]
             image.name = generate_path(self, image_name)
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        print("---УДАЛЕНИЕ---")
         full_path = str(self.image.path).rsplit(os.sep, 1)[0]
         self.image.delete(False)
         self.image_big.delete(False)
@@ -1222,7 +1207,6 @@ class BigObjectList(models.Model):
         return f'{self.simple_object.name}, количество : {self.amount}'
 
     def save(self, update_simple_object=False, *args, **kwargs):
-        print(f'---SAVE BIG OBJECT LIST : {self}---')
         self.update_total_price()
         super().save(*args, **kwargs)
         if update_simple_object:
@@ -1269,7 +1253,6 @@ class Order(models.Model):
         return f'Заявка : {self.date}'
 
     def save(self, *args, **kwargs):
-        print('---SAVE ORDER---')
         if self.pk is not None:
             old_order = Order.objects.get(pk=self.pk)
             if old_order.confirm is False and self.confirm is True:
