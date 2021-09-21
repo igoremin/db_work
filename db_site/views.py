@@ -18,6 +18,11 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components, update_big_objects_price
 from tracker.models import Task, CommentForTask
+from telegram_bot.views import run as run_telegram_bot
+from threading import Thread
+
+tg_bot = Thread(target=run_telegram_bot)
+tg_bot.start()
 
 
 def custom_proc_user_categories_list(request):

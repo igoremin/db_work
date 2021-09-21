@@ -25,6 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-!4l1nag2mtq#y6pj9v)=ipfp_t08*lp-c^@p+*9x@3=l+%_3m9'
+with open(BASE_DIR / 'db_main' / 'files' / 'tg_key') as tg_key_file:
+    TELEGRAM_KEY = tg_key_file.read().strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if socket.gethostname() == 'ccd04nt':
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     'db_site',
     'feedback',
     'tracker',
+    'telegram_bot',
     'simple_history',       # Отслеживание изменений объекта
     'mptt'
 ]

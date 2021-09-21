@@ -282,6 +282,11 @@ class Profile(models.Model):
         default=False,
         blank=True,
     )
+    tg_id = models.IntegerField(verbose_name='ID в телеграме', blank=True, null=True)
+    tg_chat_id = models.IntegerField(verbose_name='ID телеграм чата', blank=True, null=True)
+    tg_current_lab = models.CharField(
+        max_length=100, verbose_name='Текущая лаборатория для телеграма', blank=True, null=True
+    )
 
     class Meta:
         ordering = ['name']

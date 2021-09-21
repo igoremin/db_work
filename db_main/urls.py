@@ -28,6 +28,7 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('feedback/', include('feedback.urls')),
     path('tracker/', include('tracker.urls')),
+    path('telegram/', include('telegram_bot.urls')),
     path('documentation/', TemplateView.as_view(template_name='documentation.html'), name='doc_page_url'),
     path('', include('db_site.urls')),
 ]
