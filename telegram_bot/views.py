@@ -93,6 +93,10 @@ def change_lab(message):
     start_message(message)
 
 
+def run():
+    bot.polling(none_stop=True)
+
+
 @bot.callback_query_handler(func=lambda call: 'tasks_list' in call.data)
 def tasks_for_lab(message):
     """Список задач для конкретной лаборатории"""
