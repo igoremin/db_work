@@ -1,7 +1,7 @@
 import telebot
 import threading
 from threading import Thread
-from telebot import types
+from telebot import types, apihelper
 from db_site.models import LabName, Profile
 from tracker.models import Task, CommentForTask
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +9,9 @@ from django.utils.formats import date_format
 from django.conf import settings
 from db_site.views import home_page
 from django.shortcuts import redirect
+
+if not settings.DEBUG:
+    apihelper.proxy = {'https': 'http://serv.sao.ru:8080'}
 
 bot = telebot.TeleBot(settings.TELEGRAM_KEY)
 
@@ -30,7 +33,7 @@ def not_found_user_message(message):
 def menu_for_task(message, task):
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     comments = CommentForTask.objects.filter(task=task)
-    if len(comments) > 1:
+    if len(comments) >= 1:
         key_read_comments = types.InlineKeyboardButton(
             text='Посмотерть комментарии', callback_data=f'read_comments_for_task__{task.pk}'
         )
@@ -142,16 +145,33 @@ def task_info(message):
         bot.reply_to(message, not_found_user_message(message))
         return
     task = Task.objects.get(id=message.text.split(',')[-1].split(':')[-1].strip())
-    text = f'Название задачи : {task.name}\n' \
-           f'Описание : {task.text}\n' \
-           f'Статус : {task.get_status_display()}'
+    profile = Profile.objects.get(tg_id=message.from_user.id)
+    text = f'<strong>Название задачи</strong> : {task.name}\n' \
+           f'<strong>Описание</strong> : {task.get_message_as_markdown().replace("<p>", "").replace("</p>", "")}\n' \
+           f'<strong>Статус</strong> : {task.get_status_display()}'
     if task.create_date:
-        text += f'\nДата создания : {date_format(task.create_date)}'
+        text += f'\n<strong>Дата создания</strong> : {date_format(task.create_date)}'
     if task.start_date:
-        text += f'\nК задаче приступили : {date_format(task.start_date)}'
+        text += f'\n<strong>К задаче приступили</strong> : {date_format(task.start_date)}'
     if task.end_date:
-        text += f'\nДедлайн : {date_format(task.end_date)}'
-    bot.send_message(chat_id=message.chat.id, text=text, reply_markup=types.ReplyKeyboardRemove())
+        text += f'\n<strong>Дедлайн</strong> : {date_format(task.end_date)}'
+    if profile in task.new_comment_for_executors.all():
+        text += '\n<strong>В данной задаче есть новые комментарии!</strong>&#128276'
+    if len(text) > 4096:
+        for x in range(0, len(text), 4096):
+            bot.send_message(
+                message.chat.id,
+                text=text[x:x + 4096],
+                parse_mode='HTML',
+                reply_markup=types.ReplyKeyboardRemove(),
+            )
+    else:
+        bot.send_message(
+            message.chat.id,
+            text=text,
+            parse_mode='HTML',
+            reply_markup=types.ReplyKeyboardRemove(),
+        )
     menu_for_task(message, task)
 
 
@@ -161,25 +181,35 @@ def read_task_comments(call):
     if not check_user(call):
         bot.reply_to(call, not_found_user_message(call))
         return
+    profile = Profile.objects.get(tg_id=call.from_user.id)
     task = Task.objects.get(id=call.data.split('__')[-1].strip())
     comments = CommentForTask.objects.filter(task=task)
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-    text = ''
+    bot.send_message(call.message.chat.id, text='Комментарии для задачи')
+
     for comment in comments:
+        text = ''
         name = comment.user.name
         if comment.user.robot:
             name += ' <i>(робот)</i>'
         text += f'<strong>Автор</strong> : {name}\n'
         text += f'<strong>Дата</strong> : {date_format(comment.date)}\n'
         text += f'<strong>Текст</strong> :\n{comment.get_message_as_markdown().replace("<p>", "").replace("</p>", "")}'
-        text += '\n----------------------\n'
-
-    bot.send_message(call.message.chat.id, text='Комментарии для задачи')
-    bot.send_message(
-        call.message.chat.id,
-        text=text,
-        parse_mode='HTML'
-    )
+        if len(text) > 4096:
+            for x in range(0, len(text), 4096):
+                bot.send_message(
+                    call.message.chat.id,
+                    text=text[x:x + 4096],
+                    parse_mode='HTML'
+                )
+        else:
+            bot.send_message(
+                call.message.chat.id,
+                text=text,
+                parse_mode='HTML'
+            )
+    if profile in task.new_comment_for_executors.all():
+        task.new_comment_for_executors.remove(profile)
     menu_for_task(call.message, task)
 
 
