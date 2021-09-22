@@ -1,10 +1,14 @@
 import telebot
+import threading
+from threading import Thread
 from telebot import types
 from db_site.models import LabName, Profile
 from tracker.models import Task, CommentForTask
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.formats import date_format
 from django.conf import settings
+from db_site.views import home_page
+from django.shortcuts import redirect
 
 bot = telebot.TeleBot(settings.TELEGRAM_KEY)
 
@@ -164,16 +168,17 @@ def read_task_comments(call):
     for comment in comments:
         name = comment.user.name
         if comment.user.robot:
-            name += ' _(робот)_'
-        text += f'*Автор* : {name}\n'
-        text += f'*Дата* : {date_format(comment.date)}\n'
-        text += f'*Текст* : {comment.text}\n----------------------\n'
+            name += ' <i>(робот)</i>'
+        text += f'<strong>Автор</strong> : {name}\n'
+        text += f'<strong>Дата</strong> : {date_format(comment.date)}\n'
+        text += f'<strong>Текст</strong> :\n{comment.get_message_as_markdown().replace("<p>", "").replace("</p>", "")}'
+        text += '\n----------------------\n'
 
     bot.send_message(call.message.chat.id, text='Комментарии для задачи')
     bot.send_message(
         call.message.chat.id,
-        text=text.replace('**', '*'),
-        parse_mode='Markdown'
+        text=text,
+        parse_mode='HTML'
     )
     menu_for_task(call.message, task)
 
@@ -230,3 +235,20 @@ def callback_inline__change_lab(call):
             bot.register_next_step_handler(msg, change_lab)
             bot.answer_callback_query(callback_query_id=call.id, text='')
 
+
+def start_bot(request):
+    if request.user.is_superuser and request.method == 'GET':
+        tg_bot = Thread(target=run)
+        tg_bot.name = 'TG_bot'
+        tg_bot.start()
+    return redirect(home_page)
+
+
+def stop_bot(request):
+    if request.user.is_superuser and request.method == 'GET':
+        print('STOP BOT')
+        for thread in threading.enumerate():
+            if thread.name == 'TG_bot':
+                print(thread)
+                bot.stop_polling()
+    return redirect(home_page)
