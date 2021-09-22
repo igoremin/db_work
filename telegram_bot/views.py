@@ -31,7 +31,7 @@ def not_found_user_message(message):
 
 
 def menu_for_task(message, task):
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard = types.InlineKeyboardMarkup(row_width=3)
     comments = CommentForTask.objects.filter(task=task)
     if len(comments) >= 1:
         key_read_comments = types.InlineKeyboardButton(
@@ -41,11 +41,17 @@ def menu_for_task(message, task):
     key_add_comment = types.InlineKeyboardButton(
         text='Добавить комментарий', callback_data=f'add_comment_for_task__{task.pk}'
     )
-    keyboard.add(key_add_comment)
+    key_task_list = types.InlineKeyboardButton(
+        text='Все задачи', callback_data='tasks_list'
+    )
+    key_my_tasks = types.InlineKeyboardButton(
+        text='Мои задачи', callback_data='tasks_list__for_user'
+    )
+    keyboard.add(key_add_comment, key_task_list, key_my_tasks)
 
     bot.send_message(
         message.chat.id,
-        text=f'Меню для выбранной задачи',
+        text=f'Меню',
         reply_markup=keyboard,
         parse_mode='HTML'
     )
@@ -139,40 +145,44 @@ def tasks_for_lab(message):
         start_message(message)
 
 
+@bot.message_handler(func=lambda message: True, content_types=['text'])
 def task_info(message):
     """Информация по выбранной задаче"""
     if not check_user(message):
         bot.reply_to(message, not_found_user_message(message))
         return
-    task = Task.objects.get(id=message.text.split(',')[-1].split(':')[-1].strip())
-    profile = Profile.objects.get(tg_id=message.from_user.id)
-    text = f'<strong>Название задачи</strong> : {task.name}\n' \
-           f'<strong>Описание</strong> : {task.get_message_as_markdown().replace("<p>", "").replace("</p>", "")}\n' \
-           f'<strong>Статус</strong> : {task.get_status_display()}'
-    if task.create_date:
-        text += f'\n<strong>Дата создания</strong> : {date_format(task.create_date)}'
-    if task.start_date:
-        text += f'\n<strong>К задаче приступили</strong> : {date_format(task.start_date)}'
-    if task.end_date:
-        text += f'\n<strong>Дедлайн</strong> : {date_format(task.end_date)}'
-    if profile in task.new_comment_for_executors.all():
-        text += '\n<strong>В данной задаче есть новые комментарии!</strong>&#128276'
-    if len(text) > 4096:
-        for x in range(0, len(text), 4096):
+    try:
+        task = Task.objects.get(id=message.text.split(',')[-1].split(':')[-1].strip())
+        profile = Profile.objects.get(tg_id=message.from_user.id)
+        text = f'<strong>Название задачи</strong> : {task.name}\n' \
+               f'<strong>Описание</strong> : {task.get_message_as_markdown().replace("<p>", "").replace("</p>", "")}\n' \
+               f'<strong>Статус</strong> : {task.get_status_display()}'
+        if task.create_date:
+            text += f'\n<strong>Дата создания</strong> : {date_format(task.create_date)}'
+        if task.start_date:
+            text += f'\n<strong>К задаче приступили</strong> : {date_format(task.start_date)}'
+        if task.end_date:
+            text += f'\n<strong>Дедлайн</strong> : {date_format(task.end_date)}'
+        if profile in task.new_comment_for_executors.all():
+            text += '\n<strong>В данной задаче есть новые комментарии!</strong>&#128276'
+        if len(text) > 4096:
+            for x in range(0, len(text), 4096):
+                bot.send_message(
+                    message.chat.id,
+                    text=text[x:x + 4096],
+                    parse_mode='HTML',
+                    reply_markup=types.ReplyKeyboardRemove(),
+                )
+        else:
             bot.send_message(
                 message.chat.id,
-                text=text[x:x + 4096],
+                text=text,
                 parse_mode='HTML',
                 reply_markup=types.ReplyKeyboardRemove(),
             )
-    else:
-        bot.send_message(
-            message.chat.id,
-            text=text,
-            parse_mode='HTML',
-            reply_markup=types.ReplyKeyboardRemove(),
-        )
-    menu_for_task(message, task)
+        menu_for_task(message, task)
+    except ValueError:
+        start_message(message)
 
 
 @bot.callback_query_handler(func=lambda call: 'read_comments_for_task__' in call.data)
