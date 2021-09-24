@@ -60,11 +60,7 @@ def task_page(request, lab, pk):
             form = CommentForTaskForm(request.POST)
             if form.is_valid():
                 new_comment = form.save(commit=False)
-                new_comment.user = user
-                new_comment.task = task
-                new_comment.save()
-
-                task.new_comment_for_executors.set(task.executors.all())
+                task.add_new_comment(text=new_comment.text, author=user)
         if request.FILES:
             form = FileForCommentForm(request.POST, request.FILES)
             if form.is_valid() and new_comment:

@@ -4,7 +4,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import reverse
 from django.utils.html import mark_safe
+from django.utils.formats import date_format
 from markdown import markdown
+from threading import Thread
 import os
 
 
@@ -139,16 +141,44 @@ class Task(models.Model):
         else:
             return None
 
+    def add_new_comment(self, text, author):
+        new_comment = CommentForTask()
+        new_comment.text = text
+        new_comment.task = self
+        new_comment.user = author
+        new_comment.save()
+        self.new_comment_for_executors.set(self.executors.all())
+        self.create_tg_message_text(comment=new_comment, author=author)
+
+    def create_tg_message_text(self, comment, author):
+        message = f'В задаче <b>{self.name}</b> есть новое сообщение: \n'
+        name = comment.user.name
+        if comment.user.robot:
+            name += ' <i>(робот)</i>'
+        message += f'<strong>Автор</strong> : {name}\n'
+        message += f'<strong>Дата</strong> : {date_format(comment.date)}\n'
+        message += comment.get_message_as_markdown()
+        Thread(target=self.send_message_in_tg, args=(message, author)).start()
+
+    def send_message_in_tg(self, message, author=None):
+        from telegram_bot.views import send_message
+        users = self.executors.filter(tg_id__isnull=False, tg_chat_id__isnull=False)
+        for user in users:
+            if user != author:
+                send_message(text=message, user=user)
+
     def add_robot_comment(self, text, author):
         self.new_comment_for_executors.set(self.executors.all())
         self.new_comment_for_executors.remove(author)
         robot = Profile.objects.filter(robot=True).order_by('?')[0]
         if robot:
-            CommentForTask(
+            new_comment = CommentForTask(
                 task=self,
                 user=robot,
                 text=text
-            ).save()
+            )
+            new_comment.save()
+            self.create_tg_message_text(comment=new_comment, author=author)
 
     @staticmethod
     def get_task_tree(lab, private=False, user=None):

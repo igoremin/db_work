@@ -113,7 +113,6 @@ def start_message(message, call=False):
             bot.reply_to(message, not_found_user_message(message))
             return
     profile = Profile.objects.get(tg_id=message.from_user.id)
-
     lab = profile.tg_current_lab
     if profile.tg_current_lab is None:
         Profile.objects.filter(tg_id=message.from_user.id).update(tg_current_lab=profile.lab)
@@ -133,6 +132,8 @@ def start_message(message, call=False):
         )
     except:
         pass
+
+    Profile.objects.filter(tg_id=message.from_user.id).update(tg_chat_id=message.chat.id)
 
     bot.send_message(
         chat_id,
@@ -184,7 +185,6 @@ def tasks_for_lab(message):
         start_message(message, call=True)
 
 
-@bot.message_handler(func=lambda message: True, content_types=['text'])
 def task_info(message):
     """Информация по выбранной задаче"""
     if not check_user(message):
@@ -192,8 +192,13 @@ def task_info(message):
         return
     try:
         task = Task.objects.get(id=message.text.split(',')[-1].split(':')[-1].strip())
+        if task.privat:
+            privat_status = 'Привытная'
+        else:
+            privat_status = 'В общем доступе'
         profile = Profile.objects.get(tg_id=message.from_user.id)
-        text = f'<strong>Название задачи</strong> : {task.name}\n' \
+        text = f'<strong>Тип задачи</strong> : {privat_status}\n' \
+               f'<strong>Название задачи</strong> : {task.name}\n' \
                f'<strong>Описание</strong> : {task.get_message_as_markdown().replace("<p>", "").replace("</p>", "")}\n' \
                f'<strong>Статус</strong> : {task.get_status_display()}'
         if task.create_date:
@@ -243,20 +248,9 @@ def read_task_comments(call):
             name += ' <i>(робот)</i>'
         text += f'<strong>Автор</strong> : {name}\n'
         text += f'<strong>Дата</strong> : {date_format(comment.date)}\n'
-        text += format_text_to_tg_html_style(comment.get_message_as_markdown())
-        if len(text) > 4096:
-            for x in range(0, len(text), 4096):
-                bot.send_message(
-                    call.message.chat.id,
-                    text=text[x:x + 4096],
-                    parse_mode='HTML'
-                )
-        else:
-            bot.send_message(
-                call.message.chat.id,
-                text=text,
-                parse_mode='HTML'
-            )
+        text += comment.get_message_as_markdown()
+        send_message(text, profile)
+
     if profile in task.new_comment_for_executors.all():
         task.new_comment_for_executors.remove(profile)
     menu(call, task, call=True)
@@ -283,12 +277,9 @@ def save_new_comment_for_task(message, task_pk):
     if not check_user(message):
         bot.reply_to(message, not_found_user_message(message))
         return
+    author = Profile.objects.get(tg_id=message.from_user.id)
     task = Task.objects.get(pk=task_pk)
-    new_comment = CommentForTask()
-    new_comment.text = message.text
-    new_comment.task = task
-    new_comment.user = Profile.objects.get(tg_id=message.from_user.id)
-    new_comment.save()
+    task.add_new_comment(text=message.text, author=author)
     bot.send_message(
         chat_id=message.chat.id,
         text='Комментарий добавлен!',
@@ -296,25 +287,43 @@ def save_new_comment_for_task(message, task_pk):
     menu(message, task)
 
 
+def send_message(text, user):
+    """Отправка сообщения выбранному пользователю"""
+    try:
+        text = format_text_to_tg_html_style(text)
+        if len(text) > 4096:
+            for x in range(0, len(text), 4096):
+                bot.send_message(
+                    chat_id=user.tg_chat_id,
+                    text=text[x:x + 4096],
+                    parse_mode='HTML'
+                )
+        else:
+            bot.send_message(
+                chat_id=user.tg_chat_id,
+                text=text,
+                parse_mode='HTML'
+            )
+    except:
+        print('ERROR')
+
+
 @bot.callback_query_handler(func=lambda call: call.data == 'change_lab')
 def callback_inline__change_lab(call):
     user = True
     if user:
-        # markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         all_labs = LabName.objects.all()
         if len(all_labs) > 0:
             for lab in all_labs:
                 key_select_lab = types.InlineKeyboardButton(text=lab.name, callback_data=f'new_lab__{lab.slug}')
                 keyboard.add(key_select_lab)
-                # markup.add(types.KeyboardButton(text=lab))
             bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
             bot.send_message(
                 chat_id=call.message.chat.id,
                 text='Выберите лабораторию',
                 reply_markup=keyboard,
             )
-            # bot.register_next_step_handler(msg, change_lab)
             bot.answer_callback_query(callback_query_id=call.id, text='')
 
 
