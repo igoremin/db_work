@@ -193,7 +193,7 @@ def task_info(message):
     try:
         task = Task.objects.get(id=message.text.split(',')[-1].split(':')[-1].strip())
         if task.privat:
-            privat_status = 'Привытная'
+            privat_status = 'Приватная'
         else:
             privat_status = 'В общем доступе'
         profile = Profile.objects.get(tg_id=message.from_user.id)
