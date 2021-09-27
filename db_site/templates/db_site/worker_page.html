@@ -5,15 +5,17 @@
 {% endblock %}
 
 {% block content %}
-
-    <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_update_page_url' lab=current_lab.slug pk=worker.pk %}" role="button">Изменить</a>
-    {% if user.is_superuser %}
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}" role="button">Редактировать оборудование</a>
+    {% if self_page %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_update_page_url' lab=current_lab.slug pk=worker.pk %}" role="button">Изменить</a>
+        {% if user.is_superuser %}
+            <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}" role="button">Редактировать оборудование</a>
+        {% endif %}
     {% endif %}
+
 
     <div class="row">
         <div class="col-1">
-            <img class="mt-2 mb-2" src="{{ worker.avatar_url }}" alt="Аватар" width="80%">
+            <img class="avatar mt-2 mb-2" src="{{ worker.avatar_url }}" alt="Аватар" width="80%">
         </div>
         <div class="col-11">
             <h3>{{ worker.name }}</h3>

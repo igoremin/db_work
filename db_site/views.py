@@ -1147,8 +1147,11 @@ def search(request, lab):
 @login_required(login_url='/login/')
 def worker_page(request, pk, lab):
     user = get_object_or_404(Profile, pk=pk)
-    if request.user.is_superuser or user.user == request.user:
-        if request.method == 'GET':
+    if request.method == 'GET':
+        worker_tasks, private_tasks, orders = None, None, None
+        self_page = False
+        if request.user.is_superuser or user.user == request.user:
+            self_page = True
             worker_tasks = Task.objects.filter(executors__in=[user], status__in=['IW', 'NW'], privat=False)
             private_tasks, done_private_tasks = Task.get_task_tree(lab=lab, private=True, user=user)
             orders_list = Order.objects.filter(equipments__profile=user)
@@ -1156,18 +1159,19 @@ def worker_page(request, pk, lab):
             for order in orders_list:
                 if order not in orders:
                     orders.append(order)
-            worker_equipments = WorkerEquipment.objects.filter(
-                order__isnull=True, profile=user
-            )
+        worker_equipments = WorkerEquipment.objects.filter(
+            order__isnull=True, profile=user
+        )
 
-            context = {
-                'worker': user,
-                'orders': orders,
-                'worker_equipments': worker_equipments,
-                'worker_tasks': worker_tasks,
-                'private_tasks': private_tasks,
-            }
-            return render(request, 'db_site/worker_page.html', context=context)
+        context = {
+            'self_page': self_page,
+            'worker': user,
+            'orders': orders,
+            'worker_equipments': worker_equipments,
+            'worker_tasks': worker_tasks,
+            'private_tasks': private_tasks,
+        }
+        return render(request, 'db_site/worker_page.html', context=context)
 
     return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
