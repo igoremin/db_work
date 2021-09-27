@@ -149,6 +149,7 @@ class Task(models.Model):
         new_comment.save()
         self.new_comment_for_executors.set(self.executors.all())
         self.create_tg_message_text(comment=new_comment, author=author)
+        return new_comment
 
     def create_tg_message_text(self, comment, author):
         message = f'В задаче <b>{self.name}</b> есть новое сообщение: \n'

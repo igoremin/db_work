@@ -55,20 +55,20 @@ def task_page(request, lab, pk):
         }
         return render(request, 'tracker/task_page.html', context)
     else:
-        new_comment = False
+        comment = False
         if request.POST.get('text'):
             form = CommentForTaskForm(request.POST)
             if form.is_valid():
                 new_comment = form.save(commit=False)
-                task.add_new_comment(text=new_comment.text, author=user)
+                comment = task.add_new_comment(text=new_comment.text, author=user)
         if request.FILES:
             form = FileForCommentForm(request.POST, request.FILES)
-            if form.is_valid() and new_comment:
+            if form.is_valid() and comment:
                 files = request.FILES.getlist('file')
                 for file in files:
                     new_file = FileForComment(
                         file=file,
-                        comment=new_comment
+                        comment=comment
                     )
                     new_file.save()
         return redirect(task_page, lab, pk)
