@@ -458,11 +458,20 @@ class ChangeProfile(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['name', 'room_number', 'avatar']
+        fields = ['name', 'room_number', 'tg_id', 'avatar']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'room_number': forms.Select(attrs={'class': 'form-control'}),
+            'tg_id': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Id в телеграме (можно узнать при отправке стартового сообщения)',
+                    'type': 'number',
+                    'step': 1,
+                    'min': 0,
+                }
+            ),
             'avatar': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
 
