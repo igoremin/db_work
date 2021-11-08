@@ -303,8 +303,9 @@
             <thead>
             <tr class="text-center">
                 <th scope="col" style="width: 3%">#</th>
-                <th scope="col" style="width: 50%">Название</th>
+                <th scope="col" style="width: 43%">Название</th>
                 <th scope="col" style="width: 15%">Инв. номер</th>
+                <th scope="col" style="width: 7%">Кабинет</th>
                 <th scope="col" style="width: 10%">Счет</th>
                 <th scope="col" style="width: 10%">Всего</th>
                 <th scope="col" style="width: 10%">Сумма</th>
@@ -324,6 +325,13 @@
                     <td>
                         {% if base_object.inventory_number %}
                             {{ base_object.inventory_number }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if base_object.get_place %}
+                            {% for room in base_object.get_place %}
+                                {{ room }}{% if forloop.last == False %}, {% endif %}
+                            {% endfor %}
                         {% endif %}
                     </td>
                     <td>

@@ -433,6 +433,10 @@ class BaseObject(models.Model):
                 return self.bill
         return ''
 
+    def get_place(self):
+        rooms = Room.objects.filter(pk__in=self.simpleobject_set.values_list('room'))
+        return rooms
+
 
 class InvoiceType(models.Model):
     invoice_type = models.CharField(max_length=200, verbose_name='Тип накладной')
