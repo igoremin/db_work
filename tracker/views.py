@@ -37,7 +37,8 @@ def task_page(request, lab, pk):
     if request.method == 'GET':
         task.new_comment_for_executors.remove(user)
         task_tree = task.get_all_children(include_self=False, status=['IW', 'NW'])
-        comments = CommentForTask.objects.filter(task=task)
+        comments = CommentForTask.objects.filter(task=task, user__robot=False)
+        history = CommentForTask.objects.filter(task=task, user__robot=True)
         new_comment_form = CommentForTaskForm()
         task_for_task_form = TaskForTaskForm(lab=lab)
         add_new_files_form = FileForCommentForm()
@@ -47,6 +48,7 @@ def task_page(request, lab, pk):
         context = {
             'task': task,
             'comments': comments,
+            'history': history,
             'comment_form': new_comment_form,
             'task_for_task_form': task_for_task_form,
             'user_can_change': user_can_change,

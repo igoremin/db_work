@@ -176,9 +176,44 @@
     {% endif %}
 
 
-    <h5>Комментарии : </h5>
+    <h5>
+        <button id="comments_button" type="button" class="btn btn-outline-secondary mb-3 btn-sm" onclick="show_comments(this)" style="background-color: #6c757d; color: white">Комментарии</button>
+        <button id="history_button" type="button" class="btn btn-outline-secondary mb-3 btn-sm" onclick="show_history(this)">История изменений</button>
+    </h5>
     <div id="comments">
         {% for comment in comments %}
+            <div class="row comment">
+                <div class="col-1">
+                    <img class="avatar mt-2 mb-2" src="{{ comment.user.avatar_url }}" alt="Аватар" width="80%">
+                </div>
+                <div class="col-11">
+                    <div class="header row small">
+                        <div class="col-10">
+                            {{ comment.user.name }}{% if comment.user.robot %} (робот) {% endif %}
+                        </div>
+                        <div class="col-2">
+                            {{ comment.date }}
+                        </div>
+                    </div>
+                    <div class="message_text">
+                        {{ comment.get_message_as_markdown|linebreaks }}
+                    </div>
+                    <div>
+                        {% if comment.files.all %}
+                            <span class="small">
+                                Прикрепленные файлы :
+                                {% for file in comment.files.all %}
+                                    <a href="{{ file.file.url }}" download>{{ file.filename }}</a>{% if forloop.last == False %}, {% endif %}
+                                {% endfor %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div id="history" style="display: none">
+        {% for comment in history %}
             <div class="row comment">
                 <div class="col-1">
                     <img class="avatar mt-2 mb-2" src="{{ comment.user.avatar_url }}" alt="Аватар" width="80%">
