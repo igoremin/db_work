@@ -82,7 +82,7 @@ class BaseObjectForm(forms.ModelForm):
     class Meta:
         model = BaseObject
         fields = [
-            'name', 'lab', 'category', 'status', 'inventory_number', 'directory_code',
+            'name', 'lab', 'category', 'status', 'date_add', 'inventory_number', 'directory_code',
             'bill', 'measure', 'total_price', 'amount'
         ]
 
@@ -91,6 +91,7 @@ class BaseObjectForm(forms.ModelForm):
             'lab': forms.Select(attrs={'class': 'form-control', 'id': 'select_current_lab'}),
             'category': forms.Select(attrs={'class': 'form-control', 'required': ''}),
             'status': forms.Select(attrs={'class': 'form-control'}),
+            'date_add': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
             'bill': forms.TextInput(attrs={'class': 'form-control'}),
@@ -122,13 +123,14 @@ class BaseObjectsListForm(forms.ModelForm):
     class Meta:
         model = BaseObject
         fields = [
-            'name', 'inventory_number','status', 'bill', 'measure', 'amount', 'total_price'
+            'name', 'inventory_number', 'status', 'date_add', 'bill', 'measure', 'amount', 'total_price'
         ]
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
+            'date_add': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),
             'bill': forms.TextInput(attrs={'class': 'form-control'}),
             'measure': forms.TextInput(attrs={'class': 'form-control'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),

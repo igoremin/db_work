@@ -153,6 +153,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     # 'static',
     BASE_DIR / 'db_site' / 'static',
+    BASE_DIR / 'tracker' / 'static'
 ]
 
 

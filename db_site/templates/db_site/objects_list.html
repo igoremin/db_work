@@ -303,11 +303,12 @@
             <thead>
             <tr class="text-center">
                 <th scope="col" style="width: 3%">#</th>
-                <th scope="col" style="width: 43%">Название</th>
-                <th scope="col" style="width: 15%">Инв. номер</th>
+                <th scope="col" style="width: 38%">Название</th>
+                <th scope="col" style="width: 10%">Инв. номер</th>
                 <th scope="col" style="width: 7%">Кабинет</th>
+                <th scope="col" style="width: 13%">Дата</th>
                 <th scope="col" style="width: 10%">Счет</th>
-                <th scope="col" style="width: 10%">Всего</th>
+                <th scope="col" style="width: 7%">Всего</th>
                 <th scope="col" style="width: 10%">Сумма</th>
                 {% if user.is_superuser %}
                     <th scope="col" style="width: 2%">#</th>
@@ -332,6 +333,11 @@
                             {% for room in base_object.get_place %}
                                 {{ room }}{% if forloop.last == False %}, {% endif %}
                             {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if base_object.date_add %}
+                            {{ base_object.date_add }}
                         {% endif %}
                     </td>
                     <td>

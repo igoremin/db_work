@@ -185,6 +185,9 @@
                 {% if object.category %}
                     <li>Категория : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
                 {% endif %}
+                {% if object.base_object.date_add %}
+                    <li>Дата принятия к учету {{ object.base_object.date_add }}</li>
+                {% endif %}
                 {% if object.text %}
                     <li>Описание : {{ object.text }}</li>
                 {% endif %}

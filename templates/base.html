@@ -69,16 +69,6 @@
                                     <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Списано</a>
                                 </div>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Сотрудники
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="usersDropdown">
-                                    {% for worker in workers %}
-                                        <a class="dropdown-item" href='{{ worker.get_absolute_url }}'>{{ worker.name }}</a>
-                                    {% endfor %}
-                                </div>
-                            </li>
                             {% if big_objects_cat %}
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -91,6 +81,16 @@
                                     </div>
                                 </li>
                             {% endif %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Сотрудники
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="usersDropdown">
+                                    {% for worker in workers %}
+                                        <a class="dropdown-item" href='{{ worker.get_absolute_url }}'>{{ worker.name }}</a>
+                                    {% endfor %}
+                                </div>
+                            </li>
                             {% if user.is_superuser %}
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="roomsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

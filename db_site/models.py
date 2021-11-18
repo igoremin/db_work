@@ -349,6 +349,7 @@ class BaseObject(models.Model):
     total_price = models.FloatField(verbose_name='Сумма', default=0, blank=True)
     total_price_text = models.CharField(verbose_name='Общая сумма с пробелами', max_length=100, blank=True)
     amount = models.FloatField(verbose_name='Общее количество единиц', default=0)
+    date_add = models.DateField(verbose_name='Дата принятия к учету', blank=True, null=True)
     status = models.CharField(
         max_length=2,
         choices=ChoicesStatus.choices,
@@ -436,6 +437,13 @@ class BaseObject(models.Model):
     def get_place(self):
         rooms = Room.objects.filter(pk__in=self.simpleobject_set.values_list('room'))
         return rooms
+
+    def get_current_place(self):
+        places = []
+        for simple_obj in self.simpleobject_set.all():
+            if simple_obj.place:
+                places.append(simple_obj.place)
+        return places
 
 
 class InvoiceType(models.Model):

@@ -51,9 +51,10 @@
             <thead>
             <tr class="text-center">
                 <th scope="col" style="width: 2%">#</th>
-                <th scope="col" style="width: 40%">Название</th>
+                <th scope="col" style="width: 35%">Название</th>
                 <th scope="col" style="width: 13%">Инв. номер</th>
                 <th scope="col" style="width: 10%">Статус</th>
+                <th scope="col" style="width: 5%">Дата</th>
                 <th scope="col" style="width: 10%">Счет</th>
                 <th scope="col" style="width: 5%">Мера</th>
                 <th scope="col" style="width: 10%">Всего</th>
@@ -87,6 +88,14 @@
                             </div>
                         {% endif %}
                         {{ form.status }}
+                    </td>
+                    <td>
+                        {% if form.date_add.errors %}
+                            <div class="alert-danger">
+                                {{ form.date_add.errors }}
+                            </div>
+                        {% endif %}
+                        {{ form.date_add }}
                     </td>
                     <td>
                         {% if form.inventory_number.errors %}

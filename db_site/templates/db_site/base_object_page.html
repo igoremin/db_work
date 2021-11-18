@@ -65,7 +65,35 @@
             <li>Статус : {{ object.get_status_display }}</li>
         {% endif %}
         {% if object.category %}
-            <li>Раздел : {{ object.category.name }}</li>
+            <li>Раздел : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
+        {% endif %}
+        {% if object.date_add %}
+            <li>Дата принятия к учету : {{ object.date_add }}</li>
+        {% endif %}
+        {% if object.get_place %}
+            <li>
+                {% if object.get_place|length == 1 %}
+                    Кабинет :
+                {% else %}
+                    Кабинеты :
+                {% endif %}
+                {% for room in object.get_place %}
+                    <a href="{{ room.get_absolute_url }}">{{ room }}</a>{% if forloop.last == False %}, {% endif %}
+                {% endfor %}
+            </li>
+        {% endif %}
+        {% if object.get_current_place %}
+            <li>
+                {% if object.get_current_place|length == 1 %}
+                    Место расположения :
+                {% else %}
+                    Места расположения :
+                {% endif %}
+                {% for place in object.get_current_place %}
+                    {{ place }}{% if forloop.last == False %}, {% endif %}
+                {% endfor %}
+            </li>
+
         {% endif %}
         {% if object.text %}
             <li>Описание : {{ object.text }}</li>
