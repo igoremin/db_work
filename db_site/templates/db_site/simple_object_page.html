@@ -156,7 +156,6 @@
                 <li>Стоимость : {{ object.price_text }}</li>
                 <li>Сумма : {{ object.total_price_text }}</li>
                 <li>Лаборатория : {{ object.lab.name }}</li>
-                <li>Дата создания : {{ object.date_add }}</li>
                 {% if object.room.all %}
                     <li>Кабинет :
                         {% for object in object.room.all %}
@@ -186,7 +185,7 @@
                     <li>Категория : <a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
                 {% endif %}
                 {% if object.base_object.date_add %}
-                    <li>Дата принятия к учету {{ object.base_object.date_add }}</li>
+                    <li>Дата принятия к учету : {{ object.base_object.date_add }}</li>
                 {% endif %}
                 {% if object.text %}
                     <li>Описание : {{ object.text }}</li>
