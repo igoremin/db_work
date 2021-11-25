@@ -426,6 +426,151 @@ function check_categories_for_lab (lab) {
     }
 }
 
+
+function getElementByXpath(path) {
+  return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+
+
+function get_month_data(year, month, max_day) {
+    let token_elem = document.getElementsByName('csrfmiddlewaretoken')[0]
+    console.log(token_elem.value)
+    month = month + 1
+    console.log(month)
+    $.ajax({
+        type: 'GET',
+        data: 'year=' + year + '&month=' + month + '&days=' + max_day + '&type=get_data_for_month',
+        success: function (response) {
+            if (response.rez.status === 'ok') {
+                let month_data = response.rez;
+                let all_day_types = response.rez.all_day_types;
+                for (let i = 1; i <= max_day; i++) {
+                    let day = getElementByXpath("//tbody/tr/td[text()='" + i + "']/p")
+                    let form = document.createElement('form')
+                    form.setAttribute('method', 'post')
+                    form.setAttribute('id', i + ':' + month + ':' + year)
+                    form.setAttribute('onchange', 'calendar_change(this)')
+
+                    let token = document.createElement('input')
+                    token.setAttribute('type', 'hidden')
+                    token.setAttribute('name', 'csrfmiddlewaretoken')
+                    token.setAttribute('value', token_elem.value)
+                    form.appendChild(token)
+
+                    let type = document.createElement('select')
+                    type.setAttribute('class', 'form-control')
+                    for (let t in all_day_types) {
+                        let opt = document.createElement('option');
+                        opt.value = t
+                        if (t === 'Ф') {
+                            opt.innerHTML = month_data[i].work_hours + ':' + month_data[i].work_minutes
+                        }
+                        else {
+                            opt.innerHTML = all_day_types[t] + ' (' + t + ')'
+                        }
+                        type.appendChild(opt)
+                    }
+                    type.value = month_data[i].kod_type
+                    form.appendChild(type)
+                    day.appendChild(form)
+                    let change_url = document.createElement('a')
+                    if (month_data[i].href !== null) {
+                        change_url.href = month_data[i].href
+                        change_url.innerText = 'изменить'
+                        change_url.style.fontSize = '0.5em'
+                        day.appendChild(change_url)
+                    }
+                }
+            }
+        },
+        error: function () {
+            alert("Что-то пошло не так, попробуйте снова!");
+        }
+    });
+}
+
+function Calendar3(id, year, month) {
+    var Dlast = new Date(year,month+1,0).getDate(),
+        D = new Date(year,month,Dlast),
+        DNlast = D.getDay(),
+        DNfirst = new Date(D.getFullYear(),D.getMonth(),1).getDay(),
+        calendar = '<tr>',
+        m = document.querySelector('#'+id+' option[value="' + D.getMonth() + '"]'),
+        g = document.querySelector('#'+id+' input');
+    if (DNfirst != 0) {
+        for(var  i = 1; i < DNfirst; i++) calendar += '<td>';
+    }else{
+        for(var  i = 0; i < 6; i++) calendar += '<td>';
+    }
+    for(var  i = 1; i <= Dlast; i++) {
+
+        if (i == new Date().getDate() && D.getFullYear() == new Date().getFullYear() && D.getMonth() == new Date().getMonth()) {
+            calendar += '<td class="today">' + i + '<p></p>' + '</td>';
+        }else{
+            if (  // список официальных праздников
+                (i == 1 && D.getMonth() == 0 && ((D.getFullYear() > 1897 && D.getFullYear() < 1930) || D.getFullYear() > 1947)) || // Новый год
+                (i == 2 && D.getMonth() == 0 && D.getFullYear() > 1992) || // Новый год
+                ((i == 3 || i == 4 || i == 5 || i == 6 || i == 8) && D.getMonth() == 0 && D.getFullYear() > 2004) || // Новый год
+                (i == 7 && D.getMonth() == 0 && D.getFullYear() > 1990) || // Рождество Христово
+                (i == 23 && D.getMonth() == 1 && D.getFullYear() > 2001) || // День защитника Отечества
+                (i == 8 && D.getMonth() == 2 && D.getFullYear() > 1965) || // Международный женский день
+                (i == 1 && D.getMonth() == 4 && D.getFullYear() > 1917) || // Праздник Весны и Труда
+                (i == 9 && D.getMonth() == 4 && D.getFullYear() > 1964) || // День Победы
+                (i == 12 && D.getMonth() == 5 && D.getFullYear() > 1990) || // День России (декларации о государственном суверенитете Российской Федерации ознаменовала окончательный Распад СССР)
+                (i == 7 && D.getMonth() == 10 && (D.getFullYear() > 1926 && D.getFullYear() < 2005)) || // Октябрьская революция 1917 года
+                (i == 8 && D.getMonth() == 10 && (D.getFullYear() > 1926 && D.getFullYear() < 1992)) || // Октябрьская революция 1917 года
+                (i == 4 && D.getMonth() == 10 && D.getFullYear() > 2004) // День народного единства, который заменил Октябрьскую революцию 1917 года
+            ) {
+                calendar += '<td class="holiday">' + i + '<p></p>' + '</td>';
+            }else{
+                calendar += '<td>' + i + '<p></p>' + '</td>';
+            }
+        }
+        if (new Date(D.getFullYear(),D.getMonth(),i).getDay() == 0) {
+            calendar += '<tr>';
+        }
+    }
+    for(var  i = DNlast; i < 7; i++) calendar += '<td>&nbsp;';
+    document.querySelector('#'+id+' tbody').innerHTML = calendar;
+    g.value = D.getFullYear();
+    m.selected = true;
+    if (document.querySelectorAll('#'+id+' tbody tr').length < 6) {
+        document.querySelector('#'+id+' tbody').innerHTML += '<tr><td>&nbsp;<td>&nbsp;<td>&nbsp;<td>&nbsp;<td>&nbsp;<td>&nbsp;<td>&nbsp;';
+    }
+    document.querySelector('#'+id+' option[value="' + new Date().getMonth() + '"]').style.color = 'rgb(220, 0, 0)'; // в выпадающем списке выделен текущий месяц
+    get_month_data(year, month, Dlast)
+}
+
+$(document).ready(function () {
+    if (window.location.href.match('/calendar/') != null) {
+        Calendar3("calendar3",new Date().getFullYear(),new Date().getMonth());
+        document.querySelector('#month_select').onchange = function Kalendar3() {
+            Calendar3("calendar3",document.querySelector('#calendar3 input').value,parseFloat(document.querySelector('#calendar3 select').options[document.querySelector('#calendar3 select').selectedIndex].value));
+        }
+        document.querySelector('#year_select').onchange = function Kalendar3() {
+            Calendar3("calendar3",document.querySelector('#calendar3 input').value,parseFloat(document.querySelector('#calendar3 select').options[document.querySelector('#calendar3 select').selectedIndex].value));
+        }
+    }
+})
+
+
+function calendar_change(form) {
+    let f = $(form)[0][1]
+    $.ajax({
+        type: 'POST',
+        data: 'date=' + form.id + '&value=' + f.options[f.selectedIndex].value + '&type=change_value',
+        success: function (response) {
+            if (response.rez !== 'ok') {
+                alert('Что-то пошло не так, попробуйте снова')
+            }
+        },
+        error: function () {
+            console.log('error')
+        }
+    })
+
+}
+
 $(document).ready(function () {
     // $('.treetable').treetable();
     if (window.location.href.match('/create_new_task/') != null || window.location.href.match('/update_task/') != null || window.location.href.match('/tracker/\.+/all/\.+') != null) {

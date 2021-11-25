@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Страница для печати</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'db_site/favicon/LogoADL.gif' %}"/>
+    <link rel="stylesheet" href="{% static 'db_site/style/timesheet.css' %}">
+    <link rel="stylesheet" href="{% static 'db_site/style/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'db_site/style/db_site_style.css' %}">
+
+</head>
+<body>
+    <div id="table_container" style="; ">
+        <p class="small_p not_margin" style="margin-left: 87%; min-width: 20%">Форма 0504421 с.2</p>
+        <table id="timesheet_table">
+            <tr>
+                <td class="table_header" rowspan="2" style="width: 2%; height: 1.5cm">№<br>п/п</td>
+                <td class="table_header" rowspan="2" style="width: 15%; font-size: small">Фамилия, имя<br>отчество</td>
+                <td class="table_header" rowspan="2" style="width: 7%; font-size: small">Должность</td>
+                <td class="table_header" colspan="{{ days|length }}" style="width: 72%; text-align: center">Числа месяца</td>
+            </tr>
+            <tr>
+                {% for day in days %}
+                    <td class="table_date_num">{{ day }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                {% for i in days %}
+                    <td class="table_cols_num">{{ i }}</td>
+                {% endfor %}
+                <td class="table_cols_num">32</td>
+                <td class="table_cols_num">33</td>
+                <td class="table_cols_num">34</td>
+            </tr>
+            {% for data in all_data %}
+                <tr>
+                    <td class="table_num" rowspan="2">{{ data.num }}</td>
+                    <td class="table_name" rowspan="2">
+                        {{ data.name }}
+                    </td>
+                    <td class="table_position" rowspan="2">
+                        {% if data.position %}
+                            {{ data.position }}
+                        {% endif %}
+                    </td>
+                    {% for calendar in data.calendar %}
+                        <td class="table_date_info" colspan="1">
+                            {% if calendar.type == 'Ф' %}
+                                {{ calendar.hours }}<sup>{{ calendar.minutes }}</sup>
+                            {% else %}
+                                {{ calendar.type }}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                    {% if data.calendar|length < 29 %}
+                        <td class="table_date_info"></td>
+                    {% endif %}
+                    {% if data.calendar|length < 30 %}
+                        <td class="table_date_info"></td>
+                    {% endif %}
+                    {% if data.calendar|length < 31 %}
+                        <td class="table_date_info"></td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% for i in data.calendar %}
+                        <td class="table_date_info"></td>
+                    {% endfor %}
+                    {% if data.calendar|length < 29 %}
+                        <td class="table_date_info"></td>
+                    {% endif %}
+                    {% if data.calendar|length < 30 %}
+                        <td class="table_date_info"></td>
+                    {% endif %}
+                    {% if data.calendar|length < 31 %}
+                        <td class="table_date_info"></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+
+        </table>
+        <div>
+            <span style="margin-left: 0.7cm; font-size: 0.7em">Исполнитель</span>
+            <span style="margin-left: 17.5cm; font-size: 0.7em">директор</span>
+            <span style="margin-left: 3cm; font-size: 0.7em">Валявин Г.Г.</span>
+        </div>
+        <div>
+            <span style="margin-left: 2.5cm; font-size: 0.7em">(должность)</span>
+            <span style="margin-left: 1.7cm; font-size: 0.7em">(подпись)</span>
+            <span style="margin-left: 1.5cm; font-size: 0.7em">(расшифровка подписи)</span>
+            <span style="margin-left: 2cm; font-size: 0.7em;">"</span>
+            <span style="font-size: 0.7em; text-decoration: underline">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
+            <span style="font-size: 0.7em;">"</span>
+            <span style="font-size: 0.7em; text-decoration: underline">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
+            <span style="font-size: 0.7em;">&#160;20&#160;</span>
+            <span style="font-size: 0.7em; text-decoration: underline">&#160;&#160;&#160;&#160;&#160;&#160;</span>
+            <span style="font-size: 0.7em;">&#160;г.&#160;</span>
+            <span style="margin-right: 2.8cm; font-size: 0.7em; float: right">(подпись)</span>
+        </div>
+    </div>
+
+    <div id="telescope_days">
+        <h4>Высокогорные дни</h4>
+        <table id="telescope_table">
+            <tr>
+                <td class="table_header" style="width: 50%; height: 1.5cm">Фамилия, имя, отчество</td>
+                <td class="table_header" style="width: 50%; font-size: small">Количество дней</td>
+            </tr>
+            {% for data in all_data %}
+                {% if data.telescope_days != 0 %}
+                    <tr>
+                        <td>{{ data.name }}</td>
+                        <td>{{ data.telescope_days }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+
+    </div>
+
+    <style type="text/css" media="print">
+        @page {
+            size: landscape;
+        }
+    </style>
+{#        {% for data in all_data %}#}
+{#            <p>{{ data.name }}</p>#}
+{#        {% endfor %}#}
+</body>
+

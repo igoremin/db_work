@@ -10,6 +10,7 @@
         {% if user.is_superuser %}
             <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}" role="button">Редактировать оборудование</a>
         {% endif %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_calendar_page_url' lab=current_lab.slug pk=worker.pk %}" role="button">Календарь</a>
     {% endif %}
 
 
@@ -20,6 +21,9 @@
         <div class="col-11">
             <h3>{{ worker.name }}</h3>
             <ul>
+                {% if worker.position %}
+                    <li>Должность : {{ worker.position.name }}</li>
+                {% endif %}
                 {% if worker.room_number %}
                     <li>Кабинет : <a href="{{ worker.room_number.get_absolute_url }}">{{ worker.room_number }}</a></li>
                 {% endif %}

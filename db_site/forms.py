@@ -1,6 +1,7 @@
 from django import forms
 from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, FileAndImageCategory,\
-    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject, BaseObject, Invoice, InvoiceBaseObject
+    ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject, BaseObject, Invoice, InvoiceBaseObject,\
+    WorkCalendar
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -587,3 +588,37 @@ class InvoiceBaseObjectForm(forms.ModelForm):
         super(InvoiceBaseObjectForm, self).__init__(*args, **kwargs)
         if invoice_pk is not False:
             self.fields['base_object'].queryset = self.base_list
+
+
+class WorkCalendarChange(forms.ModelForm):
+    class Meta:
+        model = WorkCalendar
+        fields = ['work_hours', 'work_minutes', 'type']
+
+        widgets = {
+            'work_hours': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Количество рабочих часов',
+                    'type': 'number',
+                    'step': 1,
+                    'min': 0,
+                    'max': 23
+                }
+            ),
+            'work_minutes': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Количество минут в последнем часе',
+                    'type': 'number',
+                    'step': 1,
+                    'min': 0,
+                    'max': 59
+                }
+            ),
+            'type': forms.Select(
+                attrs={
+                    'class': 'form-control'
+                }
+            )
+        }

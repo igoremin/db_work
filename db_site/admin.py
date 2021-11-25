@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject,\
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, BaseBigObject, Room, Order, WorkerEquipment, Invoice,\
-    InvoiceBaseObject, InvoiceType
+    InvoiceBaseObject, InvoiceType, WorkCalendar, Position
 
 
 admin.site.register(LabName)
@@ -16,6 +16,7 @@ admin.site.register(Order)
 admin.site.register(Invoice)
 admin.site.register(InvoiceType)
 admin.site.register(InvoiceBaseObject)
+admin.site.register(Position)
 
 
 @admin.register(BaseObject)
@@ -50,3 +51,10 @@ class SimpleObjectAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'lab')
     list_filter = ('lab',)
+
+
+@admin.register(WorkCalendar)
+class WorkCalendarAdmin(admin.ModelAdmin):
+    list_display = ('user', 'type', 'date')
+    list_filter = ('user', 'type')
+    search_fields = ('date', )

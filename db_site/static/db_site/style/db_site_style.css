@@ -133,6 +133,41 @@ p.small_p {
     box-shadow: 0 0 0 0 green, 0 0 10px #333; /* Параметры теней */
 }
 
+#calendar3 {
+    width: 100%;
+    font: monospace;
+    line-height: 1.2em;
+    font-size: 15px;
+    text-align: center;
+    border-collapse: separate;
+}
+#calendar3 thead tr:last-child {
+    font-size: small;
+    color: rgb(85, 85, 85);
+}
+#calendar3 tbody td {
+    color: rgb(44, 86, 122);
+    padding: 10px;
+
+}
+#calendar3 tbody td:nth-child(n+6), #calendar3 .holiday {
+    color: rgb(231, 140, 92);
+}
+
+#calendar3 tbody td{
+    font-size: 20px;
+}
+
+#calendar3 tbody td p{
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+#calendar3 tbody td.today {
+    border: #d43030 solid 1px;
+    border-radius: 10px;
+}
+
 /*footer*/
 .col_white_amrc { color:#FFF;}
 footer { width:100%; background-color:#263238;}

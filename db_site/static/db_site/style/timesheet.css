@@ -1,0 +1,71 @@
+/*#timesheet_table {*/
+/*    background-color: #1e7e34;*/
+/*}*/
+
+#timesheet_table td {
+    border: 1px solid;
+}
+
+#timesheet_table td.table_header {
+    font-size: x-small;
+    text-align: center;
+}
+
+#timesheet_table .table_date_num {
+    width: 50px;
+    height: 1.2cm;
+    text-align: center;
+    font-size: x-small;
+}
+
+#timesheet_table .table_num{
+    width: 0.5cm;
+    font-size: 0.8em;
+    text-align: center;
+}
+
+#timesheet_table .table_cols_num {
+    text-align: center;
+    font-size: x-small;
+    height: 0.5cm;
+}
+
+#timesheet_table .table_name {
+    font-size: medium;
+    height: 1cm;
+    width: 3.5cm;
+}
+
+#timesheet_table .table_position {
+    font-size: small;
+    text-align: center;
+}
+
+#timesheet_table .table_date_info {
+    font-size: small;
+    height: 0.5cm;
+    text-align: center;
+}
+
+#table_container {
+    width: 26.5cm;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.7cm;
+}
+
+#telescope_days {
+    width: 26.5cm;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 4cm;
+    padding-bottom: 1cm;
+}
+
+#telescope_table {
+    width: 15cm;
+}
+
+#telescope_table td {
+    border: 1px solid;
+}

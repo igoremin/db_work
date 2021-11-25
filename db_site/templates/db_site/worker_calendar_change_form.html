@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block titile %}
+    Изменение рабочего дня
+{% endblock %}
+
+{% block content %}
+    <h5>Редактирование календаря у пользователя <a href="{{ day.user.get_absolute_url }}">{{ day.user.name }}</a></h5>
+    <p>Дата : {{ day.date }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">
+    </form>
+{% endblock %}

@@ -1,8 +1,9 @@
+import requests
 from django.shortcuts import render, redirect, reverse
 from django.template.loader import render_to_string
 from .models import SimpleObject, LabName, Category, Profile, BigObject, BigObjectList, ImageForObject, \
     FileAndImageCategory, FileForObject, DataBaseDoc, BaseObject, WorkerEquipment, BaseBigObject, Room, \
-    Order, Invoice, InvoiceBaseObject
+    Order, Invoice, InvoiceBaseObject, WorkCalendar
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseNotFound, JsonResponse, HttpResponseRedirect, Http404
 from django.contrib.auth.decorators import login_required
@@ -14,10 +15,11 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
     SimpleObjectAndAmountForm, SearchForm, CopyBigObject, FileAndImageCategoryForm, \
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm, \
     BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm, \
-    BaseObjectsListForm, AllInvoiceForm
+    BaseObjectsListForm, AllInvoiceForm, WorkCalendarChange
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components, update_big_objects_price
 from tracker.models import Task, CommentForTask
+from datetime import date
 
 
 def custom_proc_user_categories_list(request):
@@ -1193,6 +1195,135 @@ def worker_update_page(request, pk, lab):
                 form.save()
 
             return redirect(worker_page, pk=user.pk, lab=lab)
+
+
+@login_required(login_url='/login/')
+def worker_change_date(request, pk, lab, day):
+    """Изменение конкретной даты в календаре у пользователя"""
+    user = get_object_or_404(Profile, pk=pk)
+    if not request.user.is_superuser:
+        raise Http404
+    d = str(day).split('-')
+    change_day = WorkCalendar.objects.get(user=user, date__day=d[0], date__month=d[1], date__year=d[2])
+
+    if request.method == 'GET':
+        form = WorkCalendarChange(instance=change_day)
+        context = {
+            'form': form,
+            'day': change_day
+        }
+        return render(request, 'db_site/worker_calendar_change_form.html', context)
+
+    if request.method == 'POST':
+        form = WorkCalendarChange(request.POST, instance=change_day)
+        if form.is_valid():
+            form.save()
+            return redirect(worker_calendar, pk=pk, lab=lab)
+        else:
+            context = {
+                'form': form,
+            }
+            return render(request, 'db_site/worker_calendar_change_form.html', context)
+
+
+@login_required(login_url='/login/')
+def worker_calendar(request, pk, lab):
+    """Календарь с графиком работы для конкретного пользователя"""
+    user = get_object_or_404(Profile, pk=pk)
+    if not request.user.is_superuser and user.user != request.user:
+        raise Http404
+
+    if request.method == 'GET' and request.is_ajax():
+        if request.GET.get('type') == 'get_data_for_month':
+
+            year, month, max_day = request.GET.get('year'), request.GET.get('month'), request.GET.get('days')
+            month_data = user.get_or_create_month_for_calendar(
+                int(year), int(month), int(max_day), request.user.is_superuser
+            )
+            return JsonResponse({"rez": month_data}, status=200)
+    elif request.method == 'GET':
+        context = {
+            'worker': user
+        }
+        return render(request, 'db_site/worker_calendar.html', context)
+    elif request.method == 'POST' and request.is_ajax():
+        if request.POST.get('type') == 'change_value':
+            target_date = request.POST.get('date').split(':')
+            new_value = request.POST.get('value')
+            try:
+                calendar_day = WorkCalendar.objects.get(
+                    date=date(
+                        year=int(target_date[2]), month=int(target_date[1]), day=int(target_date[0])
+                    ),
+                    user=user
+                )
+                calendar_day.type = new_value
+                calendar_day.save()
+            except ObjectDoesNotExist:
+                return JsonResponse({"rez": 'not'}, status=200)
+            else:
+                return JsonResponse({"rez": 'ok'}, status=200)
+        return JsonResponse({"rez": 'not'}, status=200)
+
+
+@login_required(login_url='/login/')
+def timesheet(request, lab):
+    """Табель по количеству рабочих дней у лаборатории"""
+    if not request.user.is_superuser:
+        raise Http404
+    import calendar
+
+    if request.method != 'GET':
+        raise Http404
+
+    timesheet_type = request.GET.get('type', default='full')
+    year = request.GET.get('year', default=date.today().year)
+    month = request.GET.get('month', default=date.today().month)
+
+    max_day = calendar.monthrange(int(year), int(month))[1]
+
+    workers = Profile.objects.filter(lab__slug=lab)
+    all_data = []
+
+    i = 1
+    for k in range(13):     # 13 -> Количество сотрудников которые помещаются на одну страницу табеля
+        data = dict()
+        try:
+            worker = workers[k]
+            data['num'] = i
+            data['name'] = worker.get_short_name()
+            data['position'] = worker.position
+            calendar_for_month = worker.get_or_create_month(year, month, max_day)
+
+            cal = []
+            for day in calendar_for_month:
+                if timesheet_type == 'first_half':
+                    if day.date.day <= 15:
+                        cal.append(day.get_name_for_timesheet())
+                    else:
+                        cal.append({'type': ''})
+                else:
+                    cal.append(day.get_name_for_timesheet())
+            data['calendar'] = cal
+            data['telescope_days'] = calendar_for_month.filter(type='Т').count()
+        except IndexError:
+            data['num'] = i
+            data['name'] = ''
+            data['position'] = ''
+            data['calendar'] = ['' for _ in range(31)]
+            data['telescope_days'] = 0
+        finally:
+            all_data.append(data)
+            i += 1
+
+    days = [i for i in range(1, 32)]
+
+    context = {
+        'days': days,
+        'all_data': all_data
+    }
+
+    return render(request, 'db_site/timesheet.html', context)
 
 
 @login_required(login_url='/login/')

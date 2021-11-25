@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 from mptt.models import MPTTModel, TreeForeignKey
 from PIL import Image
+from datetime import date
 import os
 
 
@@ -268,9 +269,32 @@ class Category(models.Model):
         self.slug = gen_slug(lab=self.lab.slug, title=self.name, all_slugs=all_slugs)
 
 
+class Position(models.Model):
+    name = models.CharField(verbose_name='Название должности', max_length=200)
+
+    class Meta:
+        verbose_name = 'Должность'
+        verbose_name_plural = 'Должности'
+
+    def __str__(self):
+        return self.name
+
+
 class Profile(models.Model):
+    class ChoicesSex(models.TextChoices):
+        MAN = 'man', _('Мужской')
+        WOMAN = 'woman', _('Женский')
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name='Имя')
+    sex = models.CharField(
+        max_length=5,
+        choices=ChoicesSex.choices,
+        default=ChoicesSex.MAN,
+        verbose_name='Пол'
+    )
+    position = models.ForeignKey(Position, verbose_name='Должность', on_delete=models.SET_NULL, blank=True, null=True)
+    half_time_work = models.BooleanField(verbose_name='Работа на пол ставки', default=False)
     avatar = models.ImageField(blank=True, null=True, verbose_name='Аватар', upload_to=generate_path_for_avatar)
     lab = models.ForeignKey(LabName, on_delete=models.CASCADE, verbose_name='Лаборатория', blank=True, null=True)
     room_number = models.ForeignKey(Room, on_delete=models.PROTECT, verbose_name='Номер кабинета',
@@ -291,6 +315,8 @@ class Profile(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'Профиль сотрудника'
+        verbose_name_plural = 'Профили сотрудников'
 
     def __str__(self):
         if self.lab is None:
@@ -312,6 +338,18 @@ class Profile(models.Model):
                 self.save_avatar()
         super().save(*args, **kwargs)
 
+    def get_short_name(self):
+        """Возвращяет короткое имя пользователя"""
+        name = self.name.split(' ')
+        if len(name) == 3:
+            return f'{name[0]} {name[1][0]}. {name[2][0]}.'
+        elif len(name) == 2:
+            return f'{name[0]} {name[1][0]}.'
+        elif len(name) == 1:
+            return f'{name[0]}'
+        else:
+            return 'Имя не задано'
+
     def get_absolute_url(self):
         return reverse('worker_page_url', kwargs={'pk': self.pk, 'lab': self.lab.slug})
 
@@ -324,8 +362,148 @@ class Profile(models.Model):
         img = Image.open(self.avatar.path)
         img.save(self.avatar.path, quality=40)
 
+    def get_or_create_month_for_calendar(self, year, month, max_day, admin=False):
+        """
+        month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        max_day -> количество дней в месяце, начиная с 1 и заканчивая 31
+        """
+        today = date.today()
+        if today.year == year:
+            if not abs(today.month - month) <= 2:
+                return False
+        elif abs(today.year - year) >= 1:
+            if month not in [0, 1, 10, 11] or today.month not in [12, 1]:
+                return False
+
+        all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month), user=self)
+        if len(all_days) < int(max_day):
+            self.create_month_for_user(year, month, max_day)
+            all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month))
+
+        month_data = {}
+        for day in all_days:
+            if admin is True:
+                href = day.get_absolute_url()
+            else:
+                href = None
+            month_data[day.date.day] = {
+                'href': href,
+                'work_hours': day.work_hours,
+                'work_minutes': day.work_minutes,
+                'type': day.get_type_display(),
+                'kod_type': day.type,
+                'after_work_hours': day.after_work_hours,
+            }
+        month_data['status'] = 'ok'
+
+        all_day_types = dict()
+        for day_type in WorkCalendar.ChoicesDayType.choices:
+            all_day_types[day_type[0]] = day_type[1]
+        month_data['all_day_types'] = all_day_types
+
+        return month_data
+
+    def get_or_create_month(self, year, month, max_day):
+        """
+        month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        max_day -> количество дней в месяце, начиная с 1 и заканчивая 31
+        """
+        all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month), user=self)
+        if len(all_days) < int(max_day):
+            self.create_month_for_user(year, month, max_day)
+
+        return WorkCalendar.objects.filter(date__month=month, date__year=year, user=self)
+
+    def create_month_for_user(self, year, month, max_day):
+        """
+        month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        max_day -> количество дней в месяце, начиная с 1 и заканчивая 31
+        """
+        i = 1
+        while i <= int(max_day):
+            day, created = WorkCalendar.objects.get_or_create(
+                date=date(year=int(year), month=int(month), day=i),
+                user=self
+            )
+            if created:
+                str_day = day.date.strftime('%a').lower()
+                if str_day == 'fri':
+                    if self.half_time_work is False:
+                        day.work_hours = '6'
+                        day.work_minutes = '00'
+                    else:
+                        day.work_hours = '3'
+                        day.work_minutes = '00'
+                else:
+                    if str_day not in ('sat', 'sun'):
+                        if self.sex == 'man':
+                            if self.half_time_work is False:
+                                day.work_hours = '8'
+                                day.work_minutes = '30'
+                            else:
+                                day.work_hours = '4'
+                                day.work_minutes = '15'
+                        else:
+                            if self.half_time_work is False:
+                                day.work_hours = '7'
+                                day.work_minutes = '30'
+                            else:
+                                day.work_hours = '3'
+                                day.work_minutes = '45'
+                    else:
+                        day.work_hours = '0'
+                        day.work_minutes = '00'
+                        day.type = 'В'
+
+                day.save()
+            i += 1
+
     def delete_avatar(self):
         self.avatar.delete(save=False)
+
+
+class WorkCalendar(models.Model):
+    class ChoicesDayType(models.TextChoices):
+        WORK = 'Ф', _('Рабочий день')
+        DAY_OFF = 'В', _('Выходной')
+        TELESCOPE = 'Т', _('Телескоп')
+        VACATION = 'О', _('Отпуск')
+        TRIP = 'К', _('Командировка')
+        SICK = 'Б', _('Больничный')
+        HOLIDAY_WORK = 'РП', _('Работа в праздничные дни')
+        NIGHT_WORK = 'Н', _('Работа в ночное время')
+        GOS_WORK = 'Г', _('Выполнение гособязанностей')
+        BABY = 'Р', _('Отпуск в связи с родами')
+
+    type = models.CharField(
+        max_length=2,
+        choices=ChoicesDayType.choices,
+        default=ChoicesDayType.WORK,
+        verbose_name='Тип дня'
+    )
+    work_hours = models.TextField(verbose_name='Количество рабочих часов', default='0')
+    work_minutes = models.TextField(verbose_name='Количество рабочих минут в последнем часе', default='00')
+    after_work_hours = models.FloatField(verbose_name='Часы сверхурочной работы', default=0)
+    user = models.ForeignKey(to=Profile, on_delete=models.CASCADE, verbose_name='Профиль')
+    date = models.DateField(verbose_name='Дата')
+
+    class Meta:
+        verbose_name = 'Календарь рабочих дней'
+        verbose_name_plural = 'Календари рабочих дней'
+
+    def __str__(self):
+        return f'{self.user}, {self.date}, {self.type}'
+
+    def get_absolute_url(self):
+        return reverse('worker_calendar_change_date_form_url', kwargs={
+            'pk': self.user.pk, 'lab': self.user.lab.slug, 'day': f'{self.date.day}-{self.date.month}-{self.date.year}'
+        })
+
+    def get_name_for_timesheet(self):
+        if self.type == 'Ф' or self.type == 'Т':
+            return {'type': 'Ф', 'hours': self.work_hours, 'minutes': self.work_minutes}
+        else:
+            return {'type': self.type}
 
 
 class BaseObject(models.Model):
