@@ -439,7 +439,7 @@ function get_month_data(year, month, max_day) {
     console.log(month)
     $.ajax({
         type: 'GET',
-        data: 'year=' + year + '&month=' + month + '&days=' + max_day + '&type=get_data_for_month',
+        data: 'year=' + year + '&month=' + month + '&type=get_data_for_month',
         success: function (response) {
             if (response.rez.status === 'ok') {
                 let month_data = response.rez;

@@ -1236,9 +1236,11 @@ def worker_calendar(request, pk, lab):
     if request.method == 'GET' and request.is_ajax():
         if request.GET.get('type') == 'get_data_for_month':
 
-            year, month, max_day = request.GET.get('year'), request.GET.get('month'), request.GET.get('days')
+            year = request.GET.get('year', default=date.today().year)
+            month = request.GET.get('month', default=date.today().month)
+
             month_data = user.get_or_create_month_for_calendar(
-                int(year), int(month), int(max_day), request.user.is_superuser
+                int(year), int(month), request.user.is_superuser
             )
             return JsonResponse({"rez": month_data}, status=200)
     elif request.method == 'GET':
@@ -1271,7 +1273,6 @@ def timesheet(request, lab):
     """Табель по количеству рабочих дней у лаборатории"""
     if not request.user.is_superuser:
         raise Http404
-    import calendar
 
     if request.method != 'GET':
         raise Http404
@@ -1279,8 +1280,6 @@ def timesheet(request, lab):
     timesheet_type = request.GET.get('type', default='full')
     year = request.GET.get('year', default=date.today().year)
     month = request.GET.get('month', default=date.today().month)
-
-    max_day = calendar.monthrange(int(year), int(month))[1]
 
     workers = Profile.objects.filter(lab__slug=lab)
     all_data = []
@@ -1293,7 +1292,7 @@ def timesheet(request, lab):
             data['num'] = i
             data['name'] = worker.get_short_name()
             data['position'] = worker.position
-            calendar_for_month = worker.get_or_create_month(year, month, max_day)
+            calendar_for_month = worker.get_or_create_month(year, month)
 
             cal = []
             for day in calendar_for_month:

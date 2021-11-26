@@ -11,6 +11,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from PIL import Image
 from datetime import date
 import os
+import calendar
 
 
 def get_base_components(all_parts):
@@ -362,10 +363,9 @@ class Profile(models.Model):
         img = Image.open(self.avatar.path)
         img.save(self.avatar.path, quality=40)
 
-    def get_or_create_month_for_calendar(self, year, month, max_day, admin=False):
+    def get_or_create_month_for_calendar(self, year: int, month: int, admin=False):
         """
         month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        max_day -> количество дней в месяце, начиная с 1 и заканчивая 31
         """
         today = date.today()
         if today.year == year:
@@ -375,10 +375,7 @@ class Profile(models.Model):
             if month not in [0, 1, 10, 11] or today.month not in [12, 1]:
                 return False
 
-        all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month), user=self)
-        if len(all_days) < int(max_day):
-            self.create_month_for_user(year, month, max_day)
-            all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month))
+        all_days = self.get_or_create_month(year, month)
 
         month_data = {}
         for day in all_days:
@@ -403,60 +400,51 @@ class Profile(models.Model):
 
         return month_data
 
-    def get_or_create_month(self, year, month, max_day):
+    def get_or_create_month(self, year, month):
         """
         month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        max_day -> количество дней в месяце, начиная с 1 и заканчивая 31
         """
         all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month), user=self)
-        if len(all_days) < int(max_day):
-            self.create_month_for_user(year, month, max_day)
+        max_day = calendar.monthrange(int(year), int(month))[1]     # Количетсво дней в месяце
+        if len(all_days) == 0:
+            new_month = [self.create_day_for_user(year, month, day) for day in range(1, max_day + 1)]
+            WorkCalendar.objects.bulk_create(new_month)
+            return WorkCalendar.objects.filter(date__month=month, date__year=year, user=self)
+        else:
+            return all_days
 
-        return WorkCalendar.objects.filter(date__month=month, date__year=year, user=self)
-
-    def create_month_for_user(self, year, month, max_day):
-        """
-        month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        max_day -> количество дней в месяце, начиная с 1 и заканчивая 31
-        """
-        i = 1
-        while i <= int(max_day):
-            day, created = WorkCalendar.objects.get_or_create(
-                date=date(year=int(year), month=int(month), day=i),
-                user=self
-            )
-            if created:
-                str_day = day.date.strftime('%a').lower()
-                if str_day == 'fri':
+    def create_day_for_user(self, year, month, day):
+        new_day = WorkCalendar(date=date(year=int(year), month=int(month), day=day), user=self)
+        str_day = new_day.date.strftime('%a').lower()
+        if str_day == 'fri':
+            if self.half_time_work is False:
+                new_day.work_hours = '6'
+                new_day.work_minutes = '00'
+            else:
+                new_day.work_hours = '3'
+                new_day.work_minutes = '00'
+        else:
+            if str_day not in ('sat', 'sun'):
+                if self.sex == 'man':
                     if self.half_time_work is False:
-                        day.work_hours = '6'
-                        day.work_minutes = '00'
+                        new_day.work_hours = '8'
+                        new_day.work_minutes = '30'
                     else:
-                        day.work_hours = '3'
-                        day.work_minutes = '00'
+                        new_day.work_hours = '4'
+                        new_day.work_minutes = '15'
                 else:
-                    if str_day not in ('sat', 'sun'):
-                        if self.sex == 'man':
-                            if self.half_time_work is False:
-                                day.work_hours = '8'
-                                day.work_minutes = '30'
-                            else:
-                                day.work_hours = '4'
-                                day.work_minutes = '15'
-                        else:
-                            if self.half_time_work is False:
-                                day.work_hours = '7'
-                                day.work_minutes = '30'
-                            else:
-                                day.work_hours = '3'
-                                day.work_minutes = '45'
+                    if self.half_time_work is False:
+                        new_day.work_hours = '7'
+                        new_day.work_minutes = '30'
                     else:
-                        day.work_hours = '0'
-                        day.work_minutes = '00'
-                        day.type = 'В'
+                        new_day.work_hours = '3'
+                        new_day.work_minutes = '45'
+            else:
+                new_day.work_hours = '0'
+                new_day.work_minutes = '00'
+                new_day.type = 'В'
 
-                day.save()
-            i += 1
+        return new_day
 
     def delete_avatar(self):
         self.avatar.delete(save=False)
