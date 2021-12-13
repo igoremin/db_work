@@ -1,10 +1,16 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% block title %}
     История
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ object.get_absolute_url }}">{{ object.name }}</a></li>
+    <li class="breadcrumb-item">История изменений</li>
+{% endblock %}
+
+{% block db_content %}
 
     <h3>История изменений для объекта : <a href="{{ object.get_absolute_url }}">{{ object.name }}</a></h3>
 

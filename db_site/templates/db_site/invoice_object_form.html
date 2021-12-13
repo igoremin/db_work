@@ -1,10 +1,24 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% block title %}
     Новый объект
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'invoices_list_url' lab=current_lab.slug %}">Накладные</a></li>
+    <li class="breadcrumb-item"><a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></li>
+    {% if type == 'add_exist_base_object' %}
+        <li class="breadcrumb-item">Добавление существующего базового объекта к накладной</li>
+    {% elif type == 'update_exist_instance' %}
+        <li class="breadcrumb-item">Редактирование составляющей у накладной</li>
+    {% elif type == 'base_object_form' %}
+        <li class="breadcrumb-item">Новый базовый объект для требовательной накладной</li>
+    {% else %}
+        <li class="breadcrumb-item">Новый простой объект для требовательной накладной</li>
+    {% endif %}
+{% endblock %}
+
+{% block db_content %}
     {% if type == 'add_exist_base_object' %}
         <h3>Добавление существующего базового объекта к накладной <a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></h3>
     {% elif type == 'update_exist_instance' %}

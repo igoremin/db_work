@@ -4,6 +4,10 @@
     Кабинет {{ room.number }}
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">Кабинет {{ room.number }}</li>
+{% endblock %}
+
 {% block content %}
     <h3>{{ room.number }}</h3>
     <ul>

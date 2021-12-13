@@ -4,6 +4,10 @@
     Поиск : {{ q }}
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">Поиск</li>
+{% endblock %}
+
 {% block content %}
     <h3>Поиск : <span id="search_word">{{ q }}</span></h3>
     {% if results %}

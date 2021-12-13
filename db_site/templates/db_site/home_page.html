@@ -5,11 +5,11 @@
         <div class="align-middle">
             <h1 class="text-center align-middle">Выберите лабораторию</h1>
             {% for lab in labs %}
-                <a href="{% url 'categories_list_url' lab=lab.slug %}" role="button" class="btn btn-secondary btn-lg btn-block" aria-pressed="true">{{ lab }}</a>
+                <a href="{% url 'lab_main_page' lab=lab.slug %}" role="button" class="btn btn-secondary btn-lg btn-block" aria-pressed="true">{{ lab }}</a>
             {% endfor %}
         </div>
     {% else %}
-        <h1>Для доступа к базе данных необходимо <a href="{% url 'login' %}">авторизоваться</a></h1>
+        <h1>Для доступа к сайту необходимо <a href="{% url 'login' %}">авторизоваться</a></h1>
         <h3>Если у вас нет аккаунта необходимо обратиться к администратору.</h3>
 
     {% endif %} 

@@ -1,10 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% block title %}
     Редактирование списка базовых объектов
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a></li>
+    <li class="breadcrumb-item">Редактирование списка базовых объектов</li>
+{% endblock %}
+
+{% block db_content %}
 
     {% if is_paginator %}
 

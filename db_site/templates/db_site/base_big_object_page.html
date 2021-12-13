@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% load static %}
 {% load mptt_tags %}
@@ -7,7 +7,12 @@
 
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb%}
+    <li class="breadcrumb-item"><a href="{{ base_big_object.category.get_absolute_url }}">{{ base_big_object.category.name }}</a></li>
+    <li class="breadcrumb-item">{{ base_big_object.name }} (основная страница)</li>
+{% endblock %}
+
+{% block db_content %}
     {% if user.is_staff or user_info.can_change_big_object %}
         {% if base_big_object.ready %}
             <p class="small_p">Редактирование запрещено</p>

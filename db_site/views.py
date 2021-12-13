@@ -184,16 +184,26 @@ def object_delete_file(request, lab, pk):
 
 def home_page(request):
     context = {}
-    if request.user.is_active:
+    if request.user.is_authenticated:
         if request.user.is_superuser:
             labs = LabName.objects.all()
         else:
-            labs = LabName.objects.filter(profile__user_id=request.user.id)
+            user = Profile.objects.get(pk=request.user.id)
+            return redirect(lab_main_page, lab=user.lab.slug)
         context = {
             'labs': labs
         }
 
     return render(request, 'db_site/home_page.html', context=context)
+
+
+@login_required(login_url='/login/')
+def lab_main_page(request, lab):
+    lab = LabName.objects.get(slug=lab)
+    context = {
+        'lab': lab
+    }
+    return render(request, 'db_site/lab_main_page.html', context)
 
 
 @login_required(login_url='/login/')
@@ -234,6 +244,7 @@ def category_update_form(request, lab, slug):
         context = {
             'form': form,
             'cat_slug': slug,
+            'cat': cat,
             'status': 'update',
         }
         return render(request, 'db_site/category_form.html', context=context)
@@ -415,9 +426,11 @@ def base_objects_list_update(request, lab, cat):
         request=request, objects=base_objects
     )
     if request.method == 'GET':
+        category = Category.objects.get(slug=cat)
         formset = modelformset_factory(BaseObject, form=BaseObjectsListForm, extra=0)
         context = {
             'formset': formset(queryset=page.object_list),
+            'cat': category,
         }
         context.update(paginator_dict)
         return render(request, 'db_site/base_objects_list_update_page.html', context=context)
@@ -660,6 +673,7 @@ def simple_object_update_form(request, lab, slug):
                 'form': form,
                 'status': 'update',
                 'slug': simple_object.slug,
+                'simple_object': simple_object,
             }
             return render(request, 'db_site/simple_object_form.html', context=context)
         else:
@@ -907,7 +921,8 @@ def big_object_update(request, lab, slug):
             context = {
                 'form': form,
                 'slug': slug,
-                'status': 'update'
+                'status': 'update',
+                'big_object': big_object,
             }
             return render(request, 'db_site/big_object_form.html', context=context)
         else:

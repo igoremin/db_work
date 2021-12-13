@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url "categories_list_url" lab=current_lab.slug %}" id="lab_name">База данных</a></li>
+    {% block db_breadcrumb%}
+
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+    <h4>База данных</h4>
+    <div id="accordion">
+
+        <div class="card">
+            <div class="card-header" id="heading_control">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#control" aria-expanded="false" aria-controls="admin_control">
+                        Меню
+                    </button>
+                </h5>
+            </div>
+
+            <div id="control" class="collapse" aria-labelledby="heading_control" data-parent="#accordion">
+                <div class="card-body">
+                    {% if user.is_superuser %}
+                        <a class="dropdown-item" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Создать простую единицу</a>
+                        <a class="dropdown-item" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a>
+                        <a class="dropdown-item" href="{% url 'invoice_create_page_url' lab=current_lab.slug %}" role="button">Создать накладную</a>
+                        <a class="dropdown-item" href="{% url 'category_add_form_url' lab=current_lab.slug %}" role="button">Добавить категорию</a>
+                        <a class="dropdown-item" href="{% url 'orders_list_url' lab=current_lab.slug %}" role="button">Все запросы на выдачу оборудования</a>
+                        <hr>
+                    {% endif %}
+                    <a class="dropdown-item" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">Запрос оборудования по списку оборудования</a>
+                    <a class="dropdown-item" href="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">Запрос оборудования по накладной</a>
+                    <a class="dropdown-item" href="{% url 'invoices_list_url' lab=current_lab.slug %}" role="button">Накладные</a>
+                    {% if user_info.can_change_big_object and not user.is_superuser %}
+                        <a class="dropdown-item" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    {% block db_content %}
+
+    {% endblock %}
+
+{% endblock %}

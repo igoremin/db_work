@@ -1,12 +1,20 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 
 {% block title %}
     Добавление новой категори
 {% endblock %}
 
+{% block db_breadcrumb%}
+    {% if status == 'add' %}
+        <li class="breadcrumb-item">Добавление новой категории</li>
+    {% elif status == 'update' %}
+        <li class="breadcrumb-item"><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a></li>
+        <li class="breadcrumb-item">Редактирование категории</li>
+    {% endif %}
+{% endblock %}
 
-{% block content %}
+{% block db_content %}
     <form action="{% if status == 'add' %}
                         {% url 'category_add_form_url' lab=current_lab.slug%}
                     {% elif status == 'update' %}

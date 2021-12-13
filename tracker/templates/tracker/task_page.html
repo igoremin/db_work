@@ -4,6 +4,11 @@
     Задача : {{ task }}
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url "task_list_for_current_lab" lab=current_lab.slug %}">Задачи</a></li>
+    <li class="breadcrumb-item">{{ task }}</li>
+{% endblock %}
+
 {% block content %}
     {% if task %}
         {% if task.privat %}

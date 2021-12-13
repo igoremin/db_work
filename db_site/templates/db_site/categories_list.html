@@ -1,36 +1,100 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
-{% block content %}
+{% block title %}
+    {{ current_lab.name }} База данных
+{% endblock %}
 
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Категории</th>
-            </tr>
-        </thead>
+{% block db_content %}
 
-        <tbody>
-            {% for category in categories %}
-                <tr>
-                    <td></td>
-                    <td><a href="{{ category.get_absolute_url }}">{{ category.name}}</a></td>
-{#                    <td>#}
-{#                        <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>#}
-{#                    </td>#}
-{#                    <td>{{ category.inventory_number }}</td>#}
-                </tr>
-            {% endfor %}
-            <tr>
-                <td></td>
-                <td><a href="{% url 'simple_objects_url' lab=lab %}">Весь список</a></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><a href="{% url 'write_off_list_url' lab=lab %}">Списано</a></td>
-            </tr>
-        </tbody>
+    <h4>Категории :</h4>
 
-    </table>
+    <div id="db_categories">
+        <div class="card">
+            <div class="card-header" id="headingOne">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                        2 этаж
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#db_categories">
+                <div class="card-body">
+                    {% for cat in user_cat_list_base %}
+                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="headingTwo">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Оборудование
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#db_categories">
+                <div class="card-body">
+                    {% for cat in user_cat_list_simple_equipment %}
+                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                    {% endfor %}
+                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Весь список</a>
+                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Списано</a>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="headingThree">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Материалы
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#db_categories">
+                <div class="card-body">
+                    {% for cat in user_cat_list_simple_materials %}
+                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                    {% endfor %}
+                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Весь список</a>
+                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Списано</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" id="headingFour">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        Составное
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#db_categories">
+                <div class="card-body">
+                    {% for cat in big_objects_cat %}
+                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="heading_all_cats">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse" data-target="#all_cats" aria-expanded="false" aria-controls="all_cats">
+                        Все категории
+                    </button>
+                </h5>
+            </div>
+            <div id="all_cats" class="collapse" aria-labelledby="heading_all_cats" data-parent="#db_categories">
+                <div class="card-body">
+                    {% for category in categories %}
+                        <a class="dropdown-item" href="{{ category.get_absolute_url }}">{{ category.name}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

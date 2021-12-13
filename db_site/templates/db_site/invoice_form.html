@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 {% load static %}
 
 {% block title %}
@@ -9,7 +9,17 @@
     {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    {% if invoice %}
+        <li class="breadcrumb-item"><a href="{% url 'invoices_list_url' lab=current_lab.slug %}">Накладные</a></li>
+        <li class="breadcrumb-item"><a href="{{ invoice.get_absolute_url }}">{{ invoice.number }}</a></li>
+        <li class="breadcrumb-item">Редактирование</li>
+    {% else %}
+        <li class="breadcrumb-item">Добавление новой накладной</li>
+    {% endif %}
+{% endblock %}
+
+{% block db_content %}
     {% if invoice %}
         <h3>Редактирование накладной {{ invoice.number }}</h3>
     {% else %}

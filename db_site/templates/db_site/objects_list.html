@@ -1,19 +1,12 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 {% load static %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item">{{ category.name }}</li>
+{% endblock %}
 
-    {% if category != 'all' and user.is_superuser%}
-{#        <a class="btn btn-outline-dark mb-3" href="#" role="button">Редактировать объекты</a>#}
-{#        <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Добавить простой объект</a>#}
-{#        <a class="btn btn-outline-secondary mb-3" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Добавить сложный объект</a>#}
-        <a class="btn btn-outline-secondary mb-3" href="{% url 'category_update_form_url' lab=current_lab.slug slug=cat_slug %}" role="button">Редактировать категорию</a>
-        {% if base_objects %}
-            <a class="btn btn-outline-secondary mb-3" href="{% url 'base_objects_list_update_page_url' lab=current_lab.slug cat=cat_slug %}" role="button">Редактировать базовый список</a>
-        {% endif %}
+{% block db_content %}
 
-        {#        <a class="btn btn-outline-danger mb-3" href="#" role="button">Удалить категорию</a>#}
-    {% endif %}
     {% if type == 'category_page' %}
         {% if base_objects %}
             <h2>Базовые единицы</h2>
@@ -32,6 +25,13 @@
             <p>Количество позиций : {{ base_objects_count }}</p>
         {% endif %}
 
+    {% endif %}
+
+    {% if category != 'all' and user.is_superuser%}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'category_update_form_url' lab=current_lab.slug slug=cat_slug %}" role="button">Редактировать категорию</a>
+        {% if base_objects %}
+            <a class="btn btn-outline-secondary mb-3" href="{% url 'base_objects_list_update_page_url' lab=current_lab.slug cat=cat_slug %}" role="button">Редактировать базовый список</a>
+        {% endif %}
     {% endif %}
 
     <div>

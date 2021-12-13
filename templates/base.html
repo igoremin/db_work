@@ -33,54 +33,54 @@
 
                     {% if user.is_authenticated%}
                         {% if current_lab != 'none' %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    2 этаж
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                                    {% for cat in user_cat_list_base %}
-                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
-                                    {% endfor %}
+{#                            <li class="nav-item dropdown">#}
+{#                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                    2 этаж#}
+{#                                </a>#}
+{#                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">#}
+{#                                    {% for cat in user_cat_list_base %}#}
+{#                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>#}
+{#                                    {% endfor %}#}
                                     {#                                    <a class="dropdown-item" href="{% url 'simple_objects_url' lab=current_lab.slug %}">Весь список</a>#}
                                     {#                                    <a class="dropdown-item" href="{% url 'write_off_list_url' lab=current_lab.slug %}">Списано</a>#}
-                                </div>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Оборудование
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                                    {% for cat in user_cat_list_simple_equipment %}
-                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
-                                    {% endfor %}
-                                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Весь список</a>
-                                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Списано</a>
-                                </div>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Материалы
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                                    {% for cat in user_cat_list_simple_materials %}
-                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
-                                    {% endfor %}
-                                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Весь список</a>
-                                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Списано</a>
-                                </div>
-                            </li>
-                            {% if big_objects_cat %}
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Составное
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                                        {% for cat in big_objects_cat %}
-                                            <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>
-                                        {% endfor %}
-                                    </div>
-                                </li>
-                            {% endif %}
+{#                                </div>#}
+{#                            </li>#}
+{#                            <li class="nav-item dropdown">#}
+{#                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                    Оборудование#}
+{#                                </a>#}
+{#                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">#}
+{#                                    {% for cat in user_cat_list_simple_equipment %}#}
+{#                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>#}
+{#                                    {% endfor %}#}
+{#                                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Весь список</a>#}
+{#                                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='EQ' %}">Списано</a>#}
+{#                                </div>#}
+{#                            </li>#}
+{#                            <li class="nav-item dropdown">#}
+{#                                <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                    Материалы#}
+{#                                </a>#}
+{#                                <div class="dropdown-menu" aria-labelledby="categoriesDropdown">#}
+{#                                    {% for cat in user_cat_list_simple_materials %}#}
+{#                                        <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>#}
+{#                                    {% endfor %}#}
+{#                                    <a class="dropdown-item" href="{% url 'simple_objects_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Весь список</a>#}
+{#                                    <a class="dropdown-item" href="{% url 'write_off_list_for_obj_type_url' lab=current_lab.slug obj_type='MT' %}">Списано</a>#}
+{#                                </div>#}
+{#                            </li>#}
+{#                            {% if big_objects_cat %}#}
+{#                                <li class="nav-item dropdown">#}
+{#                                    <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                        Составное#}
+{#                                    </a>#}
+{#                                    <div class="dropdown-menu" aria-labelledby="categoriesDropdown">#}
+{#                                        {% for cat in big_objects_cat %}#}
+{#                                            <a class="dropdown-item" href={{ cat.get_absolute_url }}>{{ cat.name }}</a>#}
+{#                                        {% endfor %}#}
+{#                                    </div>#}
+{#                                </li>#}
+{#                            {% endif %}#}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Сотрудники
@@ -132,43 +132,46 @@
     {% if current_lab != 'none' %}
         <nav aria-label="breadcrumb" class="pt-3">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item">Лаборатория : <a href="{{ current_lab.get_absolute_url }}" id="lab_name">{{ current_lab.name }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ current_lab.lab_main_page_url }}" id="lab_name">{{ current_lab.name }}</a></li>
+                {% block breadcrumb %}
+
+                {% endblock %}
             </ol>
-            {% if user.is_superuser %}
-                <ol class="breadcrumb">
-                    <li><a class="btn btn-outline-secondary" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Создать простую единицу</a></li>
-                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a></li>
-                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoice_create_page_url' lab=current_lab.slug %}" role="button">Создать накладную</a></li>
-                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'category_add_form_url' lab=current_lab.slug %}" role="button">Добавить категорию</a></li>
-                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'orders_list_url' lab=current_lab.slug %}" role="button">Все запросы</a></li>
-                    <div class="dropdown ml-1">
-                        <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Табели
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            <a class="dropdown-item" href="{% url 'timesheet_page_url' lab=current_lab.slug %}?type=first_half" role="button" target="_blank">Первая половина месяца</a>
-                            <a class="dropdown-item" href="{% url 'timesheet_page_url' lab=current_lab.slug %}" role="button" target="_blank">Весь текущий месяц</a>
-                        </div>
-                    </div>
-                </ol>
-            {% endif %}
-            <ol class="breadcrumb">
-                <div class="dropdown">
-                    <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Запрос оборудования
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                        <a class="dropdown-item" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">По списку оборудования</a>
-                        <a class="dropdown-item" href="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">По накладной</a>
-                    </div>
-                </div>
-                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoices_list_url' lab=current_lab.slug %}" role="button">Все накладные</a></li>
-                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'task_list_for_current_lab' lab=current_lab.slug %}" role="button">Список задач</a></li>
-                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'new_task_form_url' lab=current_lab.slug %}" role="button">Создать задачу</a></li>
-                {% if user_info.can_change_big_object and not user.is_superuser %}
-                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a></li>
-                {% endif %}
-            </ol>
+{#            {% if user.is_superuser %}#}
+{#                <ol class="breadcrumb">#}
+{#                    <li><a class="btn btn-outline-secondary" href="{% url 'simple_object_add_form_url' lab=current_lab.slug %}" role="button">Создать простую единицу</a></li>#}
+{#                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a></li>#}
+{#                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoice_create_page_url' lab=current_lab.slug %}" role="button">Создать накладную</a></li>#}
+{#                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'category_add_form_url' lab=current_lab.slug %}" role="button">Добавить категорию</a></li>#}
+{#                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'orders_list_url' lab=current_lab.slug %}" role="button">Все запросы</a></li>#}
+{#                    <div class="dropdown ml-1">#}
+{#                        <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                            Табели#}
+{#                        </a>#}
+{#                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">#}
+{#                            <a class="dropdown-item" href="{% url 'timesheet_page_url' lab=current_lab.slug %}?type=first_half" role="button" target="_blank">Первая половина месяца</a>#}
+{#                            <a class="dropdown-item" href="{% url 'timesheet_page_url' lab=current_lab.slug %}" role="button" target="_blank">Весь текущий месяц</a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </ol>#}
+{#            {% endif %}#}
+{#            <ol class="breadcrumb">#}
+{#                <div class="dropdown">#}
+{#                    <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                        Запрос оборудования#}
+{#                    </a>#}
+{#                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">#}
+{#                        <a class="dropdown-item" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">По списку оборудования</a>#}
+{#                        <a class="dropdown-item" href="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=user_info.pk %}?new_order=true" role="button">По накладной</a>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'invoices_list_url' lab=current_lab.slug %}" role="button">Все накладные</a></li>#}
+{#                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'task_list_for_current_lab' lab=current_lab.slug %}" role="button">Список задач</a></li>#}
+{#                <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'new_task_form_url' lab=current_lab.slug %}" role="button">Создать задачу</a></li>#}
+{#                {% if user_info.can_change_big_object and not user.is_superuser %}#}
+{#                    <li class="ml-1"><a class="btn btn-outline-secondary" href="{% url 'big_object_add_url' lab=current_lab.slug %}" role="button">Создать составное оборудование</a></li>#}
+{#                {% endif %}#}
+{#            </ol>#}
 
         </nav>
     {% endif %}

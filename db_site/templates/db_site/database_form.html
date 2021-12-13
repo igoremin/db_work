@@ -1,10 +1,14 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% block titile %}
     Добавление нового файла
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb%}
+    <li class="breadcrumb-item">Обновление базы данных из файла</li>
+{% endblock %}
+
+{% block db_content %}
     <div class="mt-5">
         <h3>Пример файла</h3>
 

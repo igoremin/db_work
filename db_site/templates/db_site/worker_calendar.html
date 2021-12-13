@@ -4,6 +4,11 @@
     Календарь
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ worker.get_absolute_url }}" id="lab_name">{{ worker.get_short_name }}</a></li>
+    <li class="breadcrumb-item">Календарь</li>
+{% endblock %}
+
 {% block content %}
     <h3>
         Календарь для отслеживания рабочих и выходных дней, сотрудник : <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a>

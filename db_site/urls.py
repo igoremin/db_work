@@ -8,11 +8,12 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
     base_big_object_page, room_page, backup, base_object_update_page, base_object_create_simple, worker_order_confirm,\
     order_list, invoice_list, invoice_page, invoice_page_form, invoice_object_form, invoice_base_object_form,\
     invoice_base_object_instance_form, order_print_page, base_objects_list_update, worker_equipment_by_invoice_form,\
-    worker_calendar, timesheet, worker_change_date
+    worker_calendar, timesheet, worker_change_date, lab_main_page
 
 
 urlpatterns = [
     path('', home_page, name='home_page_url'),
+    path('<str:lab>/', lab_main_page, name='lab_main_page'),
     path('<str:lab>/categories/', categories_list, name='categories_list_url'),
     path('<str:lab>/categories/add/', category_add_form, name='category_add_form_url'),
     path('<str:lab>/categories/<str:slug>/', category_page, name='category_page_url'),

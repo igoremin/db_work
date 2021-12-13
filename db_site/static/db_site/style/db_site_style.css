@@ -133,6 +133,55 @@ p.small_p {
     box-shadow: 0 0 0 0 green, 0 0 10px #333; /* Параметры теней */
 }
 
+
+div.card {
+    margin-bottom: 1rem;
+}
+
+
+.fade-out-siblings {
+  --gutter: 2.5rem;
+
+  /*background: #a6c0fe;*/
+  text-align: center;
+  grid-gap: 2.5rem;
+  padding: 2.5rem;
+  display: grid;
+  margin: 2rem 0;
+
+  pointer-events: none;
+}
+
+.fade-out-siblings > * {
+  box-shadow: 0 2px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  background: #fff;
+  padding: 2rem 1rem;
+  cursor: pointer;
+
+  pointer-events: auto;
+  transition: 300ms opacity, 300ms transform;
+}
+
+.fade-out-siblings:hover > * {
+  opacity: 0.4;
+}
+
+.fade-out-siblings:hover > *:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+@media (min-width: 40em) {
+  .fade-out-siblings {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .fade-out-siblings > * {
+    padding: 4rem 1rem;
+  }
+}
+
 #calendar3 {
     width: 100%;
     font: monospace;

@@ -1,11 +1,22 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 {% load static %}
 
-{% block content %}
-    {% if form.status %}
-        <h3>Редактирование</h3>
+{% block db_breadcrumb%}
+    {% if status == 'create_new' %}
+        <li class="breadcrumb-item">Создание нового составного оборудования</li>
     {% else %}
+        <li class="breadcrumb-item"><a href="{{ big_object.category.get_absolute_url }}">{{ big_object.category.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ big_object.get_absolute_url }}">{{ big_object.name }} (основная страница)</a></li>
+        <li class="breadcrumb-item">Редактирование</li>
+    {% endif %}
+
+{% endblock %}
+
+{% block db_content %}
+    {% if status == 'create_new' %}
         <h3>Создание оборудования</h3>
+    {% else %}
+        <h3>Редактирование</h3>
     {% endif %}
     <form action="{% if status == 'update' %}
         {% url 'big_object_update_url' lab=current_lab.slug slug=slug %}

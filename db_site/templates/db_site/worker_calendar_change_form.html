@@ -4,6 +4,12 @@
     Изменение рабочего дня
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ day.user.get_absolute_url }}" id="lab_name">{{ day.user.get_short_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'worker_calendar_page_url' lab=current_lab.slug pk=day.user.pk %}">Календарь</a></li>
+    <li class="breadcrumb-item">Редактирование</li>
+{% endblock %}
+
 {% block content %}
     <h5>Редактирование календаря у пользователя <a href="{{ day.user.get_absolute_url }}">{{ day.user.name }}</a></h5>
     <p>Дата : {{ day.date }}</p>

@@ -1,6 +1,11 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
+    <li class="breadcrumb-item">{{ object.name }}</li>
+{% endblock %}
+
+{% block db_content %}
 
     {% if user.is_staff %}
         <a class="btn btn-outline-secondary mb-3" href="{% url 'simple_object_update_form_url' lab=current_lab.slug slug=object.slug %}" role="button">Редактировать</a>

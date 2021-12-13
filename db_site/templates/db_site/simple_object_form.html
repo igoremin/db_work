@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 
 {% block title %}
@@ -9,8 +9,19 @@
     {% endif %}
 {% endblock %}
 
+{% block db_breadcrumb %}
+    {% if status == 'update' %}
+        <li class="breadcrumb-item"><a href="{{ simple_object.category.get_absolute_url }}">{{ simple_object.category.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ simple_object.get_absolute_url }}">{{ simple_object.name }}</a></li>
+        <li class="breadcrumb-item">Редактирование</li>
+    {% else %}
+        <li class="breadcrumb-item">Добавление новой позиции</li>
+    {% endif %}
 
-{% block content %}
+{% endblock %}
+
+
+{% block db_content %}
 
     {% if status == 'add' %}
         <h3>Добавление новой позиции</h3>

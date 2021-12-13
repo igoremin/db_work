@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ lab.name }}
+{% endblock %}
+
+{% block content %}
+
+    <article class="fade-out-siblings">
+        <button onclick="location.href='{% url "categories_list_url" lab=lab.slug %}'">База данных</button>
+        <button onclick="location.href='{{ user_info.get_absolute_url }}'">Профиль</button>
+        <button onclick="location.href='{% url "task_list_for_current_lab" lab=lab.slug %}'">Задачи</button>
+        <button type="button" data-toggle="modal" data-target="#timesheet_modal">Табель</button>
+    </article>
+
+        <!-- Модальное окно -->
+    <div class="modal fade" id="timesheet_modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Тип табеля</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <a class="btn btn-outline-secondary" href="{% url 'timesheet_page_url' lab=current_lab.slug %}?type=first_half" role="button" target="_blank">Первая половина месяца</a>
+                    <a class="btn btn-outline-secondary" href="{% url 'timesheet_page_url' lab=current_lab.slug %}" role="button" target="_blank">Весь текущий месяц</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,10 +1,17 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% block title %}
     Обновление
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ object.category.get_absolute_url }}">{{ object.category.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ object.get_absolute_url }}">{{ object.name }}</a></li>
+    <li class="breadcrumb-item">{{ category.name }}</li>
+    <li class="breadcrumb-item">Редактирование</li>
+{% endblock %}
+
+{% block db_content %}
     <h1><a href="{{ object.get_absolute_url }}">{{ object }}</a></h1>
     <h3>Категория : {{ category.name }}</h3>
     {% if category.text %}

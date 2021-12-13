@@ -4,6 +4,11 @@
     {{ worker.name }}
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ worker.get_absolute_url }}" id="lab_name">{{ worker.get_short_name }}</a></li>
+    <li class="breadcrumb-item">Редактирование</li>
+{% endblock %}
+
 {% block content %}
     <h3>{{ worker.name }}</h3>
     <h4>Редактирование</h4>

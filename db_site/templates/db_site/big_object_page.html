@@ -1,9 +1,21 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% load static %}
 {% load mptt_tags %}
 
-{% block content %}
+{% block db_breadcrumb%}
+    <li class="breadcrumb-item"><a href="{{ big_object.base.category.get_absolute_url }}">{{ big_object.base.category.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ big_object.base.get_absolute_url }}">{{ big_object.base.name }} (основная страница)</a></li>
+    <li class="breadcrumb-item">
+        {% if big_object.name %}
+            {{ big_object.name }}
+        {% else %}
+            {{ big_object.base.name }}
+        {% endif %}
+    </li>
+{% endblock %}
+
+{% block db_content %}
 
     <!--------------------- Блок редактирования ----------------------->
     <!-- Button trigger modal -->

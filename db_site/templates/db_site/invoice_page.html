@@ -1,10 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 
 {% block title %}
     {{ invoice.number }}
 {% endblock %}
 
-{% block content %}
+{% block db_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'invoices_list_url' lab=current_lab.slug %}">Накладные</a></li>
+    <li class="breadcrumb-item">{{ invoice.number }}</li>
+{% endblock %}
+
+{% block db_content %}
 
     <a class="btn btn-outline-secondary mb-3" href="{% url 'invoice_update_page_url' lab=current_lab.slug pk=invoice.pk %}" role="button">Редактировать</a>
 

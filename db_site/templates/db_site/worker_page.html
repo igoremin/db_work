@@ -4,6 +4,10 @@
     {{ worker.name }}
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">{{ worker.get_short_name }}</li>
+{% endblock %}
+
 {% block content %}
     {% if self_page %}
         <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_update_page_url' lab=current_lab.slug pk=worker.pk %}" role="button">Изменить</a>

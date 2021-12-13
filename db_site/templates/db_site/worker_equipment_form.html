@@ -4,6 +4,15 @@
     {{ worker.name }}
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ worker.get_absolute_url }}" id="lab_name">{{ worker.get_short_name }}</a></li>
+    {% if type == 'order' %}
+        <li class="breadcrumb-item">Запрос на выдачу оборудования и материалов</li>
+    {% else %}
+        <li class="breadcrumb-item">Добавление и изменение оборудования</li>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     <h3>Сотрудник : <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a></h3>
     {% if type == 'order' %}

@@ -5,6 +5,16 @@
 
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url "task_list_for_current_lab" lab=current_lab.slug %}">Задачи</a></li>
+    {% if task %}
+        <li class="breadcrumb-item"><a href="{{ task.get_absolute_url }}">{{ task }}</a></li>
+        <li class="breadcrumb-item">Обновление задачи</li>
+    {% else %}
+        <li class="breadcrumb-item">Добавление новой задачи</li>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     {% if task %}
         <h3>Обновление задачи : <a href="{{ task.get_absolute_url }}">{{ task.name }}</a></h3>

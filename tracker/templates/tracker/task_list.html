@@ -4,7 +4,13 @@
     Список задач
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">Задачи</li>
+{% endblock %}
+
 {% block content %}
+    <a class="btn btn-outline-secondary mb-3" href="{% url 'new_task_form_url' lab=current_lab.slug %}" role="button">Создать задачу</a>
+
     {% if private_task_list %}
         <h3>Приватные задачи</h3>
 

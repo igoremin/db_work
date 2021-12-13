@@ -1,7 +1,13 @@
-{% extends 'base.html' %}
+{% extends 'db_site/db_main_block.html' %}
 {% load static %}
 
-{% block content %}
+{% block db_breadcrumb%}
+    <li class="breadcrumb-item"><a href="{{ big_object.category.get_absolute_url }}">{{ big_object.category.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ big_object.get_absolute_url }}">{{ big_object.name }} (основная страница)</a></li>
+    <li class="breadcrumb-item">Редактирование сборочных единиц</li>
+{% endblock %}
+
+{% block db_content %}
     <h3>Редактирование сборочных единиц для <a href="{{ big_object.get_absolute_url }}">{{ big_object }}</a></h3>
 
     {% if children %}

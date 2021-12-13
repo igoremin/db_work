@@ -179,6 +179,9 @@ class LabName(models.Model):
     def get_absolute_url(self):
         return reverse('categories_list_url', kwargs={'lab': self.slug})
 
+    def lab_main_page_url(self):
+        return reverse('lab_main_page', kwargs={'lab': self.slug})
+
     def create_slug(self):
         all_slugs = LabName.objects.all().values_list('slug', flat=True)
         self.slug = gen_slug(title=self.name, all_slugs=all_slugs)
