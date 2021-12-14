@@ -19,10 +19,16 @@ header a:hover {color: #FFF}
 /*body*/
 body {
     height: 100%;
-    position: relative;
     margin: 0;
-    /*padding-bottom: 5rem;*/
-    /*padding-top: 5rem;*/
+}
+
+#wrap {
+    min-height: 100%;
+}
+
+#main {
+    overflow:auto;
+    padding-bottom:60px; /* this needs to be bigger than footer height*/
 }
 
 mark{
@@ -219,17 +225,12 @@ div.card {
 
 /*footer*/
 .col_white_amrc { color:#FFF;}
-footer { width:100%; background-color:#263238;}
-footer {
-    /*position: absolute;*/
-    /*position: fixed;*/
-    /*height: 3rem;*/
-    right: 0;
-    bottom: 0;
-    left: 0;
-    /*height: 60px;*/
-    /*width: 100%;*/
 
+.footer {
+      position: relative;
+      margin-top: -45px; /* negative value of footer height */
+      height: 45px;
+      clear:both;
 }
 
 footer a {color: #CCC;}
