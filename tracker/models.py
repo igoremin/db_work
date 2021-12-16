@@ -218,6 +218,9 @@ class CommentForTask(models.Model):
             self.date = timezone.now()
         super(CommentForTask, self).save(*args, **kwargs)
 
+    def get_absolute_url_for_change(self):
+        return reverse('change_comment_url', kwargs={'lab': self.task.lab.slug, 'task_pk': self.task.pk, 'pk': self.pk})
+
     def get_message_as_markdown(self):
         return mark_safe(markdown(self.text))
 

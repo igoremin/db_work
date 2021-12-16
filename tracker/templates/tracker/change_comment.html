@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Редактирование комментария
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url "task_list_for_current_lab" lab=current_lab.slug %}">Задачи</a></li>
+    <li class="breadcrumb-item"><a href="{{ task.get_absolute_url }}">{{ task }}</a></li>
+    <li class="breadcrumb-item">Редактирование комменатрия</li>
+{% endblock %}
+
+{% block content %}
+    <h3>Редактирование комментария у задачи <a href="{{ task.get_absolute_url }}">{{ task.name }}</a></h3>
+    <form method="post" action="{{ comment.get_absolute_url_for_change }}" id="comment_form">
+        {% csrf_token %}
+        {{ comment_form }}
+        <button type="submit" class="btn btn-outline-secondary mt-2">Сохранить</button>
+    </form>
+    {% if files %}
+        <h3 class="mt-3">Удаление файлов</h3>
+        {% for file in files %}
+            <div class="row" id="file__{{ file.pk }}">
+                <div class="col-4">{{ file.filename }}</div>
+                <div class="col-8"><button class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#delete_file_{{ file.pk }}">Удалить</button></div>
+                <!-- Модальное окно -->
+                <div class="modal fade" id="delete_file_{{ file.pk }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Удаление файла {{ file.filename }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                {% csrf_token %}
+                                <h5>Вы действительно хотите удалить файл {{ file.filename }}</h5>
+                                <input type="hidden" name="image_pk" value="{{ image.pk }}">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+                                <button type="button" class="btn btn-outline-danger" onclick="delete_file({{ file.pk }})">Удалить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-------------------------------------------------------------------->
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h3 class="mt-3">Добавление новых файлов файлов</h3>
+    <form method="post" action="{{ comment.get_absolute_url_for_change }}" id="files_form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ new_files_form }}
+        <button type="submit" class="btn btn-outline-secondary mt-2">Добавить</button>
+    </form>
+{% endblock %}
+
+{% block java_script %}
+    <script>
+        let comment_text_area = $('#id_text')
+        var simplemde = new SimpleMDE({
+            placeholder: "Введите комментрий ...",
+            spellChecker: false,
+            element: document.getElementById('id_text')
+        });
+        simplemde.codemirror.on("change", function(){
+            comment_text_area.val(simplemde.value());
+        });
+        document.querySelector('div.editor-statusbar').remove()
+    </script>
+{% endblock %}

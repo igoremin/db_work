@@ -213,6 +213,16 @@
                             </span>
                         {% endif %}
                     </div>
+                    <div class="row small">
+                        <div class="col-11">
+                        </div>
+                        <div class="col-1">
+                            {% if user.is_superuser or user_info == comment.user %}
+                                <a class="not_margin small" href="{{ comment.get_absolute_url_for_change }}">редактировать</a>
+                            {% endif %}
+                        </div>
+
+                    </div>
                 </div>
             </div>
         {% endfor %}

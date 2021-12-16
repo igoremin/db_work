@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, Http404
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Task, CommentForTask, FileForComment
 from .forms import TaskForm, CommentForTaskForm, TaskForTaskForm, FileForCommentForm
 from django.contrib.auth.decorators import login_required
@@ -74,6 +75,62 @@ def task_page(request, lab, pk):
                     )
                     new_file.save()
         return redirect(task_page, lab, pk)
+
+
+@login_required(login_url='/login/')
+def change_comment(request, lab, task_pk, pk):
+    task = get_object_or_404(Task, pk=task_pk)
+    comment = get_object_or_404(CommentForTask, pk=pk)
+    user = get_object_or_404(Profile, user_id=request.user.id)
+    if user.lab.slug != lab and not (request.user.is_superuser or user == comment.user):
+        raise Http404
+
+    comment_form = CommentForTaskForm(instance=comment)
+    files = comment.files.all()
+
+    context = {
+        'task': task,
+        'comment': comment,
+        'comment_form': comment_form,
+        'files': files,
+        'new_files_form': FileForCommentForm(),
+    }
+    if request.method == 'GET':
+        return render(request, 'tracker/change_comment.html', context)
+    elif request.method == 'POST' and request.is_ajax():
+        request_dict = request.POST.dict()
+        if request.POST.get('type') and request.POST.get('pk'):
+            if request_dict['type'] == 'delete':
+                try:
+                    file = FileForComment.objects.get(pk=request_dict['pk'])
+                    file.delete()
+                    return JsonResponse({'status': 'ok'}, status=200)
+                except ObjectDoesNotExist:
+                    return JsonResponse({'status': 'file not found'}, status=200)
+                except ValueError:
+                    return JsonResponse({'status': 'expected a number'}, status=200)
+        return JsonResponse({'status': 'false'}, status=200)
+    elif request.method == 'POST':
+        if request.POST.get('text'):
+            form = CommentForTaskForm(request.POST)
+            if form.is_valid():
+                new_comment = form.save(commit=False)
+                comment.text = new_comment.text
+                comment.save()
+            else:
+                context['comment_form'] = form
+                return render(request, 'tracker/change_comment.html', context)
+        if request.FILES:
+            form = FileForCommentForm(request.POST, request.FILES)
+            if form.is_valid():
+                files = request.FILES.getlist('file')
+                for file in files:
+                    new_file = FileForComment(
+                        file=file,
+                        comment=comment
+                    )
+                    new_file.save()
+        return redirect(change_comment, lab, task_pk, pk)
 
 
 @login_required(login_url='/login/')
