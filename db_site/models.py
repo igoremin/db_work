@@ -370,15 +370,18 @@ class Profile(models.Model):
         """
         month -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
         """
-        today = date.today()
-        if today.year == year:
-            if not abs(today.month - month) <= 2:
+        all_days = WorkCalendar.objects.filter(date__year=int(year), date__month=int(month), user=self)
+        if not all_days:
+            today = date.today()
+            if today.year == year:
+                if not abs(today.month - month) <= 2:
+                    return False
+            elif abs(today.year - year) == 1 and today.month not in [1, 2]:
                 return False
-        elif abs(today.year - year) >= 1:
-            if month not in [0, 1, 10, 11] or today.month not in [12, 1]:
+            else:
                 return False
 
-        all_days = self.get_or_create_month(year, month)
+            all_days = self.get_or_create_month(year, month)
 
         month_data = {}
         for day in all_days:
