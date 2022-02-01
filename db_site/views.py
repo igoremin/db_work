@@ -1657,6 +1657,7 @@ def invoice_object_form(request, lab, pk):
                 base_object.lab = simple_object.lab
                 base_object.amount = simple_object.amount
                 base_object.total_price = simple_object.amount * simple_object.price
+                base_object.date_add = invoice.date
                 if inventory_number:
                     base_object.inventory_number = inventory_number
                 if bill:
@@ -1688,7 +1689,7 @@ def invoice_base_object_form(request, lab, pk):
     if request.user.is_superuser:
         invoice = get_object_or_404(Invoice, pk=pk)
         if request.method == 'GET':
-            form = BaseObjectForm(initial={'bill': invoice.bill})
+            form = BaseObjectForm(initial={'bill': invoice.bill, 'date_add': invoice.date})
             context = {
                 'invoice': invoice,
                 'form': form,

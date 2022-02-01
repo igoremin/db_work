@@ -83,7 +83,7 @@ class BaseObjectForm(forms.ModelForm):
     class Meta:
         model = BaseObject
         fields = [
-            'name', 'lab', 'category', 'status', 'date_add', 'inventory_number', 'directory_code',
+            'name', 'lab', 'category', 'status', 'date_add', 'inventory_number',
             'bill', 'measure', 'total_price', 'amount'
         ]
 
@@ -94,7 +94,6 @@ class BaseObjectForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'date_add': forms.TextInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Дата'}),
             'inventory_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'directory_code': forms.TextInput(attrs={'class': 'form-control'}),
             'bill': forms.TextInput(attrs={'class': 'form-control'}),
             'measure': forms.TextInput(attrs={'class': 'form-control'}),
             'total_price': forms.TextInput(attrs={'class': 'form-control'}),
