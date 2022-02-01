@@ -144,6 +144,10 @@ div.card {
     margin-bottom: 1rem;
 }
 
+div.row {
+    margin-bottom: 0.2rem;
+}
+
 
 .fade-out-siblings {
   --gutter: 2.5rem;
