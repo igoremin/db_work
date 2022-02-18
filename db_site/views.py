@@ -1475,7 +1475,8 @@ def worker_equipment_by_invoice_form(request, pk, lab):
     if request.method == 'GET':
         form = AllInvoiceForm(lab=lab)
         context = {
-            'form': form
+            'form': form,
+            'worker': user,
         }
         return render(request, 'db_site/worker_equipment_for_invoice_form.html', context=context)
     else:
@@ -1501,7 +1502,8 @@ def worker_equipment_by_invoice_form(request, pk, lab):
             user.save()
             return redirect(reverse('worker_equipment_form_url', args=(lab, pk))+f'?order_number={order.pk}')
         context = {
-            'form': form
+            'form': form,
+            'worker': user,
         }
         return render(request, 'db_site/worker_equipment_for_invoice_form.html', context=context)
 
