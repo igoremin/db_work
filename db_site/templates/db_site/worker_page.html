@@ -103,33 +103,34 @@
         </table>
     {% endif %}
 
-    {% if worker.workerequipment_set.all %}
-        <h4>Оборудование :</h4>
-
-        <table class="table table-hover table-bordered">
-            <thead>
-            <tr class="text-center">
-                <th scope="col" style="width: 5%">#</th>
-                <th scope="col" style="width: 60%">Название</th>
-                <th scope="col" style="width: 25%">Инв. номер</th>
-                <th scope="col" style="width: 10%">Количество</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            {% for object in worker_equipments %}
-                <tr>
-                    <td></td>
-                    <td>
-                        <a href="{{ object.simple_object.get_absolute_url }}">{{ object.simple_object.name }}</a>
-                    </td>
-                    <td>{{ object.simple_object.base_object.inventory_number }}</td>
-                    <td>{{ object.amount }}</td>
+    {% for cat_name, data in worker_equipments.items %}
+        {% if data %}
+            <h4>{{ cat_name }} :</h4>
+            <table class="table table-hover table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <th scope="col" style="width: 5%">#</th>
+                    <th scope="col" style="width: 60%">Название</th>
+                    <th scope="col" style="width: 25%">Инв. номер</th>
+                    <th scope="col" style="width: 10%">Количество</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+                </thead>
+
+                <tbody>
+                {% for object in data %}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <a href="{{ object.simple_object.get_absolute_url }}">{{ object.simple_object.name }}</a>
+                        </td>
+                        <td>{{ object.simple_object.base_object.inventory_number }}</td>
+                        <td>{{ object.amount }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
 
     {% if orders %}
         <br>

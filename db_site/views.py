@@ -1180,11 +1180,16 @@ def worker_page(request, pk, lab):
             order__isnull=True, profile=user
         )
 
+        all_base_cat = Category.objects.filter(cat_type='BO', lab__slug=lab).values_list('name', flat=True)
+        data = {}
+        for cat in set(all_base_cat):
+            data[cat] = worker_equipments.filter(simple_object__base_object__category__name__exact=cat)
+
         context = {
             'self_page': self_page,
             'worker': user,
             'orders': orders,
-            'worker_equipments': worker_equipments,
+            'worker_equipments': data,
             'worker_tasks': worker_tasks,
             'private_tasks': private_tasks,
         }
