@@ -27,6 +27,7 @@ body {
 }
 
 #main {
+    min-height: 800px;
     overflow:auto;
     padding-bottom:60px; /* this needs to be bigger than footer height*/
 }
