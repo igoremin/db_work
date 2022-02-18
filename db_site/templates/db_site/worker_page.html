@@ -14,6 +14,8 @@
         {% if user.is_superuser %}
             <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}" role="button">Редактировать оборудование</a>
         {% endif %}
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}?new_order=true" role="button">Запрос оборудования по списку оборудования</a>
+        <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=worker.pk %}?new_order=true" role="button">Запрос оборудования по накладной</a>
         <a class="btn btn-outline-secondary mb-3" href="{% url 'worker_calendar_page_url' lab=current_lab.slug pk=worker.pk %}" role="button">Календарь</a>
     {% endif %}
 
