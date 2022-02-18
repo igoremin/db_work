@@ -1573,62 +1573,111 @@ def invoice_page(request, lab, pk):
 @login_required(login_url='/login/')
 def invoice_page_form(request, lab, pk=None):
     """Редактирование и создание накладной"""
-    if request.user.is_superuser:
-        if request.method == 'GET':
-            if pk is None:
-                form = InvoiceForm()
-                invoice = False
-            else:
-                invoice = get_object_or_404(Invoice, pk=pk)
-                form = InvoiceForm(instance=invoice)
+    if not request.user.is_superuser:
+        return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
+    if request.method == 'GET':
+        if pk is None:
+            form = InvoiceForm()
+            invoice = False
+        else:
+            invoice = get_object_or_404(Invoice, pk=pk)
+            form = InvoiceForm(instance=invoice)
+
+        context = {
+            'invoice': invoice,
+            'form': form,
+        }
+        return render(request, 'db_site/invoice_form.html', context=context)
+    else:
+        if pk is None:
+            form = InvoiceForm(request.POST)
+            invoice = False
+        else:
+            invoice = get_object_or_404(Invoice, pk=pk)
+            form = InvoiceForm(request.POST, instance=invoice)
+
+        if form.is_valid():
+            if pk is None:
+                new_invoice = form.save(commit=False)
+                new_invoice.lab = LabName.objects.get(slug=lab)
+                new_invoice.save()
+                return redirect(invoice_page, lab=lab, pk=new_invoice.pk)
+            else:
+                form.save()
+                return redirect(invoice_page, lab=lab, pk=pk)
+        else:
             context = {
                 'invoice': invoice,
                 'form': form,
             }
             return render(request, 'db_site/invoice_form.html', context=context)
-        else:
-            if pk is None:
-                form = InvoiceForm(request.POST)
-                invoice = False
-            else:
-                invoice = get_object_or_404(Invoice, pk=pk)
-                form = InvoiceForm(request.POST, instance=invoice)
-
-            if form.is_valid():
-                if pk is None:
-                    new_invoice = form.save(commit=False)
-                    new_invoice.lab = LabName.objects.get(slug=lab)
-                    new_invoice.save()
-                    return redirect(invoice_page, lab=lab, pk=new_invoice.pk)
-                else:
-                    form.save()
-                    return redirect(invoice_page, lab=lab, pk=pk)
-            else:
-                context = {
-                    'invoice': invoice,
-                    'form': form,
-                }
-                return render(request, 'db_site/invoice_form.html', context=context)
-
-    return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
 
 @login_required(login_url='/login/')
 def invoice_object_form(request, lab, pk):
     """Создание нового простого объекта и базавого на его основе.
     Базовый так же привязывается к конкретной накладной"""
-    if request.user.is_superuser:
-        invoice = get_object_or_404(Invoice, pk=pk)
-        if request.method == 'GET' and request.is_ajax():
-            """Поиск простых объектов по введенным буквам"""
-            q = request.GET.dict()['q'].lower()
-            find_simple_objects = SimpleObject.objects.filter(name_lower__icontains=q).values_list('name', flat=True)
-            return JsonResponse({"rez": str(list(find_simple_objects))}, status=200)
-        elif request.method == 'GET':
-            form = SimpleObjectForm()
-            base_form = CategoryListForm(lab=lab, type='BO')
-            inventory_form = InventoryNumberForm(initial={'bill': invoice.bill})
+    if not request.user.is_superuser:
+        return HttpResponseNotFound("У вас нет доступа к этой странице!")
+
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if request.method == 'GET' and request.is_ajax():
+        """Поиск простых объектов по введенным буквам"""
+        q = request.GET.dict()['q'].lower()
+        find_simple_objects = SimpleObject.objects.filter(name_lower__icontains=q).values_list('name', flat=True)
+        return JsonResponse({"rez": str(list(find_simple_objects))}, status=200)
+    elif request.method == 'GET':
+        form = SimpleObjectForm()
+        base_form = CategoryListForm(lab=lab, type='BO')
+        inventory_form = InventoryNumberForm(initial={'bill': invoice.bill})
+        context = {
+            'form': form,
+            'invoice': invoice,
+            'base_form': base_form,
+            'inventory_form': inventory_form,
+        }
+        return render(request, 'db_site/invoice_object_form.html', context=context)
+    else:
+        base_form = CategoryListForm(request.POST, lab=lab, type='BO')
+        base_cat = False
+        if base_form.is_valid():
+            # Определяем категорию базового объекта
+            base_cat = base_form.clean()['categories']
+
+        inventory_form = InventoryNumberForm(request.POST, initial={'bill': invoice.bill})
+        inventory_number = None
+        bill = None
+        if inventory_form.is_valid():
+            inventory_number = inventory_form.clean()['inventory_number']
+            bill = inventory_form.clean()['bill']
+
+        form = SimpleObjectForm(request.POST)
+        if form.is_valid():
+            # Сохраняем базовый объект на основе созданного простого, создаем связь между базовым и накладной
+            simple_object = form.save(commit=False)
+            base_object = BaseObject()
+            base_object.name = simple_object.name
+            base_object.lab = simple_object.lab
+            base_object.amount = simple_object.amount
+            base_object.total_price = simple_object.amount * simple_object.price
+            base_object.date_add = invoice.date
+            if inventory_number:
+                base_object.inventory_number = inventory_number
+            if bill:
+                base_object.bill = bill
+            base_object.measure = simple_object.measure
+            if base_cat:
+                base_object.category = base_cat
+            base_object.save()
+
+            simple_object.base_object = base_object
+            form.save()
+
+            InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=simple_object.amount).save()
+
+            return redirect(invoice_page, lab, pk)
+        else:
             context = {
                 'form': form,
                 'invoice': invoice,
@@ -1636,80 +1685,35 @@ def invoice_object_form(request, lab, pk):
                 'inventory_form': inventory_form,
             }
             return render(request, 'db_site/invoice_object_form.html', context=context)
-        else:
-            base_form = CategoryListForm(request.POST, lab=lab, type='BO')
-            base_cat = False
-            if base_form.is_valid():
-                # Определяем категорию базового объекта
-                base_cat = base_form.clean()['categories']
-
-            inventory_form = InventoryNumberForm(request.POST, initial={'bill': invoice.bill})
-            inventory_number = None
-            bill = None
-            if inventory_form.is_valid():
-                inventory_number = inventory_form.clean()['inventory_number']
-                bill = inventory_form.clean()['bill']
-
-            form = SimpleObjectForm(request.POST)
-            if form.is_valid():
-                # Сохраняем базовый объект на основе созданного простого, создаем связь между базовым и накладной
-                simple_object = form.save(commit=False)
-                base_object = BaseObject()
-                base_object.name = simple_object.name
-                base_object.lab = simple_object.lab
-                base_object.amount = simple_object.amount
-                base_object.total_price = simple_object.amount * simple_object.price
-                base_object.date_add = invoice.date
-                if inventory_number:
-                    base_object.inventory_number = inventory_number
-                if bill:
-                    base_object.bill = bill
-                base_object.measure = simple_object.measure
-                if base_cat:
-                    base_object.category = base_cat
-                base_object.save()
-
-                simple_object.base_object = base_object
-                form.save()
-
-                InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=simple_object.amount).save()
-
-                return redirect(invoice_page, lab, pk)
-            else:
-                context = {
-                    'form': form,
-                    'invoice': invoice,
-                    'base_form': base_form,
-                    'inventory_form': inventory_form,
-                }
-                return render(request, 'db_site/invoice_object_form.html', context=context)
 
 
 @login_required(login_url='/login/')
 def invoice_base_object_form(request, lab, pk):
     """Создание нового базового объекта для конкретной накладной"""
-    if request.user.is_superuser:
-        invoice = get_object_or_404(Invoice, pk=pk)
-        if request.method == 'GET':
-            form = BaseObjectForm(initial={'bill': invoice.bill, 'date_add': invoice.date})
-            context = {
-                'invoice': invoice,
-                'form': form,
-                'type': 'base_object_form',
-            }
-            return render(request, 'db_site/invoice_object_form.html', context=context)
-        else:
-            form = BaseObjectForm(request.POST, initial={'bill': invoice.bill})
-            context = {
-                'invoice': invoice,
-                'form': form,
-                'type': 'base_object_form',
-            }
-            if form.is_valid():
-                base_object = form.save()
-                InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=base_object.amount).save()
-                return redirect(invoice_page, lab, pk)
-            return render(request, 'db_site/invoice_object_form.html', context=context)
+    if not request.user.is_superuser:
+        return HttpResponseNotFound("У вас нет доступа к этой странице!")
+
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if request.method == 'GET':
+        form = BaseObjectForm(initial={'bill': invoice.bill, 'date_add': invoice.date})
+        context = {
+            'invoice': invoice,
+            'form': form,
+            'type': 'base_object_form',
+        }
+        return render(request, 'db_site/invoice_object_form.html', context=context)
+    else:
+        form = BaseObjectForm(request.POST, initial={'bill': invoice.bill})
+        context = {
+            'invoice': invoice,
+            'form': form,
+            'type': 'base_object_form',
+        }
+        if form.is_valid():
+            base_object = form.save()
+            InvoiceBaseObject(base_object=base_object, invoice=invoice, amount=base_object.amount).save()
+            return redirect(invoice_page, lab, pk)
+        return render(request, 'db_site/invoice_object_form.html', context=context)
 
 
 @login_required(login_url='/login/')
@@ -1717,47 +1721,48 @@ def invoice_base_object_instance_form(request, lab, pk, instance_pk=None):
     """Добавление и обновление составляющей для накладной.
     Если указана переменная instance_pk, то составляющая накладной будет обновляться,
     иначе происходит добавлдение уже существующего базового объекта к данной накладной"""
-    if request.user.is_superuser:
-        invoice = get_object_or_404(Invoice, pk=pk)
-        form_type = 'add_exist_base_object'
-        if request.method == 'GET':
-            form = InvoiceBaseObjectForm(invoice_pk=invoice.pk)
-            if instance_pk:
-                instance = get_object_or_404(InvoiceBaseObject, pk=instance_pk)
-                form = InvoiceBaseObjectForm(instance=instance)
-                form_type = 'update_exist_instance'
-            context = {
-                'invoice': invoice,
-                'form': form,
-                'type': form_type,
-                'instance_pk': instance_pk
-            }
-            return render(request, 'db_site/invoice_object_form.html', context=context)
-        else:
-            form = InvoiceBaseObjectForm(request.POST, invoice_pk=invoice.pk)
-            if instance_pk:
-                instance = get_object_or_404(InvoiceBaseObject, pk=instance_pk)
-                form = InvoiceBaseObjectForm(request.POST, instance=instance)
-                form_type = 'update_exist_instance'
+    if not request.user.is_superuser:
+        return HttpResponseNotFound("У вас нет доступа к этой странице!")
 
-            context = {
-                'invoice': invoice,
-                'form': form,
-                'type': form_type,
-                'instance_pk': instance_pk
-            }
-            if form.is_valid():
-                if instance_pk:
-                    form.save()
-                else:
-                    new_object_for_invoice = form.save(commit=False)
-                    new_object_for_invoice.invoice = invoice
-                    if not new_object_for_invoice.base_object.bill:
-                        BaseObject.objects.filter(pk=new_object_for_invoice.base_object.pk).update(bill=invoice.bill)
-                    form.save()
-                return redirect(invoice_page, lab, pk)
-            return render(request, 'db_site/invoice_object_form.html', context=context)
-    return HttpResponseNotFound("У вас нет доступа к этой странице!")
+    invoice = get_object_or_404(Invoice, pk=pk)
+    form_type = 'add_exist_base_object'
+    if request.method == 'GET':
+        form = InvoiceBaseObjectForm(invoice_pk=invoice.pk)
+        if instance_pk:
+            instance = get_object_or_404(InvoiceBaseObject, pk=instance_pk)
+            form = InvoiceBaseObjectForm(instance=instance)
+            form_type = 'update_exist_instance'
+        context = {
+            'invoice': invoice,
+            'form': form,
+            'type': form_type,
+            'instance_pk': instance_pk
+        }
+        return render(request, 'db_site/invoice_object_form.html', context=context)
+    else:
+        form = InvoiceBaseObjectForm(request.POST, invoice_pk=invoice.pk)
+        if instance_pk:
+            instance = get_object_or_404(InvoiceBaseObject, pk=instance_pk)
+            form = InvoiceBaseObjectForm(request.POST, instance=instance)
+            form_type = 'update_exist_instance'
+
+        context = {
+            'invoice': invoice,
+            'form': form,
+            'type': form_type,
+            'instance_pk': instance_pk
+        }
+        if form.is_valid():
+            if instance_pk:
+                form.save()
+            else:
+                new_object_for_invoice = form.save(commit=False)
+                new_object_for_invoice.invoice = invoice
+                if not new_object_for_invoice.base_object.bill:
+                    BaseObject.objects.filter(pk=new_object_for_invoice.base_object.pk).update(bill=invoice.bill)
+                form.save()
+            return redirect(invoice_page, lab, pk)
+        return render(request, 'db_site/invoice_object_form.html', context=context)
 
 
 """---------------------------------------------------------------------------------------------------------"""
