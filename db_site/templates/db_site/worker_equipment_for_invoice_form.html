@@ -4,8 +4,17 @@
     Заявка по накладной
 {% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ worker.get_absolute_url }}" id="lab_name">{{ worker.get_short_name }}</a></li>
+    <li class="breadcrumb-item">Запрос на выдачу оборудования по накладной</li>
+{% endblock %}
+
 {% block content %}
-    <form method="post" action="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=user_info.pk %}">
+    <h3>Сотрудник : <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a></h3>
+    <h4>Запрос на выдачу оборудования по накладной</h4>
+    <br>
+
+    <form method="post" action="{% url 'worker_equipment_by_invoice_form_url' lab=current_lab.slug pk=worker.pk %}">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Сохранить</button>
