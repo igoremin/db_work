@@ -19,6 +19,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 
 urlpatterns = [
@@ -30,6 +32,7 @@ urlpatterns = [
     path('tracker/', include('tracker.urls')),
     path('telegram/', include('telegram_bot.urls')),
     path('documentation/', TemplateView.as_view(template_name='documentation.html'), name='doc_page_url'),
+    path('favicon.ico/', RedirectView.as_view(url=staticfiles_storage.url('/db_site/favicon/LogoADL.gif'))),
     path('', include('db_site.urls')),
 ]
 
