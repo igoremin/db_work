@@ -15,11 +15,12 @@ from .forms import CategoryForm, SimpleObjectForm, SimpleObjectWriteOffForm, Bas
     SimpleObjectAndAmountForm, SearchForm, CopyBigObject, FileAndImageCategoryForm, \
     AddNewImagesForm, AddNewFilesForm, DataBaseDocForm, ChangeProfile, AddSimpleObjectToProfile, PartForBigObjectForm, \
     BigObjectForm, BaseObjectForm, CategoryListForm, InvoiceForm, InvoiceBaseObjectForm, InventoryNumberForm, \
-    BaseObjectsListForm, AllInvoiceForm, WorkCalendarChange
+    BaseObjectsListForm, AllInvoiceForm, WorkCalendarChange, RegisterUserForm
 from .scripts import create_new_file, data_base_backup
 from .models import get_base_components, update_big_objects_price
 from tracker.models import Task, CommentForTask
 from datetime import date
+from django.contrib.auth import login
 
 
 def custom_proc_user_categories_list(request):
@@ -182,13 +183,16 @@ def object_delete_file(request, lab, pk):
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
+@login_required(login_url='/login/')
 def home_page(request):
     context = {}
     if request.user.is_authenticated:
+        user = Profile.objects.get(pk=request.user.id)
         if request.user.is_superuser:
             labs = LabName.objects.all()
+        elif user.lab is None:
+            return render(request, 'db_site/home_page.html', context=context)
         else:
-            user = Profile.objects.get(pk=request.user.id)
             return redirect(lab_main_page, lab=user.lab.slug)
         context = {
             'labs': labs
@@ -1161,6 +1165,25 @@ def search(request, lab):
 """-----------------------------------------------WORKER----------------------------------------------------"""
 
 
+def register(request):
+    if request.user.is_authenticated:
+        return redirect('home_page_url')
+    if request.method == "POST":
+        form = RegisterUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            profile = Profile.objects.get(user=user)
+            profile.name = form.cleaned_data['fio']
+            lab, created = LabName.objects.get_or_create(name='Без лаборатории')
+            profile.lab = lab
+            profile.save()
+            return redirect("home_page_url")
+        return render(request, 'registration/register.html', context={"form": form})
+    form = RegisterUserForm()
+    return render(request=request, template_name="registration/register.html", context={'form': form})
+
+
 @login_required(login_url='/login/')
 def worker_page(request, pk, lab):
     user = get_object_or_404(Profile, pk=pk)
@@ -1203,18 +1226,18 @@ def worker_update_page(request, pk, lab):
     user = get_object_or_404(Profile, pk=pk)
     if request.user.is_superuser or user.user == request.user:
         if request.method == 'GET':
-            form = ChangeProfile(instance=user)
+            form = ChangeProfile(instance=user, is_admin=request.user.is_superuser)
             context = {
                 'form': form,
                 'worker': user
             }
             return render(request, 'db_site/worker_update_form.html', context=context)
         else:
-            form = ChangeProfile(request.POST, request.FILES, instance=user)
+            form = ChangeProfile(request.POST, request.FILES, instance=user, is_admin=request.user.is_superuser)
             if form.is_valid():
                 form.save()
 
-            return redirect(worker_page, pk=user.pk, lab=lab)
+            return redirect(worker_page, pk=user.pk, lab=user.lab.slug)
 
 
 @login_required(login_url='/login/')

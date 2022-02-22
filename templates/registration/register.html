@@ -3,7 +3,7 @@
 {% block login %}
 
     <div class="login_register">
-        <h4 class="mb-3">Авторизация</h4>
+        <h4 class="mb-3">Регистрация</h4>
         {% if next %}
             {% if user.is_authenticated %}
                 <p>Your account doesn't have access to this page. To proceed,
@@ -13,12 +13,17 @@
             {% endif %}
         {% endif %}
 
-        <form method="post" action="{% url 'login' %}">
+        <form method="post" action="{% url 'register' %}">
             {% csrf_token %}
             <div class="login">
                 <label for="{{ form.username.id_for_label }}">Логин</label>
                 <br>
                 {{ form.username }}
+            </div>
+            <div class="fio">
+                <label for="{{ form.fio.id_for_label }}">ФИО</label>
+                <br>
+                {{ form.fio }}
             </div>
             <div class="password">
                 <label for="{{ form.password.id_for_label }}">Пароль</label>
@@ -26,17 +31,17 @@
                 {{ form.password }}
             </div>
             {% if form.errors %}
-                <p>Ваше имя пользователя или пароль не найдены, пожалуйста, повторите попытку.</p>
+                <p>Произошла ошибка. Возможно пользователь с таким логином уже существует.</p>
             {% endif %}
 
-            <button class="btn btn-primary" type="submit">Авторизоваться</button>
+            <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
             <input type="hidden" name="next" value="{{ next }}" />
         </form>
     </div>
 
 
     <div class="register">
-        <p class="text-center">Нет аккаунта? <a href="/register">Регистрация</a></p>
+        <p class="text-center">Есть аккаунт? <a href="/login">Авторизоваться</a></p>
     </div>
 
 {% endblock %}

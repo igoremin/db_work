@@ -21,13 +21,16 @@ from django.contrib.auth import views
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage
+from db_site.views import register
+from db_site.forms import UserLoginForm
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('accounts/', include('django.contrib.auth.urls')),
-    path('login/', views.LoginView.as_view(), name='login'),
+    path('login/', views.LoginView.as_view(authentication_form=UserLoginForm), name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('register/', register, name="register"),
     path('feedback/', include('feedback.urls')),
     path('tracker/', include('tracker.urls')),
     path('telegram/', include('telegram_bot.urls')),

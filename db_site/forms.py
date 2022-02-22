@@ -3,6 +3,9 @@ from .models import Category, SimpleObject, BigObject, BigObjectList, Profile, F
     ImageForObject, FileForObject, DataBaseDoc, WorkerEquipment, BaseBigObject, BaseObject, Invoice, InvoiceBaseObject,\
     WorkCalendar
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.forms import AuthenticationForm, UsernameField
+from django.contrib.auth.models import User
+from db_site.models import Profile
 
 
 class CategoryForm(forms.ModelForm):
@@ -460,24 +463,19 @@ class ChangeProfile(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['name', 'room_number', 'tg_id', 'avatar']
+        fields = ['name', 'room_number', 'sex', 'position', 'lab', 'avatar']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'room_number': forms.Select(attrs={'class': 'form-control'}),
-            'tg_id': forms.NumberInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Id в телеграме (можно узнать при отправке стартового сообщения)',
-                    'type': 'number',
-                    'step': 1,
-                    'min': 0,
-                }
-            ),
             'avatar': forms.FileInput(attrs={'class': 'form-control-file'}),
+            'sex': forms.Select(attrs={'class': 'form-control'}),
+            'position': forms.Select(attrs={'class': 'form-control'}),
+            'lab': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
+        is_admin = kwargs.pop('is_admin', False)
         super(ChangeProfile, self).__init__(*args, **kwargs)
         if 'instance' in kwargs.keys():
             profile = kwargs['instance']
@@ -487,6 +485,9 @@ class ChangeProfile(forms.ModelForm):
                 self.avatar_label = f'Текущий аватар не выбран'
             self.fields['avatar'].label = self.avatar_label
             self.fields['avatar'].label_suffix = ''
+        if is_admin is False:
+            self.fields.pop('lab')
+            self.fields.pop('position')
 
 
 class AddSimpleObjectToProfile(forms.ModelForm):
@@ -621,3 +622,53 @@ class WorkCalendarChange(forms.ModelForm):
                 }
             )
         }
+
+class RegisterUserForm(forms.ModelForm):
+    password = forms.CharField(
+        min_length=8, max_length=128, widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control login_form',
+                'placeholder': '********',
+                'id': 'user_password',
+            }
+        )
+    )
+
+    username = UsernameField(widget=forms.TextInput(
+        attrs={'class': 'form-control login_form', 'placeholder': 'Введите логин', 'id': 'user_username'}))
+    fio = forms.CharField(
+        min_length=4, max_length=128, widget=forms.TextInput(
+            attrs={
+                'class': 'form-control login_form',
+                'placeholder': 'Введите ФИО (полностью)',
+                'id': 'user_fio',
+            }
+        )
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'password')
+        labels = {'username': 'Login', 'password': 'Password'}
+
+    def save(self, commit=True):
+        user = super(RegisterUserForm, self).save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+        return user
+
+
+class UserLoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super(UserLoginForm, self).__init__(*args, **kwargs)
+
+    username = UsernameField(widget=forms.TextInput(
+        attrs={'class': 'form-control login_form', 'placeholder': 'Введите логин', 'id': 'user_username'}))
+    password = forms.CharField(widget=forms.PasswordInput(
+        attrs={
+            'class': 'form-control login_form',
+            'placeholder': '********',
+            'id': 'user_password',
+        }
+    ))

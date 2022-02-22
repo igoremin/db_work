@@ -15,6 +15,38 @@
 
     <form action="{% url 'worker_update_page_url' lab=current_lab.slug pk=worker.pk %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+{#        <p>#}
+{#            {{ form.name.errors }}#}
+{#            {{ form.name.label_tag }}#}
+{#            {{ form.name }}#}
+{#        </p>#}
+{#        <p>#}
+{#            {{ form.room_number.errors }}#}
+{#            {{ form.room_number.label_tag }}#}
+{#            {{ form.room_number }}#}
+{#        </p>#}
+{#        <p>#}
+{#            {{ form.sex.errors }}#}
+{#            {{ form.sex.label_tag }}#}
+{#            {{ form.sex }}#}
+{#        </p>#}
+{#        {% if user.is_superuser %}#}
+{#            <p>#}
+{#                {{ form.position.errors }}#}
+{#                {{ form.position.label_tag }}#}
+{#                {{ form.position }}#}
+{#            </p>#}
+{#            <p>#}
+{#                {{ form.lab.errors }}#}
+{#                {{ form.lab.label_tag }}#}
+{#                {{ form.lab }}#}
+{#            </p>#}
+{#        {% endif %}#}
+{#        <p>#}
+{#            {{ form.avatar.errors }}#}
+{#            {{ form.avatar.label_tag }}#}
+{#            {{ form.avatar }}#}
+{#        </p>#}
         {{ form.as_p }}
         <button type="submit" class="btn btn-outline-primary">Сохранить</button>
         <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">

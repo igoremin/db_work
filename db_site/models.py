@@ -330,6 +330,7 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.id:
+            print('NOT ID')
             self.name = self.user.username
             if self.avatar:
                 super().save(*args, **kwargs)

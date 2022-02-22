@@ -62,6 +62,35 @@ p.small_p {
     font-size: 0.8rem;
 }
 
+/*-------login register-------*/
+
+.login_form {
+    width: 50%;
+    min-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.login_register {
+    margin-top: 100px;
+    text-align: center;
+}
+
+div.password {
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+div.fio {
+    margin-top: 20px;
+}
+
+div.register {
+    margin-top: 30px;
+}
+
+/*----------------------------*/
+
 #loader{
 	display:none;
     position: fixed;
