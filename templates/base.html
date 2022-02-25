@@ -167,9 +167,9 @@
 <footer class="footer container navbar-dark bg-dark" style="max-width: 1500px">
     <div class="row text-center">
         {% if user.is_authenticated %}
-{#                <div class="col">#}
-{#                    <a class="nav-link" href="{% url 'doc_page_url' %}">Документация</a>#}
-{#                </div>#}
+                <div class="col">
+                    <a class="nav-link" href="{% url 'doc_page_url' %}">Документация</a>
+                </div>
             <div class="col">
                 <a class="nav-link" href="{% url 'feedback_form_url' %}">Обратная связь</a>
             </div>
