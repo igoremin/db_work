@@ -13,6 +13,7 @@ from .views import simple_objects_list, home_page, simple_object_page, categorie
 
 urlpatterns = [
     path('', home_page, name='home_page_url'),
+    path('backup/', backup, name='backup_url'),
     path('<str:lab>/', lab_main_page, name='lab_main_page'),
     path('<str:lab>/categories/', categories_list, name='categories_list_url'),
     path('<str:lab>/categories/add/', category_add_form, name='category_add_form_url'),
@@ -76,5 +77,4 @@ urlpatterns = [
     path('<str:lab>/invoices/<int:pk>/update_exist_instance/<int:instance_pk>/', invoice_base_object_instance_form,
          name='invoice_update_instance_form_url'),
     path('<str:lab>/timesheet/', timesheet, name='timesheet_page_url'),
-    path('backup/', backup, name='backup_url'),
 ]
