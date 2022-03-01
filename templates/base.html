@@ -178,11 +178,11 @@
                 <a class="nav-link" href="{% url 'feedback_list_url' %}">Все отзывы</a>
             </div>
         {% endif %}
-        {% if user.is_staff and user_cat_list != 'none' %}
-            <div class="col">
-                <a class="nav-link" href="{% url 'load_new_database_url' lab=current_lab.slug %}">Добавить файл с данными</a>
-            </div>
-        {% endif %}
+{#        {% if user.is_staff and user_cat_list != 'none' %}#}
+{#            <div class="col">#}
+{#                <a class="nav-link" href="{% url 'load_new_database_url' lab=current_lab.slug %}">Добавить файл с данными</a>#}
+{#            </div>#}
+{#        {% endif %}#}
         {% if user.is_superuser %}
             <div class="col">
                 <form method="post" action="{% url 'backup_url' %}" id="make_backup">
@@ -190,9 +190,9 @@
                     <button class="nav-link btn btn-link" type="submit">Сделать бэкап базы</button>
                 </form>
             </div>
-            <div class="col">
-                <a class="nav-link" href="{% url 'start_tg_bot_url' %}">Запустить бота</a>
-            </div>
+{#            <div class="col">#}
+{#                <a class="nav-link" href="{% url 'start_tg_bot_url' %}">Запустить бота</a>#}
+{#            </div>#}
         {% endif %}
     </div>
 </footer>
