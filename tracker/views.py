@@ -170,7 +170,9 @@ def task_form(request, lab, pk=None):
                 if executors != set(task.executors.all()):
                     bot_send = True
                     new_executors = set(task.executors.all())
-                    if len(executors) < len(new_executors):
+                    if len(executors) == len(new_executors):
+                        message += '-**Изменены исполнители : **'
+                    elif len(executors) < len(new_executors):
                         message += '-**Добавлены исполнители : **'
                     else:
                         message += '-**Убраны исполнители : **'
@@ -184,7 +186,7 @@ def task_form(request, lab, pk=None):
                     message += f'-**Дедлайн изменился с** "{end_date}" **на** "{new_end_date}"\n'
                 if text != task.text:
                     bot_send = True
-                    message += f'-**Описание изменилось с**\n "{text}"\n **на** \n"{task.text}"'
+                    message += f'-**Описание изменилось : ** \n"{task.text}"'
                 if bot_send:
                     task.add_robot_comment(message, user)
                 return redirect(task_page, lab=lab, pk=pk)
