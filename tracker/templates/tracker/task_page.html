@@ -187,7 +187,7 @@
     </h5>
     <div id="comments">
         {% for comment in comments %}
-            <div class="row comment">
+            <div class="comment">
                 <div class="col-1">
                     <img class="avatar mt-2 mb-2" src="{{ comment.user.avatar_url }}" alt="Аватар" width="80%">
                 </div>
@@ -229,7 +229,7 @@
     </div>
     <div id="history" style="display: none">
         {% for comment in history %}
-            <div class="row comment">
+            <div class="comment">
                 <div class="col-1">
                     <img class="avatar mt-2 mb-2" src="{{ comment.user.avatar_url }}" alt="Аватар" width="80%">
                 </div>
