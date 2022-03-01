@@ -14,3 +14,4 @@ telegram_bot/migrations/
 .directory
 /db_main/files/
 /db_size.txt
+/backup
