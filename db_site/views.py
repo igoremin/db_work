@@ -203,7 +203,7 @@ def home_page(request):
 
 @login_required(login_url='/login/')
 def lab_main_page(request, lab):
-    lab = LabName.objects.get(slug=lab)
+    lab = get_object_or_404(LabName, slug=lab)
     context = {
         'lab': lab
     }
