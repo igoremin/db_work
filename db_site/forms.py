@@ -485,6 +485,7 @@ class ChangeProfile(forms.ModelForm):
                 self.avatar_label = f'Текущий аватар не выбран'
             self.fields['avatar'].label = self.avatar_label
             self.fields['avatar'].label_suffix = ''
+            self.fields['lab'].empty_label = None
         if is_admin is False:
             self.fields.pop('lab')
             self.fields.pop('position')

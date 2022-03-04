@@ -468,6 +468,7 @@ class WorkCalendar(models.Model):
         NIGHT_WORK = 'Н', _('Работа в ночное время')
         GOS_WORK = 'Г', _('Выполнение гособязанностей')
         BABY = 'Р', _('Отпуск в связи с родами')
+        FIRED = 'У', _('Уволен')
 
     type = models.CharField(
         max_length=2,

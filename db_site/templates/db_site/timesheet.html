@@ -48,6 +48,7 @@
                         <td class="table_date_info" colspan="1">
                             {% if calendar.type == 'Ф' %}
                                 {{ calendar.hours }}<sup>{{ calendar.minutes }}</sup>
+                            {% elif calendar.type == 'У' %}
                             {% else %}
                                 {{ calendar.type }}
                             {% endif %}

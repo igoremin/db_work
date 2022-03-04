@@ -5,12 +5,13 @@
 {% endblock %}
 
 {% block content %}
-
     <article class="fade-out-siblings">
         <button onclick="location.href='{% url "categories_list_url" lab=lab.slug %}'">База данных</button>
         <button onclick="location.href='{{ user_info.get_absolute_url }}'">Профиль</button>
         <button onclick="location.href='{% url "task_list_for_current_lab" lab=lab.slug %}'">Задачи</button>
-        <button type="button" data-toggle="modal" data-target="#timesheet_modal">Табель</button>
+        {% if current_lab.slug != 'bez_laboratorii' %}
+            <button type="button" data-toggle="modal" data-target="#timesheet_modal">Табель</button>
+        {% endif %}
     </article>
 
         <!-- Модальное окно -->

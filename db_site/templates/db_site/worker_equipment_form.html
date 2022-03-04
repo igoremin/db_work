@@ -6,7 +6,7 @@
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="{{ worker.get_absolute_url }}" id="lab_name">{{ worker.get_short_name }}</a></li>
-    {% if type == 'order' %}
+    {% if not order_number %}
         <li class="breadcrumb-item">Запрос на выдачу оборудования и материалов</li>
     {% else %}
         <li class="breadcrumb-item">Добавление и изменение оборудования</li>
@@ -15,10 +15,10 @@
 
 {% block content %}
     <h3>Сотрудник : <a href="{{ worker.get_absolute_url }}">{{ worker.name }}</a></h3>
-    {% if type == 'order' %}
+    {% if not order_number %}
         <h4>Запрос на выдачу оборудования и материалов</h4>
     {% else %}
-        <h4>Добавление оборудования</h4>
+        <h4>Добавление и изменение оборудования</h4>
     {% endif %}
 
     <form action="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}{% if new_order == 'true' %}?new_order=true{% elif order_number %}?order_number={{ order_number }}{% endif %}" method="POST" id="base_form">
@@ -38,11 +38,39 @@
         </div>
         <div id="create_div"></div>
 
-        <p id="create_div_btn">
-            <button type="button" onclick="addNewSimpleObject();" class="btn btn-outline-primary mt-3">Добавить</button>
+        <p id="create_div_btn" class="not_margin">
+            <button type="button" onclick="addNewSimpleObject();" class="btn btn-outline-primary mt-2">Добавить</button>
         </p>
-
     </form>
+    {% if not order_number and user.is_superuser and not new_order%}
+        <p>
+            <button type="button" class="btn btn-outline-danger mt-3" data-toggle="modal" data-target="#delete_all">Удалить все позиции у сотрудника</button>
+        </p>
+        <!-- Модальное окно для удаления компонента-->
+        <div class="modal fade" id="delete_all" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Удаление {{ component }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Удалить все позиции у сотружника?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                        <form method="post" action="{% url 'worker_delete_all_equipment_url' lab=current_lab.slug pk=worker.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete" value="yes">
+                            <input role="button" type="submit" class="btn btn-outline-danger" value="Да">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 
     <hr>
     <table class="table table-hover table-bordered" id="all_components_table">
@@ -116,7 +144,11 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            Вы действительно хотите исключить {{ component.simple_object }} из заявки ?
+                            {% if order_number %}
+                                Вы действительно хотите исключить {{ component.simple_object }} из заявки ?
+                            {% else %}
+                                Удалить позицию у сотрудника?
+                            {% endif %}
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
@@ -130,42 +162,5 @@
 
         </tbody>
     </table>
-
-{#    <form action="{% url 'worker_equipment_form_url' lab=current_lab.slug pk=worker.pk %}{% if new_order == 'true' %}?new_order=true{% elif order_number %}?order_number={{ order_number }}{% endif %}" method="post">#}
-{#        {% csrf_token %}#}
-{##}
-{#        {{ formset.management_form }}#}
-{#        {% for form in formset %}#}
-{#            <div class="row pb-2 form_div" id="simple_object">#}
-{#                <div class="col">#}
-{#                    <label for="{{ form.simple_object.id_for_label }}">{{ form.simple_object.label_tag }}</label>#}
-{#                    {{ form.simple_object.errors }}#}
-{#                    {{ form.simple_object }}#}
-{#                </div>#}
-{#                <div class="col col-lg-2">#}
-{#                    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label_tag }}</label>#}
-{#                    {{ form.amount.errors }}#}
-{#                    {{ form.amount }}#}
-{#                </div>#}
-{#            </div>#}
-{#            {% for hidden in form.hidden_fields %}#}
-{#                {{ hidden }}#}
-{#            {% endfor %}#}
-{##}
-{#        {% endfor %}#}
-{##}
-{#        <div id="create_div"></div>#}
-{##}
-{#        <p id="create_div_btn">#}
-{#            <button type="button" onclick="addSimpleObjectAria();" class="btn btn-primary mt-3">Добавить объект</button>#}
-{#        </p>#}
-{##}
-{#        <button type="submit" class="btn btn-primary">Сохранить</button>#}
-{#        <input type="button" class="btn btn-primary" value="Назад" onClick="javascript:history.go(-1);">#}
-{##}
-{#        {{ form.as_p }}#}
-{#        <button type="submit" class="btn btn-outline-primary">Сохранить</button>#}
-{#        <input type="button" class="btn btn-outline-secondary" value="Назад" onClick="javascript:history.go(-1);">#}
-{#    </form>#}
 
 {% endblock %}

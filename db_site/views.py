@@ -189,7 +189,7 @@ def home_page(request):
     if request.user.is_authenticated:
         user = Profile.objects.get(pk=request.user.id)
         if request.user.is_superuser:
-            labs = LabName.objects.all()
+            labs = LabName.objects.exclude(slug='bez_laboratorii')
         elif user.lab is None:
             return render(request, 'db_site/home_page.html', context=context)
         else:
@@ -1314,8 +1314,8 @@ def worker_calendar(request, pk, lab):
 @login_required(login_url='/login/')
 def timesheet(request, lab):
     """Табель по количеству рабочих дней у лаборатории"""
-    if not request.user.is_superuser:
-        raise Http404
+    # if not request.user.is_superuser:
+    #     raise Http404
 
     if request.method != 'GET':
         raise Http404
@@ -1493,6 +1493,16 @@ def worker_equipment_form(request, pk, lab):
 
         else:
             return JsonResponse({"rez": 'Что-то пошло не так, попробуйте снова!'}, status=400)
+
+
+@login_required(login_url='/login/')
+def worker_delete_all_equipment(request, pk, lab):
+    if request.user.is_superuser and request.method == 'POST':
+        check = request.POST.get('delete', False)
+        if check:
+            user = get_object_or_404(Profile, pk=pk)
+            user.workerequipment_set.filter(order__isnull=True).delete()
+    return redirect(worker_page, pk=pk, lab=lab)
 
 
 @login_required(login_url='/login/')
