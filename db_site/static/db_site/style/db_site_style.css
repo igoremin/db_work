@@ -257,6 +257,12 @@ div.row {
     border-radius: 10px;
 }
 
+/*Модальное окно*/
+div.modal-dialog {
+    margin-top: 200px;
+}
+/*--------------*/
+
 /*footer*/
 .col_white_amrc { color:#FFF;}
 
